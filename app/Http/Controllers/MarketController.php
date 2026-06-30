@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\ItemPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 
 
 class MarketController extends Controller
 {
+    // Daftar kota yang dipakai buat cache harga (samain urutannya sama CITIES di frontend)
+    private const CITIES = ['Caerleon', 'Bridgewatch', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
 
 /**
 	 * ===========================================================
@@ -127,26 +131,47 @@ class MarketController extends Controller
 	{
 	    $perPage = 50;
 	    $page    = max(1, (int) $request->get('page', 1));
-	    $search  = $request->get('search', '');
-	
-	    $query = DB::table('item_recipes')
-	        ->select('item_api_id')
-	        ->distinct()
-	        ->whereNotIn('item_api_id', function ($q) {
-	            $q->select('api_id')->from('items');
-	        })
-	        ->where('item_api_id', 'not like', 'QUESTITEM%')
-	        ->where('item_api_id', 'not like', 'UNIQUE%');
-	
-if ($search) {
-    $query->where('item_api_id', 'like', "%{$search}%");
-}
-	
-	    $total  = $query->count();
-	    $apiIds = $query->orderBy('item_api_id')
-	                    ->offset(($page - 1) * $perPage)
-	                    ->limit($perPage)
-	                    ->pluck('item_api_id');
+	    $search  = trim($request->get('search', ''));
+
+	    // Query dasar (tanpa search) yang dipakai di kedua cabang di bawah
+	    $baseQuery = function () {
+	        return DB::table('item_recipes')
+	            ->select('item_api_id')
+	            ->distinct()
+	            ->whereNotIn('item_api_id', function ($q) {
+	                $q->select('api_id')->from('items');
+	            })
+	            ->where('item_api_id', 'not like', 'QUESTITEM%')
+	            ->where('item_api_id', 'not like', 'UNIQUE%');
+	    };
+
+	    if ($search === '') {
+	        // Tanpa search: cukup query SQL biasa + pagination di DB (ringan)
+	        $total  = $baseQuery()->count();
+	        $apiIds = $baseQuery()
+	            ->orderBy('item_api_id')
+	            ->offset(($page - 1) * $perPage)
+	            ->limit($perPage)
+	            ->pluck('item_api_id');
+	    } else {
+	        // Dengan search: "nama item" itu hasil olahan parseApiId(), BUKAN kolom asli
+	        // di DB, jadi gak bisa di-LIKE langsung di SQL kayak api_id. Solusinya: ambil
+	        // semua kandidat id dulu, cocokkan ke api_id ATAU nama hasil parse di PHP,
+	        // baru di-paginate manual.
+	        $allApiIds = $baseQuery()->orderBy('item_api_id')->pluck('item_api_id');
+
+	        $searchLower = mb_strtolower($search);
+	        $matched = $allApiIds->filter(function ($apiId) use ($searchLower) {
+	            if (str_contains(mb_strtolower($apiId), $searchLower)) {
+	                return true;
+	            }
+	            $name = mb_strtolower($this->parseApiId($apiId)['name']);
+	            return str_contains($name, $searchLower);
+	        })->values();
+
+	        $total  = $matched->count();
+	        $apiIds = $matched->slice(($page - 1) * $perPage, $perPage)->values();
+	    }
 	
 	    // Ambil distinct enchantment_level per item_api_id dari item_recipes (1 query, hindari N+1)
 	    $encLevels = DB::table('item_recipes')
@@ -221,7 +246,7 @@ if ($search) {
     {
         $request->validate([
             'category_id' => 'nullable|integer|exists:categories,id',
-            'tier'        => 'nullable|string',
+            'tier'        => 'nullable|integer|min:1|max:8',
             'enc'         => 'nullable|integer|min:0|max:4',
             'quality'     => 'nullable|string',
         ]);
@@ -239,7 +264,8 @@ if ($search) {
         }
 
         if ($request->filled('tier')) {
-            $query->where('tier', $request->tier);
+            // PENTING: kolom 'tier' di DB isinya angka (1-8), BUKAN string "T1".."T8"
+            $query->where('tier', (int) $request->tier);
         }
 
         if ($request->filled('enc')) {
@@ -250,18 +276,38 @@ if ($search) {
             $query->where('quality', $request->quality);
         }
 
-        $items = $query->orderBy('tier')->orderBy('name')->get()->map(fn($item) => [
-            'id'       => $item->id,
-            'name'     => $item->name,
-            'api_id'   => $item->api_id,
-            'tier'     => $item->tier,
-            'enc'      => $item->enc,
-            'quality'  => $item->quality,
-            'category' => $item->category->name ?? '-',
-            'img_url'  => $item->api_id
-                ? "https://render.albiononline.com/v1/item/{$item->api_id}.png"
-                : null,
-        ]);
+        $items = $query->orderBy('tier')->orderBy('name')->get();
+
+        // Ambil semua harga cache untuk item-item ini sekaligus (1 query, hindari N+1
+        // dan hindari fetch ke API eksternal langsung dari frontend untuk tiap item)
+        $apiIds = $items->pluck('api_id')->filter()->unique()->values();
+        $priceRows = ItemPrice::whereIn('item_api_id', $apiIds)->get()
+            ->groupBy(fn($p) => $p->item_api_id . '#' . $p->enc);
+
+        $items = $items->map(function ($item) use ($priceRows) {
+            $enc = (int) ($item->enc ?? 0);
+            $key = $item->api_id . '#' . $enc;
+            $prices = $priceRows->get($key, collect())
+                ->mapWithKeys(fn($p) => [$p->city => (int) $p->sell_price_min]);
+
+            $apiIdWithEnc = $item->api_id
+                ? ($enc > 0 ? "{$item->api_id}@{$enc}" : $item->api_id)
+                : null;
+
+            return [
+                'id'       => $item->id,
+                'name'     => $item->name,
+                'api_id'   => $item->api_id,
+                'tier'     => $item->tier,
+                'enc'      => $item->enc,
+                'quality'  => $item->quality,
+                'category' => $item->category->name ?? '-',
+                'img_url'  => $apiIdWithEnc
+                    ? "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png"
+                    : null,
+                'prices'   => $prices, // {city: harga} dari cache, bisa kosong kalau belum pernah di-refresh
+            ];
+        });
 
         return response()->json($items);
     }
@@ -307,6 +353,17 @@ public function itemDetail($id)
             ];
         })->values();
 
+        // Harga dari cache (item_prices) — yang fresh-nya di-trigger lewat endpoint refreshPrices()
+        // pas popup dibuka, bukan fetch langsung dari sini.
+        $cachedPrices = ItemPrice::where('item_api_id', $item->api_id)
+            ->where('enc', $encLevel)
+            ->get()
+            ->keyBy('city');
+
+        $prices = collect(self::CITIES)->mapWithKeys(
+            fn($city) => [$city => (int) ($cachedPrices[$city]->sell_price_min ?? 0)]
+        );
+
         return response()->json([
             'id'        => $item->id,
             'name'      => $item->name,
@@ -315,6 +372,62 @@ public function itemDetail($id)
             'enc'       => $encLevel,
             'img_url'   => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
             'resources' => $resources,
+            'prices'    => $prices,
+        ]);
+    }
+
+    // Fetch harga terbaru dari Albion Online Data Project, simpan ke cache, balikin hasilnya.
+    // Dipanggil pas user buka popup item (bukan tiap render list).
+    public function refreshPrices($id)
+    {
+        $item = Item::findOrFail($id);
+        $enc  = (int) ($item->enc ?? 0);
+        $apiIdWithEnc = $enc > 0 ? "{$item->api_id}@{$enc}" : $item->api_id;
+        $citiesParam  = implode(',', self::CITIES);
+
+        $data = null;
+        try {
+            $response = Http::timeout(8)->get(
+                "https://west.albion-online-data.com/api/v2/stats/prices/{$apiIdWithEnc}",
+                ['locations' => $citiesParam, 'qualities' => 1]
+            );
+            if ($response->successful()) {
+                $data = $response->json();
+            }
+        } catch (\Throwable $e) {
+            $data = null; // API gagal/timeout -> di bawah kita fallback ke cache lama
+        }
+
+        if (is_array($data)) {
+            $now = now();
+            foreach (self::CITIES as $city) {
+                $entry = collect($data)->firstWhere('city', $city);
+                $price = (int) ($entry['sell_price_min'] ?? 0);
+
+                // Cuma update cache kalau API benar-benar ngasih harga > 0.
+                // Kalau API kosong/0 untuk kota itu, BIARKAN data cache lama tetap
+                // (jangan ditimpa 0), biar gak kehilangan harga terakhir yang valid.
+                if ($price > 0) {
+                    ItemPrice::updateOrCreate(
+                        ['item_api_id' => $item->api_id, 'enc' => $enc, 'city' => $city],
+                        ['sell_price_min' => $price, 'fetched_at' => $now]
+                    );
+                }
+            }
+        }
+
+        $cachedPrices = ItemPrice::where('item_api_id', $item->api_id)
+            ->where('enc', $enc)
+            ->get()
+            ->keyBy('city');
+
+        $prices = collect(self::CITIES)->mapWithKeys(
+            fn($city) => [$city => (int) ($cachedPrices[$city]->sell_price_min ?? 0)]
+        );
+
+        return response()->json([
+            'prices' => $prices,
+            'stale'  => $data === null, // true kalau API gagal & ini cuma balikin cache lama
         ]);
     }
 

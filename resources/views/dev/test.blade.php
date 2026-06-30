@@ -285,6 +285,12 @@ let totalPages  = 1;
 let searchTimer = null;
 let currentTab  = 'unmapped'; // 'unmapped' | 'saved'
 
+// Kategori terakhir yang dipakai lewat shortcut "Cari Item yang Relevan".
+// Dipakai buat auto-fill dropdown kategori di tiap group card hasil pencarian.
+let lastSearchCat1 = null;
+let lastSearchCat2 = null;
+let lastSearchCat3 = null;
+
 // ============================================================
 // TAB SWITCHING
 // ============================================================
@@ -294,6 +300,7 @@ function switchTab(tab) {
   document.getElementById('tab-unmapped').classList.toggle('active', tab === 'unmapped');
   document.getElementById('tab-saved').classList.toggle('active', tab === 'saved');
   document.getElementById('searchInput').value = '';
+  lastSearchCat1 = lastSearchCat2 = lastSearchCat3 = null;
   if (tab === 'unmapped') {
     loadItems();
   } else {
@@ -368,8 +375,9 @@ function onCatShortcut2Change() {
 }
 
 function searchByCatShortcut() {
-  const sel3 = document.getElementById('catShortcut3');
+  const sel1 = document.getElementById('catShortcut1');
   const sel2 = document.getElementById('catShortcut2');
+  const sel3 = document.getElementById('catShortcut3');
   const selectedOption = sel3.value
     ? sel3.options[sel3.selectedIndex]
     : (sel2.value ? sel2.options[sel2.selectedIndex] : null);
@@ -378,6 +386,12 @@ function searchByCatShortcut() {
     showToast('⚠️ Pilih kategori dulu (minimal sampai Level 2 atau 3)', 'warn');
     return;
   }
+
+  // Simpan kategori yang dipilih biar dipakai buat auto-fill kategori
+  // di tiap group card hasil pencarian (lihat prefillGroupCategories()).
+  lastSearchCat1 = parseInt(sel1.value) || null;
+  lastSearchCat2 = parseInt(sel2.value) || null;
+  lastSearchCat3 = parseInt(sel3.value) || null;
 
   document.getElementById('searchInput').value = selectedOption.textContent;
   currentPage = 1;
@@ -511,11 +525,56 @@ function makeGroupCard(baseKey, groupItems) {
     itemsContainer.appendChild(makeRow(item, groupId));
   });
 
+  // Auto-fill kategori kalau hasil ini datang dari pencarian via shortcut kategori
+  prefillGroupCategories(card, groupId);
+
   // simpan referensi item list + max_enc di elemen untuk dipakai saveGroup nanti
   card.dataset.apiIds = JSON.stringify(groupItems.map(i => i.api_id));
   card.dataset.maxEnc = maxEnc;
 
   return card;
+}
+
+// ============================================================
+// AUTO-FILL kategori group card pakai kategori terakhir yang
+// dipilih lewat shortcut "Cari Item yang Relevan". Pakai
+// card.querySelector (bukan document.getElementById) karena saat
+// fungsi ini dipanggil, card belum tentu sudah nempel ke document.
+// ============================================================
+function prefillGroupCategories(card, groupId) {
+  if (!lastSearchCat1) return;
+
+  const sel1 = card.querySelector('#gcat1-' + groupId);
+  const sel2 = card.querySelector('#gcat2-' + groupId);
+  const sel3 = card.querySelector('#gcat3-' + groupId);
+  if (!sel1) return;
+
+  const cat1 = CATEGORIES.find(c => c.id === lastSearchCat1);
+  if (!cat1) return;
+  sel1.value = lastSearchCat1;
+
+  if (cat1.children.length) {
+    cat1.children.forEach(c => {
+      sel2.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+    sel2.disabled = false;
+  }
+
+  if (lastSearchCat2) {
+    const cat2 = cat1.children.find(c => c.id === lastSearchCat2);
+    if (cat2) {
+      sel2.value = lastSearchCat2;
+      if (cat2.children.length) {
+        cat2.children.forEach(c => {
+          sel3.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+        sel3.disabled = false;
+      }
+      if (lastSearchCat3) {
+        sel3.value = lastSearchCat3;
+      }
+    }
+  }
 }
 
 function toggleGroup(groupId) {
@@ -657,6 +716,9 @@ function makeRow(item, groupId) {
 // SEARCH & PAGINATION (tab-aware)
 // ============================================================
 function onSearch() {
+  // Pencarian manual (ketik teks) gak ada kategori spesifik yang relevan,
+  // jadi reset auto-fill kategori biar gak ke-bawa dari pencarian shortcut sebelumnya.
+  lastSearchCat1 = lastSearchCat2 = lastSearchCat3 = null;
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     currentPage = 1;
@@ -741,7 +803,51 @@ function makeSavedRow(item) {
     </select>
     <button class="saved-update-btn" onclick="updateSavedCategory(${item.id})">Update</button>
   `;
+
+  // Auto-fill kategori kalau hasil ini datang dari pencarian via shortcut kategori
+  prefillSavedRowCategory(row, item.id);
+
   return row;
+}
+
+// ============================================================
+// AUTO-FILL kategori saved-row, sama logikanya kayak
+// prefillGroupCategories() tapi buat pola id scat1/scat2/scat3.
+// ============================================================
+function prefillSavedRowCategory(row, itemId) {
+  if (!lastSearchCat1) return;
+
+  const sel1 = row.querySelector('#scat1-' + itemId);
+  const sel2 = row.querySelector('#scat2-' + itemId);
+  const sel3 = row.querySelector('#scat3-' + itemId);
+  if (!sel1) return;
+
+  const cat1 = CATEGORIES.find(c => c.id === lastSearchCat1);
+  if (!cat1) return;
+  sel1.value = lastSearchCat1;
+
+  if (cat1.children.length) {
+    cat1.children.forEach(c => {
+      sel2.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+    sel2.disabled = false;
+  }
+
+  if (lastSearchCat2) {
+    const cat2 = cat1.children.find(c => c.id === lastSearchCat2);
+    if (cat2) {
+      sel2.value = lastSearchCat2;
+      if (cat2.children.length) {
+        cat2.children.forEach(c => {
+          sel3.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+        sel3.disabled = false;
+      }
+      if (lastSearchCat3) {
+        sel3.value = lastSearchCat3;
+      }
+    }
+  }
 }
 
 function onSavedCat1Change(id) {

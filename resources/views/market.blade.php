@@ -55,23 +55,24 @@
   color: #2a1800; font-family: 'Cinzel', serif; font-size: 12px;
   font-weight: 600; letter-spacing: 0.5px; padding: 7px 12px;
   cursor: pointer; user-select: none; white-space: nowrap;
-  transition: all 0.1s; min-width: 100px; justify-content: space-between;
+  transition: all 0.1s; justify-content: space-between;
 }
 .flt-btn:hover { background: linear-gradient(180deg, #dabb5a 0%, #b88838 100%); border-color: var(--gold); }
 .flt-btn.open  { background: linear-gradient(180deg, #b89030 0%, #907020 100%); border-color: var(--gold); box-shadow: 0 0 8px rgba(240,192,64,0.3); }
 .flt-btn .flt-label { flex: 1; text-align: left; }
-.flt-btn .flt-val   { font-size: 10px; opacity: 0.75; max-width: 70px; overflow: hidden; text-overflow: ellipsis; }
+.flt-btn .flt-val   { font-size: 10px; opacity: 0.75; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
 .flt-btn .flt-arrow { font-size: 8px; opacity: 0.7; margin-left: 2px; transition: transform 0.15s; }
 .flt-btn.open .flt-arrow { transform: rotate(180deg); }
 
 /* ====== DROPDOWN ====== */
 .drop-wrap {
-  position: fixed; z-index: 9999; display: none; gap: 2px;
+  position: fixed; z-index: 9999;
+  display: none; gap: 2px;
   filter: drop-shadow(0 6px 20px rgba(0,0,0,0.85));
 }
 .drop-wrap.show { display: flex; }
 .drop-col {
-  min-width: 100px; max-height: 370px; overflow-y: auto;
+  min-width: 175px; max-height: 370px; overflow-y: auto;
   background: linear-gradient(180deg, #e8cf88 0%, #d4b468 100%);
   border: 1px solid #8b6820; border-radius: 3px;
   padding: 4px; display: flex; flex-direction: column; gap: 2px;
@@ -94,10 +95,15 @@
 .item-list-empty {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  color: var(--text-dim); font-style: italic; font-size: 14px;
-  text-align: center; font-family: 'Crimson Text', serif;
+  color: var(--text-dim);
+  font-style: italic; font-size: 14px; text-align: center;
+  font-family: 'Crimson Text', serif;
 }
+
+/* Scroll wrapper */
 .item-table-wrap { max-height: 480px; overflow-y: auto; }
+
+/* Tiap baris — gaya refine */
 .item-row {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 10px;
@@ -105,6 +111,8 @@
   cursor: pointer; transition: background 0.1s;
 }
 .item-row:hover { background: rgba(61,46,21,0.5); }
+
+/* Icon + badge */
 .item-icon-wrap { position: relative; flex-shrink: 0; }
 .item-icon {
   width: 48px; height: 48px;
@@ -117,40 +125,65 @@
   width: 16px; height: 16px; border-radius: 2px;
   font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.78); border: 1px solid currentColor; color: var(--gold);
+  background: rgba(0,0,0,0.78); border: 1px solid currentColor;
+  color: var(--gold);
 }
 .enc-badge {
   position: absolute; bottom: 1px; right: 1px;
-  width: 14px; height: 14px; border-radius: 2px; font-size: 8px; font-weight: 700;
+  width: 14px; height: 14px; border-radius: 2px;
+  font-size: 8px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   background: rgba(140,80,0,0.85); color: #ffe090;
 }
+
+/* Info kanan: nama + badge harga */
 .item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .item-name { font-family: 'Crimson Text', serif; font-size: 15px; color: var(--parch-lt); font-weight: 600; }
+
+/* Badge harga per kota — wrap */
 .item-prices { display: flex; flex-wrap: wrap; gap: 4px; }
 .price-badge {
   font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
-  padding: 3px 7px; border-radius: 3px; white-space: nowrap; border: 1px solid transparent;
+  padding: 3px 7px; border-radius: 3px;
+  white-space: nowrap; border: 1px solid transparent;
 }
-.price-badge.city-Caerleon     { background: #7b1a1a; color: #ffd0d0; border-color: #c0392b; }
+.price-badge.city-Caerleon    { background: #7b1a1a; color: #ffd0d0; border-color: #c0392b; }
 .price-badge.city-Bridgewatch  { background: #7a3a00; color: #ffe0b0; border-color: #e67e22; }
 .price-badge.city-Fort-Sterling{ background: #3a3a3a; color: #f0f0f0; border-color: #bdc3c7; }
-.price-badge.city-Lymhurst     { background: #1a4a1a; color: #c0ffc0; border-color: #27ae60; }
-.price-badge.city-Martlock     { background: #1a2a5a; color: #c0d0ff; border-color: #2980b9; }
-.price-badge.city-Thetford     { background: #3a1a5a; color: #e0c0ff; border-color: #8e44ad; }
-.price-badge.city-Brecilien    { background: #0a3a2a; color: #a0ffe0; border-color: #1abc9c; }
+.price-badge.city-Lymhurst    { background: #1a4a1a; color: #c0ffc0; border-color: #27ae60; }
+.price-badge.city-Martlock    { background: #1a2a5a; color: #c0d0ff; border-color: #2980b9; }
+.price-badge.city-Thetford    { background: #3a1a5a; color: #e0c0ff; border-color: #8e44ad; }
+.price-badge.city-Brecilien   { background: #0a3a2a; color: #a0ffe0; border-color: #1abc9c; }
+
+/* ====== SEARCH ====== */
+.search-bar { padding: 10px 12px 0; }
+.search-input {
+  width: 100%;
+  background: linear-gradient(180deg, #1a1208 0%, #110e05 100%);
+  border: 1px solid var(--slot-bd); border-radius: 3px;
+  color: var(--text-lt); font-family: 'Crimson Text', serif;
+  font-size: 14px; padding: 8px 12px; outline: none;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--gold-dk); }
+.search-input::placeholder { color: var(--text-dim); }
 
 /* ====== POPUP ====== */
 .popup-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
-  z-index: 10000; display: none; align-items: center; justify-content: center; padding: 16px;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.82);
+  z-index: 10000;
+  display: none; align-items: center; justify-content: center;
+  padding: 16px;
 }
 .popup-overlay.show { display: flex; }
 .popup-box {
   background: linear-gradient(180deg, #2e2210 0%, #1a1208 100%);
   border: 2px solid var(--panel-bd); border-radius: 6px;
   box-shadow: 0 8px 40px rgba(0,0,0,0.95);
-  width: 100%; max-width: 400px; max-height: 88vh; overflow-y: auto; position: relative;
+  width: 100%; max-width: 400px;
+  max-height: 88vh; overflow-y: auto;
+  position: relative;
 }
 .popup-close {
   position: absolute; top: 10px; right: 10px;
@@ -161,32 +194,54 @@
   display: flex; align-items: center; justify-content: center; z-index: 1;
 }
 .popup-close:hover { background: #8b2020; border-color: #c04040; }
+
+/* Popup head: gambar + nama */
 .popup-head {
   display: flex; gap: 14px; padding: 16px 44px 16px 16px;
   background: linear-gradient(180deg, #3d2e15 0%, #2a1f0e 100%);
   border-bottom: 1px solid var(--panel-bd); align-items: center;
 }
 .popup-head img {
-  width: 72px; height: 72px; border: 1px solid var(--slot-bd); border-radius: 4px;
+  width: 72px; height: 72px;
+  border: 1px solid var(--slot-bd); border-radius: 4px;
   background: var(--slot-bg); object-fit: contain; flex-shrink: 0;
 }
-.popup-item-name { font-family: 'Cinzel', serif; font-size: 15px; color: var(--gold); margin-bottom: 4px; line-height: 1.3; }
-.popup-item-sub  { font-family: 'Crimson Text', serif; font-size: 12px; color: var(--text-dim); }
-.popup-prices { padding: 12px 16px; border-bottom: 1px solid rgba(107,79,26,0.4); }
-.popup-prices-label {
-  font-family: 'Cinzel', serif; font-size: 10px; color: var(--text-dim);
-  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+.popup-item-name {
+  font-family: 'Cinzel', serif; font-size: 15px;
+  color: var(--gold); margin-bottom: 4px; line-height: 1.3;
 }
-.city-prices-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+.popup-item-sub {
+  font-family: 'Crimson Text', serif; font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Harga per kota */
+.popup-prices {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(107,79,26,0.4);
+}
+.popup-prices-label {
+  font-family: 'Cinzel', serif; font-size: 10px;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+.city-prices-grid {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
 .city-price-box {
   width: 44px; height: 44px; border-radius: 4px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700;
-  cursor: default; border: 1px solid rgba(0,0,0,0.3); gap: 2px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  font-weight: 700; cursor: default;
+  border: 1px solid rgba(0,0,0,0.3);
+  gap: 2px;
 }
 .city-price-box .cpb-val { font-size: 8px; font-weight: 700; }
 .city-price-box.loading  { opacity: 0.5; }
 .city-price-box.no-data  { opacity: 0.3; }
+
+/* Warna kota Albion */
 .city-Caerleon      { background: #7b1a1a; color: #ffd0d0; border-color: #c0392b; }
 .city-Bridgewatch   { background: #7a3a00; color: #ffe0b0; border-color: #e67e22; }
 .city-Fort-Sterling { background: #3a3a3a; color: #f0f0f0; border-color: #bdc3c7; }
@@ -194,25 +249,42 @@
 .city-Martlock      { background: #1a2a5a; color: #c0d0ff; border-color: #2980b9; }
 .city-Thetford      { background: #3a1a5a; color: #e0c0ff; border-color: #8e44ad; }
 .city-Brecilien     { background: #0a3a2a; color: #a0ffe0; border-color: #1abc9c; }
-.popup-resources { padding: 12px 16px 16px; }
+
+/* Resources / bahan */
+.popup-resources {
+  padding: 12px 16px 16px;
+}
 .popup-resources-label {
-  font-family: 'Cinzel', serif; font-size: 10px; color: var(--text-dim);
-  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  font-family: 'Cinzel', serif; font-size: 10px;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 8px;
 }
 .resource-list { display: flex; flex-direction: column; gap: 6px; }
 .resource-row {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
   background: linear-gradient(180deg, #2a1e0a 0%, #1a1205 100%);
   border: 1px solid var(--slot-bd); border-radius: 4px;
   cursor: pointer; transition: all 0.12s;
 }
 .resource-row:hover { border-color: var(--gold-dk); background: linear-gradient(180deg, #3a2a10 0%, #251808 100%); }
-.resource-row img { width: 36px; height: 36px; object-fit: contain; border: 1px solid var(--slot-bd); border-radius: 3px; background: var(--slot-bg); flex-shrink: 0; }
+.resource-row img {
+  width: 36px; height: 36px; object-fit: contain;
+  border: 1px solid var(--slot-bd); border-radius: 3px;
+  background: var(--slot-bg); flex-shrink: 0;
+}
 .resource-info { flex: 1; }
 .resource-name { font-family: 'Crimson Text', serif; font-size: 14px; color: var(--text-lt); font-weight: 600; }
 .resource-tier { font-family: 'Cinzel', serif; font-size: 10px; color: var(--text-dim); }
-.resource-count { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); font-weight: 700; flex-shrink: 0; }
-.popup-loading { padding: 40px; text-align: center; color: var(--text-dim); font-style: italic; font-family: 'Crimson Text', serif; font-size: 14px; }
+.resource-count {
+  font-family: 'Cinzel', serif; font-size: 13px;
+  color: var(--gold); font-weight: 700; flex-shrink: 0;
+}
+.popup-loading {
+  padding: 40px; text-align: center;
+  color: var(--text-dim); font-style: italic;
+  font-family: 'Crimson Text', serif; font-size: 14px;
+}
 
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-thumb { background: #8b6820; border-radius: 3px; }
@@ -275,6 +347,7 @@
       </div>
     </div>
 
+
     <!-- Item List -->
     <div class="item-list" id="itemList">
       <div class="item-list-empty" id="emptyMsg">Pilih kategori untuk melihat item 🗡️</div>
@@ -296,6 +369,9 @@
 </div>
 
 <script>
+// ============================================================
+// KOTA & WARNA
+// ============================================================
 const CITIES = [
   { id: 'Caerleon',      label: 'CAE', cls: 'city-Caerleon'      },
   { id: 'Bridgewatch',   label: 'BRI', cls: 'city-Bridgewatch'   },
@@ -306,17 +382,27 @@ const CITIES = [
   { id: 'Brecilien',     label: 'BRE', cls: 'city-Brecilien'      },
 ];
 
+// ============================================================
+// STATE
+// ============================================================
 let CATEGORIES = [];
-const TIERS      = ['T1','T2','T3','T4','T5','T6','T7','T8'];
-const TIER_LABEL = {'T1':'Tier 1','T2':'Tier 2','T3':'Tier 3','T4':'Tier 4','T5':'Tier 5','T6':'Tier 6','T7':'Tier 7','T8':'Tier 8'};
+// PENTING: value-nya angka (1-8) biar nyambung sama kolom 'tier' di DB yang isinya
+// angka juga, bukan string "T1".."T8". TIER_LABEL cuma buat tampilan aja.
+const TIERS      = [1,2,3,4,5,6,7,8];
+const TIER_LABEL = {1:'Tier 1',2:'Tier 2',3:'Tier 3',4:'Tier 4',5:'Tier 5',6:'Tier 6',7:'Tier 7',8:'Tier 8'};
 const ENCS       = [0,1,2,3,4];
 const QUALITIES  = ['Normal','Good','Outstanding','Excellent','Masterpiece'];
 
 let openDrop = null;
-let selKat1 = null, selKat2 = null, selKat3 = null;
-let selCatId = null, selTier = null, selEnc = null, selQual = null;
+let selCatId = null;
+let selTier  = null;
+let selEnc   = null;
+let selQual  = null;
 let searchQ  = '';
 
+// ============================================================
+// DROPDOWN
+// ============================================================
 function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 function toggleDrop(name) {
@@ -360,6 +446,11 @@ function makeItem(text, hasArrow, isActive, onClick) {
   el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
   return el;
 }
+
+// ============================================================
+// CATEGORY DROPDOWN
+// ============================================================
+let selKat1 = null, selKat2 = null, selKat3 = null;
 
 function buildCol1() {
   const col = document.getElementById('colKat1');
@@ -439,6 +530,9 @@ function updateCatLabel() {
   setFilterVal('lblCategory', 'valCategory', chosen ? getCatName(chosen, CATEGORIES) : null);
 }
 
+// ============================================================
+// TIER / ENC / QUALITY DROPDOWN
+// ============================================================
 function buildTierDrop() {
   const col = document.getElementById('colTier');
   col.innerHTML = '';
@@ -472,6 +566,9 @@ function buildQualityDrop() {
   })));
 }
 
+// ============================================================
+// SEARCH
+// ============================================================
 let searchTimer = null;
 function onSearch() {
   clearTimeout(searchTimer);
@@ -481,6 +578,9 @@ function onSearch() {
   }, 400);
 }
 
+// ============================================================
+// FETCH ITEMS
+// ============================================================
 function showEmpty(msg) {
   document.getElementById('itemTableWrap').style.display = 'none';
   const el = document.getElementById('emptyMsg');
@@ -488,7 +588,6 @@ function showEmpty(msg) {
 }
 
 function fetchItems() {
-  if (!selCatId && !searchQ) { showEmpty('Pilih kategori untuk melihat item 🗡️'); return; }
   showEmpty('Memuat item...');
   const params = new URLSearchParams();
   if (selCatId) params.set('category_id', selCatId);
@@ -509,14 +608,19 @@ function fetchItems() {
     .catch(() => showEmpty('Gagal memuat item. Coba lagi.'));
 }
 
+// ============================================================
+// RENDER ITEM ROWS (flex, gaya refine)
+// ============================================================
 function renderItems(items) {
   const grid = document.getElementById('itemGrid');
   grid.innerHTML = '';
   document.getElementById('itemTableWrap').style.display = '';
   document.getElementById('emptyMsg').style.display = 'none';
+
   items.forEach(item => {
     const tierText = item.tier ?? '';
     const encText  = item.enc > 0 ? item.enc : '';
+
     const row = document.createElement('div');
     row.className = 'item-row';
     row.innerHTML = `
@@ -532,33 +636,34 @@ function renderItems(items) {
         <span class="item-name">${item.name}</span>
         <div class="item-prices" id="prices-${item.id}"></div>
       </div>`;
+
     row.addEventListener('click', () => openPopup(item.id));
     grid.appendChild(row);
-    if (item.api_id) fetchPriceRow(item.id, item.api_id, item.enc ?? 0);
+
+    renderPriceBadges(item.id, item.prices);
   });
 }
 
-function fetchPriceRow(itemId, apiId, enc) {
-  const id  = enc > 0 ? `${apiId}@${enc}` : apiId;
-  const url = `https://west.albion-online-data.com/api/v2/stats/prices/${id}?locations=${CITIES.map(c=>c.id).join(',')}&qualities=1`;
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      const container = document.getElementById('prices-' + itemId);
-      if (!container) return;
-      CITIES.forEach(c => {
-        const entry = data.find(d => d.city === c.id);
-        const price = entry?.sell_price_min ?? 0;
-        if (price > 0) {
-          const badge = document.createElement('span');
-          badge.className = `price-badge ${c.cls}`;
-          badge.title = c.id;
-          badge.textContent = formatSilver(price);
-          container.appendChild(badge);
-        }
-      });
-    })
-    .catch(() => {});
+// ============================================================
+// RENDER BADGE HARGA — datanya dari cache (item_prices), sudah
+// ikut nempel di response /api/market/items, jadi gak perlu fetch
+// API eksternal per item lagi (berat kalau list-nya banyak).
+// Cache-nya di-refresh tiap kali user buka popup item itu.
+// ============================================================
+function renderPriceBadges(itemId, prices) {
+  const container = document.getElementById('prices-' + itemId);
+  if (!container || !prices) return;
+  CITIES.forEach(c => {
+    const price = prices[c.id] ?? 0;
+    if (price > 0) {
+      const badge = document.createElement('span');
+      badge.className = `price-badge ${c.cls}`;
+      badge.title = c.id;
+      badge.textContent = formatSilver(price);
+      container.appendChild(badge);
+    }
+    // belum ada harga ter-cache untuk kota ini → tidak ditampilkan
+  });
 }
 
 function formatSilver(n) {
@@ -567,12 +672,18 @@ function formatSilver(n) {
   return n + ' 🪙';
 }
 
+// ============================================================
+// POPUP
+// ============================================================
 function openPopup(itemId) {
   document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Memuat...</div>';
   document.getElementById('popupOverlay').classList.add('show');
   fetch('/api/market/item/' + itemId)
     .then(r => r.json())
-    .then(item => renderPopup(item))
+    .then(item => {
+      renderPopup(item);
+      refreshPopupPrices(itemId); // update harga terbaru di background (juga update cache di DB)
+    })
     .catch(() => {
       document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Gagal memuat data.</div>';
     });
@@ -582,11 +693,21 @@ function renderPopup(item) {
   const enc      = item.enc ?? 0;
   const tierText = (item.tier ?? '') + (enc > 0 ? '.' + enc : '');
   const apiIdEnc = enc > 0 ? `${item.api_id}@${enc}` : item.api_id;
-  const cityBoxes = CITIES.map(c => `
-    <div class="city-price-box loading ${c.cls}" id="cpb-${c.id.replace(' ','-')}">
-      <span>${c.label}</span><span class="cpb-val">...</span>
+
+  // Kotak harga kota — langsung pakai harga cache (instan), gak nunggu fetch dulu.
+  // refreshPopupPrices() bakal nimpa nilai ini kalau ada update terbaru dari API.
+  const cityBoxes = CITIES.map(c => {
+    const price = item.prices?.[c.id] ?? 0;
+    const boxId = 'cpb-' + c.id.replace(' ', '-');
+    return `
+    <div class="city-price-box ${price ? '' : 'no-data'} ${c.cls}" id="${boxId}">
+      <span>${c.label}</span>
+      <span class="cpb-val">${price ? formatSilver(price) : '—'}</span>
     </div>
-  `).join('');
+  `;
+  }).join('');
+
+  // Buat list resource
   const resourcesHtml = item.resources && item.resources.length
     ? item.resources.map(r => `
       <div class="resource-row" onclick="openPopup(${r.item_id ?? 'null'})" ${!r.item_id ? 'style="cursor:default"' : ''}>
@@ -596,8 +717,10 @@ function renderPopup(item) {
           <div class="resource-tier">${r.resource_api_id}</div>
         </div>
         <div class="resource-count">×${r.count}</div>
-      </div>`).join('')
+      </div>
+    `).join('')
     : '<div style="color:var(--text-dim);font-style:italic;font-size:13px">Tidak ada recipe</div>';
+
   document.getElementById('popupContent').innerHTML = `
     <div class="popup-head">
       <img src="${item.img_url}" alt="${item.name}" onerror="this.style.opacity=0.3">
@@ -613,32 +736,50 @@ function renderPopup(item) {
     <div class="popup-resources">
       <div class="popup-resources-label">Bahan Crafting</div>
       <div class="resource-list">${resourcesHtml}</div>
-    </div>`;
-  const citiesParam = CITIES.map(c => c.id).join(',');
-  fetch(`https://west.albion-online-data.com/api/v2/stats/prices/${apiIdEnc}?locations=${citiesParam}&qualities=1`)
+    </div>
+  `;
+}
+
+// ============================================================
+// REFRESH HARGA — minta backend fetch ulang ke Albion Online Data
+// Project, sekalian update cache di DB. Dipanggil pas popup dibuka
+// (bukan tiap render list), jadi gak bikin banyak request eksternal.
+// ============================================================
+function refreshPopupPrices(itemId) {
+  fetch(`/api/market/item/${itemId}/refresh-prices`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRF-TOKEN': getCsrf() },
+  })
     .then(r => r.json())
     .then(data => {
       CITIES.forEach(c => {
-        const box = document.getElementById('cpb-' + c.id.replace(' ', '-'));
-        if (!box) return;
-        const entry = data.find(d => d.city === c.id);
-        const price = entry?.sell_price_min ?? 0;
-        box.classList.remove('loading');
-        if (!price) { box.classList.add('no-data'); box.querySelector('.cpb-val').textContent = '—'; }
-        else { box.querySelector('.cpb-val').textContent = formatSilver(price); }
+        const boxId = 'cpb-' + c.id.replace(' ', '-');
+        const box = document.getElementById(boxId);
+        if (!box) return; // popup udah ditutup / item lain dibuka
+        const price = data.prices?.[c.id] ?? 0;
+        box.classList.toggle('no-data', !price);
+        box.querySelector('.cpb-val').textContent = price ? formatSilver(price) : '—';
       });
     })
-    .catch(() => {
-      CITIES.forEach(c => {
-        const box = document.getElementById('cpb-' + c.id.replace(' ', '-'));
-        if (box) { box.classList.remove('loading'); box.classList.add('no-data'); box.querySelector('.cpb-val').textContent = '—'; }
-      });
-    });
+    .catch(() => {}); // gagal refresh → biarkan harga cache yang sudah tampil
 }
 
-function closePopup() { document.getElementById('popupOverlay').classList.remove('show'); }
-function closePopupOnBg(e) { if (e.target === document.getElementById('popupOverlay')) closePopup(); }
+function getCsrf() {
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+}
 
+function closePopup() {
+  document.getElementById('popupOverlay').classList.remove('show');
+}
+
+function closePopupOnBg(e) {
+  if (e.target === document.getElementById('popupOverlay')) closePopup();
+}
+
+// ============================================================
+// INIT
+// ============================================================
 fetch('/api/market/categories')
   .then(r => r.json())
   .then(data => {
@@ -647,6 +788,7 @@ fetch('/api/market/categories')
     buildTierDrop();
     buildEncDrop();
     buildQualityDrop();
+    fetchItems(); // load semua item dari awal, gak perlu pilih kategori dulu
   });
 </script>
 @endsection
