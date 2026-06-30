@@ -1,0 +1,2023 @@
+[
+  {
+    "name": "Weapons",
+    "children": [
+      {
+        "name": "Bow",
+        "children": [
+          {
+            "name": "Bow"
+          },
+          {
+            "name": "Longbow"
+          },
+          {
+            "name": "Warbow"
+          },
+          {
+            "name": "Whispering bow"
+          },
+          {
+            "name": "Wailing bow"
+          },
+          {
+            "name": "Bow of badon"
+          },
+          {
+            "name": "Mistpiercer"
+          },
+          {
+            "name": "Skystrider bow"
+          }
+        ]
+      },
+      {
+        "name": "Crossbow",
+        "children": [
+          {
+            "name": "Crossbow"
+          },
+          {
+            "name": "Heavy crossbow"
+          },
+          {
+            "name": "Light crossbow"
+          },
+          {
+            "name": "Weeping repeater"
+          },
+          {
+            "name": "Boltcasters"
+          },
+          {
+            "name": "Siegebow"
+          },
+          {
+            "name": "Energy shaper"
+          },
+          {
+            "name": "Arclight blaster"
+          }
+        ]
+      },
+      {
+        "name": "Axe",
+        "children": [
+          {
+            "name": "Battleaxe"
+          },
+          {
+            "name": "Greataxe"
+          },
+          {
+            "name": "Halberd"
+          },
+          {
+            "name": "Carrioncaller"
+          },
+          {
+            "name": "Infernal scythe"
+          },
+          {
+            "name": "Bear paws"
+          },
+          {
+            "name": "Realmbreaker"
+          },
+          {
+            "name": "Crystal reaper"
+          }
+        ]
+      },
+      {
+        "name": "Dagger",
+        "children": [
+          {
+            "name": "Dagger"
+          },
+          {
+            "name": "Dagger pair"
+          },
+          {
+            "name": "Claws"
+          },
+          {
+            "name": "Bloodletter"
+          },
+          {
+            "name": "Demon fang"
+          },
+          {
+            "name": "Deathgivers"
+          },
+          {
+            "name": "Bridled fury"
+          },
+          {
+            "name": "Twin slayer"
+          }
+        ]
+      },
+      {
+        "name": "Hammer",
+        "children": [
+          {
+            "name": "Hammer"
+          },
+          {
+            "name": "Great hammer"
+          },
+          {
+            "name": "Polehammer"
+          },
+          {
+            "name": "Tombhammer"
+          },
+          {
+            "name": "Forgehammer"
+          },
+          {
+            "name": "Glovekeeper"
+          },
+          {
+            "name": "Hand of justice"
+          },
+          {
+            "name": "Truebolt hammer"
+          }
+        ]
+      },
+      {
+        "name": "War gloves",
+        "children": [
+          {
+            "name": "Brawler gloves"
+          },
+          {
+            "name": "Battle bracers"
+          },
+          {
+            "name": "Spiked gauntlets"
+          },
+          {
+            "name": "Ursine maulers"
+          },
+          {
+            "name": "Hellfire hands"
+          },
+          {
+            "name": "Ravenstrike cestus"
+          },
+          {
+            "name": "Fists of avalon"
+          },
+          {
+            "name": "Forcepulse bracers"
+          }
+        ]
+      },
+      {
+        "name": "Mace",
+        "children": [
+          {
+            "name": "Mace"
+          },
+          {
+            "name": "Heavy mace"
+          },
+          {
+            "name": "Morning star"
+          },
+          {
+            "name": "Bedrock mace"
+          },
+          {
+            "name": "Incubus mace"
+          },
+          {
+            "name": "Camlann mace"
+          },
+          {
+            "name": "Oathkeepers"
+          },
+          {
+            "name": "Dreamstrom monarch"
+          }
+        ]
+      },
+      {
+        "name": "Quarterstaff",
+        "children": [
+          {
+            "name": "Quarterstaff"
+          },
+          {
+            "name": "Iron-clad staff"
+          },
+          {
+            "name": "Double bladed staff"
+          },
+          {
+            "name": "Black monk stave"
+          },
+          {
+            "name": "Soulscythe"
+          },
+          {
+            "name": "Staff of balance"
+          },
+          {
+            "name": "Grailseeker"
+          },
+          {
+            "name": "Phantom twinBlade"
+          }
+        ]
+      },
+      {
+        "name": "Spear",
+        "children": [
+          {
+            "name": "Spear"
+          },
+          {
+            "name": "Pike"
+          },
+          {
+            "name": "Glaive"
+          },
+          {
+            "name": "Heron spear"
+          },
+          {
+            "name": "Spirithunter"
+          },
+          {
+            "name": "Trinity spear"
+          },
+          {
+            "name": "Daybreaker"
+          },
+          {
+            "name": "Rift glaive"
+          }
+        ]
+      },
+      {
+        "name": "Sword",
+        "children": [
+          {
+            "name": "Broadsword"
+          },
+          {
+            "name": "Claymore"
+          },
+          {
+            "name": "Dual sword"
+          },
+          {
+            "name": "Clarent blade"
+          },
+          {
+            "name": "Carving sword"
+          },
+          {
+            "name": "Galatine pair"
+          },
+          {
+            "name": "Kingmaker"
+          },
+          {
+            "name": "Infinity Blade"
+          }
+        ]
+      },
+      {
+        "name": "Arcane staff",
+        "children": [
+          {
+            "name": "Arcane staff"
+          },
+          {
+            "name": "Great arcane staff"
+          },
+          {
+            "name": "Enigmatic staff"
+          },
+          {
+            "name": "Witchwork staff"
+          },
+          {
+            "name": "Occult staff"
+          },
+          {
+            "name": "Malevolent locus"
+          },
+          {
+            "name": "Evensong"
+          },
+          {
+            "name": "Astrar staff"
+          }
+        ]
+      },
+      {
+        "name": "Cursed staff",
+        "children": [
+          {
+            "name": "Cursed staff"
+          },
+          {
+            "name": "Great cursed staff"
+          },
+          {
+            "name": "Demonic staff"
+          },
+          {
+            "name": "Lifecurse staff"
+          },
+          {
+            "name": "Cursed skull"
+          },
+          {
+            "name": "Damnation staff"
+          },
+          {
+            "name": "Shadowcaller"
+          },
+          {
+            "name": "Rotcaller staff"
+          }
+        ]
+      },
+      {
+        "name": "Fire staff",
+        "children": [
+          {
+            "name": "Fire staff"
+          },
+          {
+            "name": "Great fire staff"
+          },
+          {
+            "name": "Infernal staff"
+          },
+          {
+            "name": "Wildfire staff"
+          },
+          {
+            "name": "Brimstone staff"
+          },
+          {
+            "name": "Blazing staff"
+          },
+          {
+            "name": "Dawnsong"
+          },
+          {
+            "name": "Flamewalker staff"
+          }
+        ]
+      },
+      {
+        "name": "Frost staff",
+        "children": [
+          {
+            "name": "Frost staff"
+          },
+          {
+            "name": "Great frost staff"
+          },
+          {
+            "name": "Glacial staff"
+          },
+          {
+            "name": "Hoarfrost staff"
+          },
+          {
+            "name": "Icicle staff"
+          },
+          {
+            "name": "Permafrost prism"
+          },
+          {
+            "name": "Chillhowl"
+          },
+          {
+            "name": "Arctic staff"
+          }
+        ]
+      },
+      {
+        "name": "Holy staff",
+        "children": [
+          {
+            "name": "Holy staff"
+          },
+          {
+            "name": "Great holy staff"
+          },
+          {
+            "name": "Divine staff"
+          },
+          {
+            "name": "Lifetouch staff"
+          },
+          {
+            "name": "Fallen staff"
+          },
+          {
+            "name": "Redemption staff"
+          },
+          {
+            "name": "Hallowfall"
+          },
+          {
+            "name": "Crucifix staff"
+          }
+        ]
+      },
+      {
+        "name": "Nature staff",
+        "children": [
+          {
+            "name": "Nature staff"
+          },
+          {
+            "name": "Great nature staff"
+          },
+          {
+            "name": "Druidic staff"
+          },
+          {
+            "name": "Blight staff"
+          },
+          {
+            "name": "Rampant staff"
+          },
+          {
+            "name": "Ironroot staff"
+          },
+          {
+            "name": "Wild staff"
+          },
+          {
+            "name": "Forgebark staff"
+          }
+        ]
+      },
+      {
+        "name": "Shapeshifter staff",
+        "children": [
+          {
+            "name": "Prowling staff"
+          },
+          {
+            "name": "Primal staff"
+          },
+          {
+            "name": "Bloodmoon staff"
+          },
+          {
+            "name": "Rootbound staff"
+          },
+          {
+            "name": "Hellspawn staff"
+          },
+          {
+            "name": "Lightcaller"
+          },
+          {
+            "name": "Stillgaze staff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Chest armor",
+    "children": [
+      {
+        "name": "Cloth robes",
+        "children": [
+          {
+            "name": "Scholar robe"
+          },
+          {
+            "name": "Cleric robe"
+          },
+          {
+            "name": "Mage robe"
+          },
+          {
+            "name": "Royal robe"
+          },
+          {
+            "name": "Cultist robe"
+          },
+          {
+            "name": "Druid robe"
+          },
+          {
+            "name": "Feyscale robe"
+          },
+          {
+            "name": "Fiend robe"
+          },
+          {
+            "name": "Robe of furity"
+          }
+        ]
+      },
+      {
+        "name": "Leather jackets",
+        "children": [
+          {
+            "name": "Mercenary jacket"
+          },
+          {
+            "name": "Hunter jacket"
+          },
+          {
+            "name": "Assassin jacket"
+          },
+          {
+            "name": "Royal jacket"
+          },
+          {
+            "name": "Stalker jacket"
+          },
+          {
+            "name": "Demon jacket"
+          },
+          {
+            "name": "Mistwalker jacket"
+          },
+          {
+            "name": "Hellion jacket"
+          },
+          {
+            "name": "Specter jacket"
+          },
+          {
+            "name": "Jacket of tenacity"
+          }
+        ]
+      },
+      {
+        "name": "Plate armor",
+        "children": [
+          {
+            "name": "Soldier armor"
+          },
+          {
+            "name": "Knight armor"
+          },
+          {
+            "name": "Guardian armor"
+          },
+          {
+            "name": "Royal armor"
+          },
+          {
+            "name": "Graveguard armor"
+          },
+          {
+            "name": "Demon armor"
+          },
+          {
+            "name": "Judicator armor"
+          },
+          {
+            "name": "Duskweaver armor"
+          },
+          {
+            "name": "Armor of valor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Head armor",
+    "children": [
+      {
+        "name": "Cloth cowl",
+        "children": [
+          {
+            "name": "Scholar cowl"
+          },
+          {
+            "name": "Cleric cowl"
+          },
+          {
+            "name": "Mage cowl"
+          },
+          {
+            "name": "Royal cowl"
+          },
+          {
+            "name": "Cultist cowl"
+          },
+          {
+            "name": "Druid cowl"
+          },
+          {
+            "name": "Feyscale hat"
+          },
+          {
+            "name": "Fiend cowl"
+          },
+          {
+            "name": "Cowl of purity"
+          }
+        ]
+      },
+      {
+        "name": "Leather hood",
+        "children": [
+          {
+            "name": "Mercenary hood"
+          },
+          {
+            "name": "Hunter hood"
+          },
+          {
+            "name": "Assassin hood"
+          },
+          {
+            "name": "Royal hood"
+          },
+          {
+            "name": "Stalker hood"
+          },
+          {
+            "name": "Mistwalker hood"
+          },
+          {
+            "name": "Hellion hood"
+          },
+          {
+            "name": "Specter hood"
+          },
+          {
+            "name": "Hood of tenacity"
+          }
+        ]
+      },
+      {
+        "name": "Plate helmet",
+        "children": [
+          {
+            "name": "Soldier helmet"
+          },
+          {
+            "name": "Knight helmet"
+          },
+          {
+            "name": "Guardian helmet"
+          },
+          {
+            "name": "Royal helmet"
+          },
+          {
+            "name": "Graveguard helmet"
+          },
+          {
+            "name": "Demon helmet"
+          },
+          {
+            "name": "Judicator helmet"
+          },
+          {
+            "name": "Helmet of valor"
+          },
+          {
+            "name": "Duskweaver helmet"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Foot armor",
+    "children": [
+      {
+        "name": "Cloth sandals",
+        "children": [
+          {
+            "name": "Scholar sandals"
+          },
+          {
+            "name": "Cleric sandals"
+          },
+          {
+            "name": "Mage sandals"
+          },
+          {
+            "name": "Royal sandals"
+          },
+          {
+            "name": "Cultist sandals"
+          },
+          {
+            "name": "Druid sandals"
+          },
+          {
+            "name": "Feyscale sandals"
+          },
+          {
+            "name": "Fiend sandals"
+          },
+          {
+            "name": "Sandals of purity"
+          }
+        ]
+      },
+      {
+        "name": "Leather shoes",
+        "children": [
+          {
+            "name": "Mercenary shoes"
+          },
+          {
+            "name": "Hunter shoes"
+          },
+          {
+            "name": "Assassin shoes"
+          },
+          {
+            "name": "Royal shoes"
+          },
+          {
+            "name": "Stalker shoes"
+          },
+          {
+            "name": "Mistwalker shoes"
+          },
+          {
+            "name": "Hellion shoes"
+          },
+          {
+            "name": "Specter shoes"
+          },
+          {
+            "name": "Shoes of tenacity"
+          }
+        ]
+      },
+      {
+        "name": "Plate boots",
+        "children": [
+          {
+            "name": "Soldier boots"
+          },
+          {
+            "name": "Knight boots"
+          },
+          {
+            "name": "Guardian boots"
+          },
+          {
+            "name": "Royal boots"
+          },
+          {
+            "name": "Graveguard boots"
+          },
+          {
+            "name": "Demon boots"
+          },
+          {
+            "name": "Judicator boots"
+          },
+          {
+            "name": "Duskweaver boots"
+          },
+          {
+            "name": "Boots of valor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Off-hands",
+    "children": [
+      {
+        "name": "Mage",
+        "children": [
+          {
+            "name": "Tome of spells"
+          },
+          {
+            "name": "Muisak"
+          },
+          {
+            "name": "Eye of secrets"
+          },
+          {
+            "name": "Taproot"
+          },
+          {
+            "name": "Celestial censer"
+          },
+          {
+            "name": "Timelocked grimoire"
+          }
+        ]
+      },
+      {
+        "name": "Hunter",
+        "children": [
+          {
+            "name": "Torch"
+          },
+          {
+            "name": "Mistcaller"
+          },
+          {
+            "name": "Leering cane"
+          },
+          {
+            "name": "Cryptcandle"
+          },
+          {
+            "name": "Sacred scepter"
+          },
+          {
+            "name": "Blueflame torch"
+          }
+        ]
+      },
+      {
+        "name": "Warrior",
+        "children": [
+          {
+            "name": "Shield"
+          },
+          {
+            "name": "Caitiff shield"
+          },
+          {
+            "name": "Astral aegis"
+          },
+          {
+            "name": "Sarcophagus"
+          },
+          {
+            "name": "Facebreaker"
+          },
+          {
+            "name": "Unbreakable Ward"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Capes",
+    "children": [
+      {
+        "name": "Cape",
+        "children": []
+      },
+      {
+        "name": "Bridgewatch",
+        "children": []
+      },
+      {
+        "name": "Fort sterling",
+        "children": []
+      },
+      {
+        "name": "Lymhurst",
+        "children": []
+      },
+      {
+        "name": "Martlock",
+        "children": []
+      },
+      {
+        "name": "Thetford",
+        "children": []
+      },
+      {
+        "name": "Caerleon",
+        "children": []
+      },
+      {
+        "name": "Brecilien",
+        "children": []
+      },
+      {
+        "name": "Heretic",
+        "children": []
+      },
+      {
+        "name": "Undead",
+        "children": []
+      },
+      {
+        "name": "Keeper",
+        "children": []
+      },
+      {
+        "name": "Morgana",
+        "children": []
+      },
+      {
+        "name": "Avalonian",
+        "children": []
+      },
+      {
+        "name": "Demon",
+        "children": []
+      },
+      {
+        "name": "Smuggler",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Bags",
+    "children": [
+      {
+        "name": "Bags",
+        "children": []
+      },
+      {
+        "name": "Satchels of insight",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Mounts",
+    "children": [
+      {
+        "name": "Base mount",
+        "children": [
+          {
+            "name": "Horse"
+          },
+          {
+            "name": "Armored horse"
+          },
+          {
+            "name": "Ox"
+          },
+          {
+            "name": "Rams"
+          },
+          {
+            "name": "Direwolf"
+          },
+          {
+            "name": "Giant stag"
+          },
+          {
+            "name": "Swiftclaw"
+          },
+          {
+            "name": "Direboar"
+          },
+          {
+            "name": "Direbear"
+          },
+          {
+            "name": "Swamp dragon"
+          },
+          {
+            "name": "Mule"
+          },
+          {
+            "name": "Mammoth"
+          },
+          {
+            "name": "Terrorbird"
+          }
+        ]
+      },
+      {
+        "name": "Rare mount",
+        "children": [
+          {
+            "name": "Horse"
+          },
+          {
+            "name": "Armored horse"
+          },
+          {
+            "name": "Swiftclaw"
+          },
+          {
+            "name": "Direboar"
+          },
+          {
+            "name": "Direbear"
+          },
+          {
+            "name": "Swamp dragon"
+          },
+          {
+            "name": "Mule"
+          },
+          {
+            "name": "Bats"
+          },
+          {
+            "name": "Terrorbird"
+          },
+          {
+            "name": "Owl"
+          },
+          {
+            "name": "Rabbit"
+          },
+          {
+            "name": "Raven"
+          },
+          {
+            "name": "Horseeater"
+          },
+          {
+            "name": "Toad"
+          }
+        ]
+      },
+      {
+        "name": "Battle mount",
+        "children": [
+          {
+            "name": "Roving bastion"
+          },
+          {
+            "name": "Colossus beetle"
+          },
+          {
+            "name": "Behemoth"
+          },
+          {
+            "name": "Tower chairot"
+          },
+          {
+            "name": "Battle eagle"
+          },
+          {
+            "name": "Ancient ent"
+          },
+          {
+            "name": "Junggernaut"
+          },
+          {
+            "name": "Mammoth"
+          },
+          {
+            "name": "Battle rhino"
+          },
+          {
+            "name": "Siege ballista"
+          },
+          {
+            "name": "Horseeater"
+          },
+          {
+            "name": "Swamp dragon"
+          },
+          {
+            "name": "Phalanx beetle"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Consumable",
+    "children": [
+      {
+        "name": "Food",
+        "children": [
+          {
+            "name": "Soups"
+          },
+          {
+            "name": "Salads"
+          },
+          {
+            "name": "Pies"
+          },
+          {
+            "name": "Roasts"
+          },
+          {
+            "name": "Omelettes"
+          },
+          {
+            "name": "Stews"
+          },
+          {
+            "name": "Sandwiches"
+          },
+          {
+            "name": "Grilled fish"
+          },
+          {
+            "name": "Event"
+          }
+        ]
+      },
+      {
+        "name": "Potion",
+        "children": [
+          {
+            "name": "Heal"
+          },
+          {
+            "name": "Energy"
+          },
+          {
+            "name": "Gigantify"
+          },
+          {
+            "name": "Resistance"
+          },
+          {
+            "name": "Sticky"
+          },
+          {
+            "name": "Posion"
+          },
+          {
+            "name": "Invisibility"
+          },
+          {
+            "name": "Calming"
+          },
+          {
+            "name": "Cleansing"
+          },
+          {
+            "name": "Acid"
+          },
+          {
+            "name": "Berserk"
+          },
+          {
+            "name": "Hellfire"
+          },
+          {
+            "name": "Gathering"
+          },
+          {
+            "name": "Tornado"
+          },
+          {
+            "name": "Focus"
+          },
+          {
+            "name": "Event"
+          }
+        ]
+      },
+      {
+        "name": "Tomes",
+        "children": [
+          {
+            "name": "Tome of insight"
+          },
+          {
+            "name": "Fiber"
+          },
+          {
+            "name": "Hide"
+          },
+          {
+            "name": "Ore"
+          },
+          {
+            "name": "Stone"
+          },
+          {
+            "name": "Wood"
+          }
+        ]
+      },
+      {
+        "name": "Other",
+        "children": [
+          {
+            "name": "Repair powder"
+          },
+          {
+            "name": "Fireworks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Gathering equipment",
+    "children": [
+      {
+        "name": "Fish",
+        "children": [
+          {
+            "name": "Fishing rods"
+          },
+          {
+            "name": "Garbs"
+          },
+          {
+            "name": "Caps"
+          },
+          {
+            "name": "Workboots"
+          },
+          {
+            "name": "Backpacks"
+          },
+          {
+            "name": "Bait"
+          }
+        ]
+      },
+      {
+        "name": "Fiber",
+        "children": [
+          {
+            "name": "Sickle"
+          },
+          {
+            "name": "Garbs"
+          },
+          {
+            "name": "Caps"
+          },
+          {
+            "name": "Workboots"
+          },
+          {
+            "name": "Backpacks"
+          }
+        ]
+      },
+      {
+        "name": "Hide",
+        "children": [
+          {
+            "name": "Skinning knifes"
+          },
+          {
+            "name": "Garbs"
+          },
+          {
+            "name": "Caps"
+          },
+          {
+            "name": "Workboots"
+          },
+          {
+            "name": "Backpacks"
+          }
+        ]
+      },
+      {
+        "name": "Ore",
+        "children": [
+          {
+            "name": "Pickaxe"
+          },
+          {
+            "name": "Garbs"
+          },
+          {
+            "name": "Caps"
+          },
+          {
+            "name": "Workboots"
+          },
+          {
+            "name": "Backpacks"
+          }
+        ]
+      },
+      {
+        "name": "Stone",
+        "children": [
+          {
+            "name": "Hammer"
+          },
+          {
+            "name": "Garbs"
+          },
+          {
+            "name": "Caps"
+          },
+          {
+            "name": "Workboots"
+          },
+          {
+            "name": "Backpacks"
+          }
+        ]
+      },
+      {
+        "name": "Wood",
+        "children": [
+          {
+            "name": "Axes"
+          },
+          {
+            "name": "Garbs"
+          },
+          {
+            "name": "Caps"
+          },
+          {
+            "name": "Workboots"
+          },
+          {
+            "name": "Backpacks"
+          }
+        ]
+      },
+      {
+        "name": "Tracking",
+        "children": [
+          {
+            "name": "Tracking toolkit"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Crafting",
+    "children": [
+      {
+        "name": "Resources",
+        "children": [
+          {
+            "name": "Fiber"
+          },
+          {
+            "name": "Hide"
+          },
+          {
+            "name": "Ore"
+          },
+          {
+            "name": "Stone"
+          },
+          {
+            "name": "Wood"
+          }
+        ]
+      },
+      {
+        "name": "Refined resources",
+        "children": [
+          {
+            "name": "Cloth"
+          },
+          {
+            "name": "Leather"
+          },
+          {
+            "name": "Metal bars"
+          },
+          {
+            "name": "Stone block"
+          },
+          {
+            "name": "Planks"
+          }
+        ]
+      },
+      {
+        "name": "Tokens",
+        "children": [
+          {
+            "name": "Mount upgrades"
+          },
+          {
+            "name": "Royal sigil"
+          },
+          {
+            "name": "Other"
+          }
+        ]
+      },
+      {
+        "name": "City resources",
+        "children": [
+          {
+            "name": "Beastheart"
+          },
+          {
+            "name": "Treeheart"
+          },
+          {
+            "name": "Mountainheart"
+          },
+          {
+            "name": "Rockheart"
+          },
+          {
+            "name": "Vineheart"
+          },
+          {
+            "name": "Shadowheart"
+          }
+        ]
+      },
+      {
+        "name": "Fish",
+        "children": [
+          {
+            "name": "Common"
+          },
+          {
+            "name": "Rare"
+          },
+          {
+            "name": "Other"
+          }
+        ]
+      },
+      {
+        "name": "Alchemy",
+        "children": [
+          {
+            "name": "Shadow claws"
+          },
+          {
+            "name": "Sylvian root"
+          },
+          {
+            "name": "Spirit paws"
+          },
+          {
+            "name": "Werewolf fangs"
+          },
+          {
+            "name": "Imp's horn"
+          },
+          {
+            "name": "Ronestone tooth"
+          },
+          {
+            "name": "Dawnfeather"
+          },
+          {
+            "name": "Remains"
+          },
+          {
+            "name": "Arcane extract"
+          },
+          {
+            "name": "Essence"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Artifact",
+    "children": [
+      {
+        "name": "Weapons",
+        "children": [
+          {
+            "name": "bow"
+          },
+          {
+            "name": "crossbow"
+          },
+          {
+            "name": "Axe"
+          },
+          {
+            "name": "dagger"
+          },
+          {
+            "name": "hammer"
+          },
+          {
+            "name": "war gloves"
+          },
+          {
+            "name": "mace"
+          },
+          {
+            "name": "quarterstaff"
+          },
+          {
+            "name": "spear"
+          },
+          {
+            "name": "sword"
+          },
+          {
+            "name": "arcane staff"
+          },
+          {
+            "name": "cursed staff"
+          },
+          {
+            "name": "fire staff"
+          },
+          {
+            "name": "frors staff"
+          },
+          {
+            "name": "holy staff"
+          },
+          {
+            "name": "nature staff"
+          },
+          {
+            "name": "shapeshifter staff"
+          }
+        ]
+      },
+      {
+        "name": "Chest armor",
+        "children": [
+          {
+            "name": "colth robes"
+          },
+          {
+            "name": "leather jackets"
+          },
+          {
+            "name": "plate armor"
+          }
+        ]
+      },
+      {
+        "name": "Head armor",
+        "children": [
+          {
+            "name": "cloth cowl"
+          },
+          {
+            "name": "leather hood"
+          },
+          {
+            "name": "plate helment"
+          }
+        ]
+      },
+      {
+        "name": "Shoes",
+        "children": [
+          {
+            "name": "cloth sandals"
+          },
+          {
+            "name": "leather shoes"
+          },
+          {
+            "name": "plate boots"
+          }
+        ]
+      },
+      {
+        "name": "Off-hands",
+        "children": [
+          {
+            "name": "mage"
+          },
+          {
+            "name": "hunter"
+          },
+          {
+            "name": "warrior"
+          }
+        ]
+      },
+      {
+        "name": "Artifact fragments",
+        "children": [
+          {
+            "name": "runes"
+          },
+          {
+            "name": "souls"
+          },
+          {
+            "name": "relics"
+          },
+          {
+            "name": "avalonian shards"
+          },
+          {
+            "name": "crystal shards"
+          }
+        ]
+      },
+      {
+        "name": "Capes",
+        "children": [
+          {
+            "name": "bridgewatch"
+          },
+          {
+            "name": "fort sterling"
+          },
+          {
+            "name": "lymhurst"
+          },
+          {
+            "name": "martlock"
+          },
+          {
+            "name": "thetford"
+          },
+          {
+            "name": "carleon"
+          },
+          {
+            "name": "brecilien"
+          },
+          {
+            "name": "heretic"
+          },
+          {
+            "name": "undead"
+          },
+          {
+            "name": "keeper"
+          },
+          {
+            "name": "morgana"
+          },
+          {
+            "name": "demon"
+          },
+          {
+            "name": "avalonian"
+          },
+          {
+            "name": "smuggler"
+          }
+        ]
+      },
+      {
+        "name": "Crystalized artifacts",
+        "children": [
+          {
+            "name": "Adept's crystallized artifact"
+          },
+          {
+            "name": "Expert's crystallized artifact"
+          },
+          {
+            "name": "Master's crystallized artifact"
+          },
+          {
+            "name": "Grandmaster's crystallized artifact"
+          },
+          {
+            "name": "Elder's crystallized artifact"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Farming",
+    "children": [
+      {
+        "name": "Farm",
+        "children": [
+          {
+            "name": "seeds"
+          },
+          {
+            "name": "plants"
+          }
+        ]
+      },
+      {
+        "name": "Herb garden",
+        "children": [
+          {
+            "name": "seeds"
+          },
+          {
+            "name": "herbs"
+          }
+        ]
+      },
+      {
+        "name": "Pasture",
+        "children": [
+          {
+            "name": "baby animal"
+          },
+          {
+            "name": "animal"
+          },
+          {
+            "name": "eggs"
+          },
+          {
+            "name": "milk"
+          }
+        ]
+      },
+      {
+        "name": "Kennel",
+        "children": [
+          {
+            "name": "baby animal"
+          },
+          {
+            "name": "animal"
+          }
+        ]
+      },
+      {
+        "name": "Farming products",
+        "children": [
+          {
+            "name": "alcohol"
+          },
+          {
+            "name": "bread"
+          },
+          {
+            "name": "butter"
+          },
+          {
+            "name": "flour"
+          },
+          {
+            "name": "meat"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Furniture",
+    "children": [
+      {
+        "name": "Repair kit",
+        "children": []
+      },
+      {
+        "name": "Chest",
+        "children": [
+          {
+            "name": "house"
+          },
+          {
+            "name": "world"
+          }
+        ]
+      },
+      {
+        "name": "House",
+        "children": []
+      },
+      {
+        "name": "Island",
+        "children": []
+      },
+      {
+        "name": "World",
+        "children": [
+          {
+            "name": "banner"
+          },
+          {
+            "name": "statues"
+          },
+          {
+            "name": "other"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Vanity",
+    "children": [
+      {
+        "name": "Mounts",
+        "children": [
+          {
+            "name": "horse"
+          },
+          {
+            "name": "armored horse"
+          },
+          {
+            "name": "ox"
+          },
+          {
+            "name": "direwolf"
+          },
+          {
+            "name": "stag/moose"
+          },
+          {
+            "name": "swiftclaw"
+          },
+          {
+            "name": "direboar"
+          },
+          {
+            "name": "direbear"
+          },
+          {
+            "name": "swamp dragon"
+          },
+          {
+            "name": "mule"
+          },
+          {
+            "name": "mammoth"
+          }
+        ]
+      },
+      {
+        "name": "Weapons",
+        "children": []
+      },
+      {
+        "name": "Chest armor",
+        "children": []
+      },
+      {
+        "name": "Head armor",
+        "children": []
+      },
+      {
+        "name": "Shoes",
+        "children": []
+      },
+      {
+        "name": "Off-hands",
+        "children": []
+      },
+      {
+        "name": "Capes",
+        "children": []
+      },
+      {
+        "name": "Kill emotes",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Other",
+    "children": [
+      {
+        "name": "Guilds",
+        "children": [
+          {
+            "name": "hideout"
+          },
+          {
+            "name": "siege hammer"
+          },
+          {
+            "name": "siege banner"
+          }
+        ]
+      },
+      {
+        "name": "Laborers",
+        "children": [
+          {
+            "name": "journals"
+          },
+          {
+            "name": "trophies"
+          },
+          {
+            "name": "contracts"
+          },
+          {
+            "name": "beds"
+          },
+          {
+            "name": "tables"
+          }
+        ]
+      },
+      {
+        "name": "Tokens",
+        "children": [
+          {
+            "name": "vanity"
+          },
+          {
+            "name": "crystal league token"
+          },
+          {
+            "name": "anchor"
+          },
+          {
+            "name": "orther"
+          }
+        ]
+      },
+      {
+        "name": "Luxury goods",
+        "children": [
+          {
+            "name": "bridgewatch"
+          },
+          {
+            "name": "fort sterling"
+          },
+          {
+            "name": "lymhurst"
+          },
+          {
+            "name": "martlock"
+          },
+          {
+            "name": "thetford"
+          },
+          {
+            "name": "carleon"
+          },
+          {
+            "name": "any"
+          }
+        ]
+      },
+      {
+        "name": "Map",
+        "children": [
+          {
+            "name": "random dungeon"
+          },
+          {
+            "name": "corrupted dungeon"
+          },
+          {
+            "name": "hellgates"
+          }
+        ]
+      },
+      {
+        "name": "Hardcore expeditions",
+        "children": [
+          {
+            "name": "event"
+          },
+          {
+            "name": "fishy business"
+          },
+          {
+            "name": "fistful of silver"
+          },
+          {
+            "name": "lumber lunacy"
+          },
+          {
+            "name": "fungicide"
+          },
+          {
+            "name": "preaching to the dead"
+          },
+          {
+            "name": "lurking underneath"
+          },
+          {
+            "name": "stone wars"
+          },
+          {
+            "name": "three sisters"
+          },
+          {
+            "name": "in the raven's claws"
+          },
+          {
+            "name": "eternal battle"
+          }
+        ]
+      },
+      {
+        "name": "Quest items",
+        "children": [
+          {
+            "name": "cities"
+          },
+          {
+            "name": "orther"
+          }
+        ]
+      }
+    ]
+  }
+]
