@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\ItemLocalization;
 
 use App\Models\Category;
 use App\Models\Item;
@@ -150,6 +151,7 @@ class MarketController extends Controller
 	
 	    $items = $apiIds->map(function ($apiId) use ($encLevels) {
 	        $parsed = $this->parseApiId($apiId);
+                $officialName = ItemLocalization::nameFor($apiId, 'EN-US');
 	        $parts  = explode('_', $apiId);
 	        $tier   = isset($parts[0]) && preg_match('/^T(\d)$/', $parts[0], $m) ? (int) $m[1] : null;
 	
@@ -157,7 +159,7 @@ class MarketController extends Controller
 	
 	        return [
 	            'api_id'     => $apiId,
-	            'name'       => $parsed['name'],
+	            'name'       => $officialName ?? $parsed['name'],
 	            'tier'       => $tier,
 	            'enc'        => $parsed['enc'],       // enc hasil parse dari _LEVELx (kalau resource)
 	            'max_enc'    => (int) ($levels->max() ?? 0),
