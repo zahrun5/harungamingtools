@@ -168,6 +168,25 @@
 .page-btn:disabled { opacity:.3; cursor:default; }
 .page-info { font-family:'Cinzel',serif; font-size:11px; color:var(--text-dim); }
 
+/* CATEGORY SEARCH (pengganti 3 dropdown cascading) */
+.cat-suggest {
+  position:absolute; top:100%; left:0; right:0; z-index:50;
+  background:#1a1208; border:1px solid var(--gold-dk); border-radius:3px;
+  max-height:220px; overflow-y:auto; display:none;
+  box-shadow:0 6px 20px rgba(0,0,0,.8);
+}
+.cat-suggest.open { display:block; }
+.cat-suggest-item {
+  padding:8px 12px; font-family:'Crimson Text',serif; font-size:13px;
+  color:var(--text-lt); cursor:pointer; border-bottom:1px solid rgba(107,79,26,.3);
+}
+.cat-suggest-item:hover { background:rgba(184,134,11,.25); }
+.cat-suggest-item .path-dim { color:var(--text-dim); font-size:11px; }
+.cat-selected {
+  font-family:'Crimson Text',serif; font-size:12px; color:var(--gold);
+  margin-top:4px; min-height:16px;
+}
+
 /* EMPTY */
 .empty-msg { padding:32px; text-align:center; font-family:'Crimson Text',serif; font-size:14px; color:var(--text-dim); font-style:italic; }
 
@@ -229,6 +248,20 @@
     <div class="toolbar">
       <input type="text" class="tb-input search" id="searchInput" placeholder="Cari api_id... (misal: SWORD, METALBAR)" oninput="onSearch()">
     </div>
+    <div class="toolbar" style="border-top:1px solid rgba(107,79,26,.3); padding-top:8px; flex-wrap:wrap; gap:8px;">
+      <select class="cat-sel" id="catShortcut1" onchange="onCatShortcut1Change()">
+        <option value="">— Level 1 —</option>
+      </select>
+      <select class="cat-sel" id="catShortcut2" onchange="onCatShortcut2Change()" disabled>
+        <option value="">— Level 2 —</option>
+      </select>
+      <select class="cat-sel" id="catShortcut3" disabled>
+        <option value="">— Level 3 —</option>
+      </select>
+      <button class="group-save-btn" onclick="searchByCatShortcut()" style="flex-shrink:0;">
+        🔍 Cari Item yang Relevan
+      </button>
+    </div>
 
     <div id="itemList"><div class="empty-msg">Memuat data...</div></div>
 
@@ -275,7 +308,81 @@ async function init() {
   // Load categories
   const res  = await fetch('/api/market/categories', { credentials: 'same-origin' });
   CATEGORIES = await res.json();
+  fillCatShortcutLevel1();
   await loadItems();
+}
+
+// ============================================================
+// SHORTCUT: cascading dropdown kategori (Level 1 -> 2 -> 3) di bawah
+// search box utama. Setelah pilih sampai level 3, klik tombol
+// "Cari Item yang Relevan" buat ngisi kotak pencarian otomatis pakai
+// nama kategori level 3 itu (karena kebanyakan namanya sama dengan nama item).
+// ============================================================
+function fillCatShortcutLevel1() {
+  const sel1 = document.getElementById('catShortcut1');
+  CATEGORIES.forEach(c => {
+    sel1.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+}
+
+function onCatShortcut1Change() {
+  const sel1 = document.getElementById('catShortcut1');
+  const sel2 = document.getElementById('catShortcut2');
+  const sel3 = document.getElementById('catShortcut3');
+  const catId = parseInt(sel1.value);
+
+  sel2.innerHTML = '<option value="">— Level 2 —</option>';
+  sel3.innerHTML = '<option value="">— Level 3 —</option>';
+  sel2.disabled = true; sel3.disabled = true;
+
+  if (!catId) return;
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (!cat || !cat.children.length) return;
+
+  cat.children.forEach(c => {
+    sel2.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+  sel2.disabled = false;
+}
+
+function onCatShortcut2Change() {
+  const sel1 = document.getElementById('catShortcut1');
+  const sel2 = document.getElementById('catShortcut2');
+  const sel3 = document.getElementById('catShortcut3');
+  const cat1Id = parseInt(sel1.value);
+  const cat2Id = parseInt(sel2.value);
+
+  sel3.innerHTML = '<option value="">— Level 3 —</option>';
+  sel3.disabled = true;
+
+  if (!cat2Id) return;
+  const cat1 = CATEGORIES.find(c => c.id === cat1Id);
+  if (!cat1) return;
+  const cat2 = cat1.children.find(c => c.id === cat2Id);
+  if (!cat2 || !cat2.children.length) return;
+
+  cat2.children.forEach(c => {
+    sel3.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+  sel3.disabled = false;
+}
+
+function searchByCatShortcut() {
+  const sel3 = document.getElementById('catShortcut3');
+  const sel2 = document.getElementById('catShortcut2');
+  const selectedOption = sel3.value
+    ? sel3.options[sel3.selectedIndex]
+    : (sel2.value ? sel2.options[sel2.selectedIndex] : null);
+
+  if (!selectedOption || !selectedOption.value) {
+    showToast('⚠️ Pilih kategori dulu (minimal sampai Level 2 atau 3)', 'warn');
+    return;
+  }
+
+  document.getElementById('searchInput').value = selectedOption.textContent;
+  currentPage = 1;
+  currentTab === 'unmapped' ? loadItems() : loadSavedItems();
+  showToast('🔍 Mencari item: "' + selectedOption.textContent + '"');
 }
 
 // ============================================================
@@ -360,10 +467,9 @@ function makeGroupCard(baseKey, groupItems) {
   const maxEnc = groupItems[0].max_enc || 0;
 
   const encActionHtml = maxEnc > 0 ? `
-    <label style="display:flex;align-items:center;gap:6px;font-family:'Crimson Text',serif;font-size:12px;color:var(--text-lt);cursor:pointer;">
-      <input type="checkbox" id="genc-${groupId}" data-max-enc="${maxEnc}" style="accent-color:var(--gold-dk);">
-      Generate juga varian enchant (sampai .${maxEnc})
-    </label>
+    <span style="font-family:'Crimson Text',serif;font-size:11px;color:var(--text-lt);font-style:italic;">
+      ✨ Varian enchant (.1–.${maxEnc}) otomatis ikut digenerate
+    </span>
   ` : `
     <span style="font-family:'Crimson Text',serif;font-size:11px;color:var(--text-dim);font-style:italic;">
       Item ini tidak punya varian enchant
@@ -405,8 +511,9 @@ function makeGroupCard(baseKey, groupItems) {
     itemsContainer.appendChild(makeRow(item, groupId));
   });
 
-  // simpan referensi item list di elemen untuk dipakai saveGroup nanti
+  // simpan referensi item list + max_enc di elemen untuk dipakai saveGroup nanti
   card.dataset.apiIds = JSON.stringify(groupItems.map(i => i.api_id));
+  card.dataset.maxEnc = maxEnc;
 
   return card;
 }
@@ -476,16 +583,13 @@ async function saveGroup(groupId) {
 
   const card = document.getElementById(groupId);
   const apiIds = JSON.parse(card.dataset.apiIds);
+  const maxEnc = parseInt(card.dataset.maxEnc || '0'); // disimpan langsung dari group data, bukan dari checkbox lagi
 
   const badge = document.getElementById('gbadge-' + groupId);
   const btn   = document.getElementById('gsavebtn-' + groupId);
   badge.className = 'status-badge saving';
   badge.textContent = '⏳ Menyimpan semua...';
   btn.disabled = true;
-
-  const encCheckbox = document.getElementById('genc-' + groupId);
-  const genEnchant  = encCheckbox?.checked || false;
-  const maxEnc      = parseInt(encCheckbox?.dataset.maxEnc || '0'); // dinamis dari max_enc, bukan hardcode
 
   let payload = [];
   apiIds.forEach(apiId => {
@@ -497,8 +601,8 @@ async function saveGroup(groupId) {
     // baris dasar (enc 0)
     payload.push({ api_id: apiId, name, tier, enc: 0, category_id: catId });
 
-    // kalau dicentang, generate enc 1..maxEnc (sesuai data asli item ini, bisa 3 atau 4)
-    if (genEnchant && maxEnc > 0) {
+    // otomatis generate enc 1..maxEnc kalau item ini memang punya varian enchant
+    if (maxEnc > 0) {
       for (let e = 1; e <= maxEnc; e++) {
         payload.push({ api_id: apiId, name, tier, enc: e, category_id: catId });
       }

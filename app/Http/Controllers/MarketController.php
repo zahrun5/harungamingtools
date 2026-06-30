@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\ItemLocalization;
 
 use App\Models\Category;
 use App\Models\Item;
@@ -58,6 +57,15 @@ class MarketController extends Controller
 	
 	private function parseApiId(string $apiId): array
 	{
+    // 0) Cek dulu ke ItemLocalization - sumber resmi & paling akurat
+    $locName = \App\Models\ItemLocalization::nameFor($apiId, 'EN-US');
+    if ($locName) {
+        $enc = 0;
+        if (preg_match('/_LEVEL(\d)$/', $apiId, $m)) {
+            $enc = (int) $m[1];
+        }
+        return ['name' => $locName, 'enc' => $enc];
+    }
 	    $withoutTier = preg_replace('/^T\d_/', '', $apiId);
 	
 	    // 0) Special non-tiered names (Fish Sauce dkk) - levelnya bukan enchant, item beda total
@@ -130,9 +138,9 @@ class MarketController extends Controller
 	        ->where('item_api_id', 'not like', 'QUESTITEM%')
 	        ->where('item_api_id', 'not like', 'UNIQUE%');
 	
-	    if ($search) {
-	        $query->where('item_api_id', 'like', "%{$search}%");
-	    }
+if ($search) {
+    $query->where('item_api_id', 'like', "%{$search}%");
+}
 	
 	    $total  = $query->count();
 	    $apiIds = $query->orderBy('item_api_id')
@@ -151,7 +159,6 @@ class MarketController extends Controller
 	
 	    $items = $apiIds->map(function ($apiId) use ($encLevels) {
 	        $parsed = $this->parseApiId($apiId);
-                $officialName = ItemLocalization::nameFor($apiId, 'EN-US');
 	        $parts  = explode('_', $apiId);
 	        $tier   = isset($parts[0]) && preg_match('/^T(\d)$/', $parts[0], $m) ? (int) $m[1] : null;
 	
@@ -159,7 +166,7 @@ class MarketController extends Controller
 	
 	        return [
 	            'api_id'     => $apiId,
-	            'name'       => $officialName ?? $parsed['name'],
+	            'name'       => $parsed['name'],
 	            'tier'       => $tier,
 	            'enc'        => $parsed['enc'],       // enc hasil parse dari _LEVELx (kalau resource)
 	            'max_enc'    => (int) ($levels->max() ?? 0),
