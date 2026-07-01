@@ -431,7 +431,89 @@ public function itemDetail($id)
         ]);
     }
 
+    // ============================================================
+    // FETCH BATCH per kategori — dijalankan saat user klik kategori
+    // (level 2 atau 3), buat pre-cache harga semua item di kategori itu.
+    // Kalau berhasil, item-item di kategori itu udah di-cache semuanya
+    // sebelum user buka popup. Kalau gagal, fallback ke per-item nantinya.
+    // ============================================================
+    public function refreshCategoryPrices($categoryId)
+    {
+        $cat = Category::findOrFail($categoryId);
 
+        // Ambil semua item di kategori ini + descendant-nya
+        $ids = $this->getAllDescendantIds($cat);
+        $ids[] = $cat->id;
+
+        $items = Item::whereIn('category_id', $ids)
+            ->whereNotNull('api_id')
+            ->get(['api_id', 'enc'])
+            ->unique(fn($i) => $i->api_id . '@' . (int) ($i->enc ?? 0))
+            ->values();
+
+        if ($items->isEmpty()) {
+            return response()->json(['updated' => 0, 'failed' => 0]);
+        }
+
+        $citiesParam = implode(',', self::CITIES);
+        $updated = 0;
+        $failed = 0;
+
+        // Batch setiap 60 item buat kurangi beban API
+        foreach ($items->chunk(60) as $chunk) {
+            $idsCsv = $chunk->map(fn($i) => ($i->enc > 0 ? "{$i->api_id}@{$i->enc}" : $i->api_id))
+                ->implode(',');
+
+            try {
+                $response = Http::timeout(15)->get(
+                    "https://west.albion-online-data.com/api/v2/stats/prices/{$idsCsv}",
+                    ['locations' => $citiesParam, 'qualities' => 1]
+                );
+
+                if ($response->successful()) {
+                    $now = now();
+                    foreach ($response->json() as $row) {
+                        $price = (int) ($row['sell_price_min'] ?? 0);
+                        if ($price <= 0) continue;
+
+                        [$apiId, $enc] = str_contains($row['item_id'], '@')
+                            ? explode('@', $row['item_id'], 2)
+                            : [$row['item_id'], '0'];
+
+                        ItemPrice::updateOrCreate(
+                            ['item_api_id' => $apiId, 'enc' => (int) $enc, 'city' => $row['city']],
+                            ['sell_price_min' => $price, 'fetched_at' => $now]
+                        );
+                        $updated++;
+                    }
+                } else {
+                    $failed += $chunk->count();
+                }
+            } catch (\Throwable $e) {
+                $failed += $chunk->count();
+            }
+
+            usleep(300_000); // jeda antar batch
+        }
+
+        return response()->json([
+            'updated' => $updated,
+            'failed'  => $failed,
+            'category_id' => $categoryId,
+        ]);
+    }
+
+    // ============================================================
+    // FETCH per-item tunggal — dipakai kalau kategori batch belum
+    // keselesai atau user langsung klik item tanpa klik kategori dulu.
+    // ============================================================
+    public function refreshItemPriceSingle($id)
+    {
+        // Bisa pakai item ID dari DB atau api_id string kalau lebih gampang di frontend
+        $item = Item::findOrFail($id);
+        // Simpel, panggil method refreshPrices yang udah ada
+        return $this->refreshPrices($id);
+    }
 
 // Fetch item yang SUDAH ada di tabel items (untuk koreksi kategori)
 public function savedItems(Request $request)

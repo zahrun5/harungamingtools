@@ -61,6 +61,9 @@ Route::get('/market',                  [MarketController::class, 'index']);
 Route::get('/api/market/categories',   [MarketController::class, 'categories']);
 Route::get('/api/market/items',        [MarketController::class, 'items']);
 Route::get('/api/market/item/{id}',    [MarketController::class, 'itemDetail']);
+Route::post('/api/market/item/{id}/refresh-prices', [MarketController::class, 'refreshPrices']);
+Route::post('/api/market/category/{categoryId}/refresh-prices', [MarketController::class, 'refreshCategoryPrices']);
+Route::post('/api/market/item/{id}/refresh-single', [MarketController::class, 'refreshItemPriceSingle']);
 
 // ─── Auth Required ────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {

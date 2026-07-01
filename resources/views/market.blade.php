@@ -259,26 +259,23 @@
   color: var(--text-dim); text-transform: uppercase;
   letter-spacing: 1px; margin-bottom: 8px;
 }
-.resource-list { display: flex; flex-direction: column; gap: 6px; }
-.resource-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px;
-  background: linear-gradient(180deg, #2a1e0a 0%, #1a1205 100%);
-  border: 1px solid var(--slot-bd); border-radius: 4px;
-  cursor: pointer; transition: all 0.12s;
+.resource-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); gap: 8px; }
+.resource-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; cursor: pointer; transition: opacity 0.12s;
 }
-.resource-row:hover { border-color: var(--gold-dk); background: linear-gradient(180deg, #3a2a10 0%, #251808 100%); }
-.resource-row img {
-  width: 36px; height: 36px; object-fit: contain;
+.resource-item:hover { opacity: 0.8; }
+.resource-item img {
+  width: 48px; height: 48px; object-fit: contain;
   border: 1px solid var(--slot-bd); border-radius: 3px;
-  background: var(--slot-bg); flex-shrink: 0;
+  background: var(--slot-bg);
 }
-.resource-info { flex: 1; }
-.resource-name { font-family: 'Crimson Text', serif; font-size: 14px; color: var(--text-lt); font-weight: 600; }
-.resource-tier { font-family: 'Cinzel', serif; font-size: 10px; color: var(--text-dim); }
 .resource-count {
-  font-family: 'Cinzel', serif; font-size: 13px;
-  color: var(--gold); font-weight: 700; flex-shrink: 0;
+  position: absolute; bottom: -5px; right: -5px;
+  font-family: 'Cinzel', serif; font-size: 11px;
+  color: var(--gold); font-weight: 700;
+  background: var(--dark-bg); border: 1px solid var(--gold);
+  border-radius: 3px; padding: 1px 3px;
 }
 .popup-loading {
   padding: 40px; text-align: center;
@@ -465,6 +462,8 @@ function buildCol1() {
       selKat1 = cat.id; selKat2 = null; selKat3 = null; selCatId = cat.id;
       refreshCols(); updateCatLabel();
       if (!hasSub) { closeDrop(); fetchItems(); }
+      // Pre-fetch harga kategori ini di background (non-blocking)
+      preloadCategoryPrices(cat.id);
     }));
   });
 }
@@ -486,6 +485,8 @@ function buildCol2() {
       selKat2 = sub.id; selKat3 = null; selCatId = sub.id;
       refreshCols(); updateCatLabel();
       if (!hasSub2) { closeDrop(); fetchItems(); }
+      // Pre-fetch harga kategori ini di background (non-blocking)
+      preloadCategoryPrices(sub.id);
     }));
   });
   buildCol3();
@@ -506,6 +507,8 @@ function buildCol3() {
     col3.appendChild(makeItem(item.name, false, selKat3 === item.id, () => {
       selKat3 = item.id; selCatId = item.id;
       buildCol3(); updateCatLabel(); closeDrop(); fetchItems();
+      // Pre-fetch harga kategori ini di background (non-blocking)
+      preloadCategoryPrices(item.id);
     }));
   });
 }
@@ -618,9 +621,6 @@ function renderItems(items) {
   document.getElementById('emptyMsg').style.display = 'none';
 
   items.forEach(item => {
-    const tierText = item.tier ?? '';
-    const encText  = item.enc > 0 ? item.enc : '';
-
     const row = document.createElement('div');
     row.className = 'item-row';
     row.innerHTML = `
@@ -629,8 +629,6 @@ function renderItems(items) {
           ? `<img class="item-icon" src="${item.img_url}" alt="${item.name}" onerror="this.style.display='none'">`
           : `<div class="item-icon" style="display:flex;align-items:center;justify-content:center;font-size:18px;">?</div>`
         }
-        ${tierText ? `<div class="tier-badge">${tierText.replace('T','')}</div>` : ''}
-        ${encText  ? `<div class="enc-badge">.${encText}</div>` : ''}
       </div>
       <div class="item-info">
         <span class="item-name">${item.name}</span>
@@ -707,15 +705,12 @@ function renderPopup(item) {
   `;
   }).join('');
 
-  // Buat list resource
+  // Buat list resource — minimal design: cuma gambar + jumlah aja
+  // Kalau ada 2 recipe berbeda bahan, dipisahin dengan jarak/line
   const resourcesHtml = item.resources && item.resources.length
-    ? item.resources.map(r => `
-      <div class="resource-row" onclick="openPopup(${r.item_id ?? 'null'})" ${!r.item_id ? 'style="cursor:default"' : ''}>
+    ? item.resources.map((r, idx) => `
+      <div class="resource-item" onclick="openPopup(${r.item_id ?? 'null'})" ${!r.item_id ? 'style="cursor:default;opacity:0.7"' : ''} title="${r.name}">
         <img src="${r.img_url}" alt="${r.name}" onerror="this.style.opacity=0.3">
-        <div class="resource-info">
-          <div class="resource-name">${r.name}</div>
-          <div class="resource-tier">${r.resource_api_id}</div>
-        </div>
         <div class="resource-count">×${r.count}</div>
       </div>
     `).join('')
@@ -738,6 +733,16 @@ function renderPopup(item) {
       <div class="resource-list">${resourcesHtml}</div>
     </div>
   `;
+}
+
+// ============================================================
+// PRE-LOAD CATEGORY PRICES — dijalankan pas user klik kategori
+// (non-blocking, jalan di background). Kalau berhasil, nanti
+// pas user buka item di kategori itu, harga udah di-cache.
+// ============================================================
+function preloadCategoryPrices(categoryId) {
+  fetch('/api/market/category/' + categoryId + '/refresh-prices', { method: 'POST' })
+    .catch(() => {}); // kalau gagal, biarkan aja, fallback ke per-item nanti
 }
 
 // ============================================================
