@@ -66,7 +66,7 @@ Route::post('/api/market/category/{categoryId}/refresh-prices', [MarketControlle
 Route::post('/api/market/item/{id}/refresh-single', [MarketController::class, 'refreshItemPriceSingle']);
 
 // ─── Auth Required ────────────────────────────────────────────────────────────
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'daily.bonus'])->group(function () {
 
     // Dashboard & Profile
     Route::get('/dashboard', fn() => view('dashboard'));

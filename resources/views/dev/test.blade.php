@@ -83,8 +83,8 @@
   cursor:pointer; padding:4px 10px; border:1px solid var(--slot-bd); border-radius:3px;
   background:var(--slot-bg); margin-left:auto;
 }
-.group-items { display:none; }
-.group-items.expanded { display:block; }
+.group-items { display:block; }
+.group-items.collapsed { display:none; }
 
 /* ITEM ROW */
 .item-row {
@@ -247,6 +247,9 @@
 
     <div class="toolbar">
       <input type="text" class="tb-input search" id="searchInput" placeholder="Cari api_id... (misal: SWORD, METALBAR)" oninput="onSearch()">
+      <button class="tb-btn red" type="button" onclick="resetSearch()" style="flex-shrink:0;">
+        ↺ Reset
+      </button>
     </div>
     <div class="toolbar" style="border-top:1px solid rgba(107,79,26,.3); padding-top:8px; flex-wrap:wrap; gap:8px;">
       <select class="cat-sel" id="catShortcut1" onchange="onCatShortcut1Change()">
@@ -374,6 +377,28 @@ function onCatShortcut2Change() {
   sel3.disabled = false;
 }
 
+// ============================================================
+// RESET — bersihin search box + dropdown kategori shortcut
+// sekaligus, biar gak perlu hapus manual satu-satu pas mau
+// mulai pencarian baru dari nol.
+// ============================================================
+function resetSearch() {
+  document.getElementById('searchInput').value = '';
+
+  const sel1 = document.getElementById('catShortcut1');
+  const sel2 = document.getElementById('catShortcut2');
+  const sel3 = document.getElementById('catShortcut3');
+  sel1.value = '';
+  sel2.innerHTML = '<option value="">— Level 2 —</option>';
+  sel3.innerHTML = '<option value="">— Level 3 —</option>';
+  sel2.disabled = true; sel3.disabled = true;
+
+  lastSearchCat1 = lastSearchCat2 = lastSearchCat3 = null;
+  currentPage = 1;
+  currentTab === 'unmapped' ? loadItems() : loadSavedItems();
+  showToast('↺ Pencarian direset');
+}
+
 function searchByCatShortcut() {
   const sel1 = document.getElementById('catShortcut1');
   const sel2 = document.getElementById('catShortcut2');
@@ -495,7 +520,10 @@ function makeGroupCard(baseKey, groupItems) {
       <div class="group-title-row">
         <span class="group-title">📦 ${prettyBase}</span>
         <span class="group-count">(${groupItems.length} varian)</span>
-        <span class="group-toggle" onclick="toggleGroup('${groupId}')">Lihat detail ▾</span>
+        <span class="group-toggle" onclick="toggleGroup('${groupId}')">Sembunyikan ▴</span>
+        <button class="tb-btn gold" type="button" onclick="searchGroupVariants('${groupId}')" title="Cari semua tier/enchant item ini di seluruh database, bukan cuma di halaman ini">
+          🔄 Cari Variasi
+        </button>
       </div>
       <div class="group-cat-selects">
         <select class="cat-sel" id="gcat1-${groupId}" onchange="onGroupCat1Change('${groupId}')">
@@ -508,7 +536,12 @@ function makeGroupCard(baseKey, groupItems) {
         <select class="cat-sel" id="gcat3-${groupId}" disabled>
           <option value="">— Level 3 —</option>
         </select>
+        <div class="cat-search-wrap" style="position:relative;">
+          <button class="tb-btn gold" type="button" onclick="searchGroupSubcat('${groupId}')">🔍 Cari sub kategori</button>
+          <div class="cat-suggest" id="gsuggest-${groupId}"></div>
+        </div>
       </div>
+      <div class="cat-selected" id="gselected-${groupId}"></div>
       <div class="group-actions">
         ${encActionHtml}
         <span class="status-badge unsaved" id="gbadge-${groupId}">⏳ Belum di-mapping</span>
@@ -531,6 +564,8 @@ function makeGroupCard(baseKey, groupItems) {
   // simpan referensi item list + max_enc di elemen untuk dipakai saveGroup nanti
   card.dataset.apiIds = JSON.stringify(groupItems.map(i => i.api_id));
   card.dataset.maxEnc = maxEnc;
+  card.dataset.prettyBase = prettyBase; // dipakai fitur "Cari sub kategori"
+  card.dataset.baseKey = baseKey;       // dipakai fitur "Cari variasi"
 
   return card;
 }
@@ -577,11 +612,149 @@ function prefillGroupCategories(card, groupId) {
   }
 }
 
+// ============================================================
+// CARI SUB KATEGORI — cocokkan nama item dengan pohon kategori,
+// tampilkan hasil sebagai chip yang bisa diklik buat auto-isi
+// dropdown Level 1/2/3 grup ini. Pengganti klak-klik manual satu-satu.
+// ============================================================
+let CATEGORY_PATH_INDEX = null;
+
+function buildCategoryPathIndex() {
+  const paths = [];
+  CATEGORIES.forEach(l1 => {
+    if (l1.children && l1.children.length) {
+      l1.children.forEach(l2 => {
+        if (l2.children && l2.children.length) {
+          l2.children.forEach(l3 => {
+            paths.push({ id1: l1.id, id2: l2.id, id3: l3.id, matchName: l3.name, text: `${l1.name} > ${l2.name} > ${l3.name}` });
+          });
+        } else {
+          paths.push({ id1: l1.id, id2: l2.id, id3: null, matchName: l2.name, text: `${l1.name} > ${l2.name}` });
+        }
+      });
+    } else {
+      paths.push({ id1: l1.id, id2: null, id3: null, matchName: l1.name, text: l1.name });
+    }
+  });
+  CATEGORY_PATH_INDEX = paths;
+}
+
+function normCatText(s) {
+  return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function scoreCategoryMatch(itemNorm, catNorm) {
+  if (!catNorm) return 0;
+  const catWords = catNorm.split(' ').filter(Boolean);
+  if (!catWords.length) return 0;
+  const itemWords = itemNorm.split(' ').filter(Boolean);
+  let score = 0;
+  catWords.forEach(cw => {
+    if (itemWords.includes(cw)) score += 3;
+    else if (itemNorm.includes(cw)) score += 1;
+  });
+  if (itemNorm.includes(catNorm)) score += 5;
+  return score / catWords.length;
+}
+
+function findCategoryMatches(itemName, limit = 6) {
+  if (!CATEGORY_PATH_INDEX) buildCategoryPathIndex();
+  const itemNorm = normCatText(itemName);
+  if (!itemNorm) return [];
+  return CATEGORY_PATH_INDEX
+    .map(p => ({ ...p, score: scoreCategoryMatch(itemNorm, normCatText(p.matchName)) }))
+    .filter(p => p.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+function searchGroupSubcat(groupId) {
+  const card = document.getElementById(groupId);
+  const name = (card.dataset.prettyBase || '').trim();
+  const box  = document.getElementById('gsuggest-' + groupId);
+
+  if (!name) {
+    showToast('⚠️ Nama item kosong, gak bisa dicari kategorinya!', 'warn');
+    box.classList.remove('open');
+    return;
+  }
+
+  const matches = findCategoryMatches(name);
+  if (!matches.length) {
+    box.innerHTML = `<div class="cat-suggest-item">Gak ada saran kategori yang cocok 😕</div>`;
+    box.dataset.matches = '[]';
+    box.classList.add('open');
+    return;
+  }
+
+  box.innerHTML = matches.map((m, idx) => `
+    <div class="cat-suggest-item" onclick="selectGroupCategory('${groupId}', ${idx})">
+      ${m.text}
+    </div>
+  `).join('');
+  box.dataset.matches = JSON.stringify(matches);
+  box.classList.add('open');
+}
+
+function selectGroupCategory(groupId, idx) {
+  const box = document.getElementById('gsuggest-' + groupId);
+  const matches = JSON.parse(box.dataset.matches || '[]');
+  const m = matches[idx];
+  if (!m) return;
+
+  const sel1 = document.getElementById('gcat1-' + groupId);
+  const sel2 = document.getElementById('gcat2-' + groupId);
+  const sel3 = document.getElementById('gcat3-' + groupId);
+
+  sel1.value = m.id1;
+  onGroupCat1Change(groupId); // isi ulang opsi level 2 sesuai level 1 terpilih
+
+  if (m.id2) {
+    sel2.value = m.id2;
+    onGroupCat2Change(groupId); // isi ulang opsi level 3 sesuai level 2 terpilih
+  }
+  if (m.id3) {
+    sel3.value = m.id3;
+  }
+
+  document.getElementById('gselected-' + groupId).textContent = '✓ ' + m.text;
+  box.classList.remove('open');
+}
+
+// Tutup dropdown saran kalau klik di luar area tombol pencarian
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.cat-search-wrap')) {
+    document.querySelectorAll('.cat-suggest.open').forEach(el => el.classList.remove('open'));
+  }
+});
+
 function toggleGroup(groupId) {
   const el = document.getElementById(groupId + '-items');
   const toggle = document.querySelector(`#${groupId} .group-toggle`);
-  el.classList.toggle('expanded');
-  toggle.textContent = el.classList.contains('expanded') ? 'Sembunyikan ▴' : 'Lihat detail ▾';
+  el.classList.toggle('collapsed');
+  toggle.textContent = el.classList.contains('collapsed') ? 'Lihat detail ▾' : 'Sembunyikan ▴';
+}
+
+// ============================================================
+// CARI VARIASI — sekali klik, search ulang pakai base key item
+// ini (tanpa prefix tier T1-T8 & suffix enchant) ke SELURUH
+// database via endpoint yang sama. Berguna karena tier/enchant
+// dari item yang sama biasanya kesebar di banyak halaman kalau
+// browsing tanpa search, jadi grouping per-halaman jadi gak akurat
+// (cuma nemu varian yang kebetulan satu halaman).
+// ============================================================
+function searchGroupVariants(groupId) {
+  const card = document.getElementById(groupId);
+  const baseKey = card.dataset.baseKey;
+  if (!baseKey) {
+    showToast('⚠️ Gak ketemu base key item ini!', 'warn');
+    return;
+  }
+
+  document.getElementById('searchInput').value = baseKey;
+  currentPage = 1;
+  currentTab === 'unmapped' ? loadItems() : loadSavedItems();
+  showToast('🔄 Mencari semua varian: "' + baseKey + '"');
 }
 
 // ============================================================

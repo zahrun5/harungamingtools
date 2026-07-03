@@ -140,21 +140,6 @@
 .item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .item-name { font-family: 'Crimson Text', serif; font-size: 15px; color: var(--parch-lt); font-weight: 600; }
 
-/* Badge harga per kota — wrap */
-.item-prices { display: flex; flex-wrap: wrap; gap: 4px; }
-.price-badge {
-  font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
-  padding: 3px 7px; border-radius: 3px;
-  white-space: nowrap; border: 1px solid transparent;
-}
-.price-badge.city-Caerleon    { background: #7b1a1a; color: #ffd0d0; border-color: #c0392b; }
-.price-badge.city-Bridgewatch  { background: #7a3a00; color: #ffe0b0; border-color: #e67e22; }
-.price-badge.city-Fort-Sterling{ background: #3a3a3a; color: #f0f0f0; border-color: #bdc3c7; }
-.price-badge.city-Lymhurst    { background: #1a4a1a; color: #c0ffc0; border-color: #27ae60; }
-.price-badge.city-Martlock    { background: #1a2a5a; color: #c0d0ff; border-color: #2980b9; }
-.price-badge.city-Thetford    { background: #3a1a5a; color: #e0c0ff; border-color: #8e44ad; }
-.price-badge.city-Brecilien   { background: #0a3a2a; color: #a0ffe0; border-color: #1abc9c; }
-
 /* ====== SEARCH ====== */
 .search-bar { padding: 10px 12px 0; }
 .search-input {
@@ -237,7 +222,7 @@
   border: 1px solid rgba(0,0,0,0.3);
   gap: 2px;
 }
-.city-price-box .cpb-val { font-size: 8px; font-weight: 700; }
+.city-price-box .cpb-val { font-size: 11px; font-weight: 700; }
 .city-price-box.loading  { opacity: 0.5; }
 .city-price-box.no-data  { opacity: 0.3; }
 
@@ -331,17 +316,6 @@
           <div class="drop-col" id="colEnc"></div>
         </div>
       </div>
-      <!-- QUALITY -->
-      <div class="flt-wrap">
-        <div class="flt-btn" id="btnQuality" onclick="toggleDrop('quality')">
-          <span class="flt-label" id="lblQuality">Quality</span>
-          <span class="flt-val"   id="valQuality" style="display:none"></span>
-          <span class="flt-arrow">▼</span>
-        </div>
-        <div class="drop-wrap" id="dropQuality">
-          <div class="drop-col" id="colQuality"></div>
-        </div>
-      </div>
     </div>
 
 
@@ -375,7 +349,7 @@ const CITIES = [
   { id: 'Fort Sterling', label: 'FOR', cls: 'city-Fort-Sterling'  },
   { id: 'Lymhurst',      label: 'LYM', cls: 'city-Lymhurst'      },
   { id: 'Martlock',      label: 'MAR', cls: 'city-Martlock'       },
-  { id: 'Thetford',      label: 'THE', cls: 'city-Thetford'       },
+  { id: 'Thetford',      label: 'THR', cls: 'city-Thetford'       },
   { id: 'Brecilien',     label: 'BRE', cls: 'city-Brecilien'      },
 ];
 
@@ -388,13 +362,11 @@ let CATEGORIES = [];
 const TIERS      = [1,2,3,4,5,6,7,8];
 const TIER_LABEL = {1:'Tier 1',2:'Tier 2',3:'Tier 3',4:'Tier 4',5:'Tier 5',6:'Tier 6',7:'Tier 7',8:'Tier 8'};
 const ENCS       = [0,1,2,3,4];
-const QUALITIES  = ['Normal','Good','Outstanding','Excellent','Masterpiece'];
 
 let openDrop = null;
 let selCatId = null;
 let selTier  = null;
 let selEnc   = null;
-let selQual  = null;
 let searchQ  = '';
 
 // ============================================================
@@ -461,7 +433,8 @@ function buildCol1() {
     col.appendChild(makeItem(cat.name, hasSub, selKat1 === cat.id, () => {
       selKat1 = cat.id; selKat2 = null; selKat3 = null; selCatId = cat.id;
       refreshCols(); updateCatLabel();
-      if (!hasSub) { closeDrop(); fetchItems(); }
+      if (!hasSub) closeDrop();
+      fetchItems(); // langsung tampilin item kategori ini (+descendant-nya), gak perlu drill sampai leaf
       // Pre-fetch harga kategori ini di background (non-blocking)
       preloadCategoryPrices(cat.id);
     }));
@@ -484,7 +457,8 @@ function buildCol2() {
     col2.appendChild(makeItem(sub.name, hasSub2, selKat2 === sub.id, () => {
       selKat2 = sub.id; selKat3 = null; selCatId = sub.id;
       refreshCols(); updateCatLabel();
-      if (!hasSub2) { closeDrop(); fetchItems(); }
+      if (!hasSub2) closeDrop();
+      fetchItems(); // langsung tampilin item kategori ini (+descendant-nya)
       // Pre-fetch harga kategori ini di background (non-blocking)
       preloadCategoryPrices(sub.id);
     }));
@@ -558,17 +532,6 @@ function buildEncDrop() {
   })));
 }
 
-function buildQualityDrop() {
-  const col = document.getElementById('colQuality');
-  col.innerHTML = '';
-  col.appendChild(makeItem('All', false, !selQual, () => {
-    selQual = null; setFilterVal('lblQuality','valQuality',null); closeDrop(); fetchItems();
-  }));
-  QUALITIES.forEach(q => col.appendChild(makeItem(q, false, selQual === q, () => {
-    selQual = q; setFilterVal('lblQuality','valQuality',q); closeDrop(); fetchItems();
-  })));
-}
-
 // ============================================================
 // SEARCH
 // ============================================================
@@ -596,7 +559,6 @@ function fetchItems() {
   if (selCatId) params.set('category_id', selCatId);
   if (selTier)  params.set('tier', selTier);
   if (selEnc !== null) params.set('enc', selEnc);
-  if (selQual)  params.set('quality', selQual);
   fetch('/api/market/items?' + params.toString())
     .then(r => r.json())
     .then(items => {
@@ -632,58 +594,76 @@ function renderItems(items) {
       </div>
       <div class="item-info">
         <span class="item-name">${item.name}</span>
-        <div class="item-prices" id="prices-${item.id}"></div>
       </div>`;
 
     row.addEventListener('click', () => openPopup(item.id));
     grid.appendChild(row);
-
-    renderPriceBadges(item.id, item.prices);
   });
 }
 
 // ============================================================
-// RENDER BADGE HARGA — datanya dari cache (item_prices), sudah
-// ikut nempel di response /api/market/items, jadi gak perlu fetch
-// API eksternal per item lagi (berat kalau list-nya banyak).
-// Cache-nya di-refresh tiap kali user buka popup item itu.
+// FORMAT ANGKA HARGA — cuma angka + suffix M/K, tanpa label mata uang.
 // ============================================================
-function renderPriceBadges(itemId, prices) {
-  const container = document.getElementById('prices-' + itemId);
-  if (!container || !prices) return;
-  CITIES.forEach(c => {
-    const price = prices[c.id] ?? 0;
-    if (price > 0) {
-      const badge = document.createElement('span');
-      badge.className = `price-badge ${c.cls}`;
-      badge.title = c.id;
-      badge.textContent = formatSilver(price);
-      container.appendChild(badge);
-    }
-    // belum ada harga ter-cache untuk kota ini → tidak ditampilkan
-  });
-}
-
 function formatSilver(n) {
-  if (n >= 1_000_000) return (n/1_000_000).toFixed(1) + 'M 🪙';
-  if (n >= 1_000)     return (n/1_000).toFixed(1) + 'K 🪙';
-  return n + ' 🪙';
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000)     return (n/1_000).toFixed(1) + 'K';
+  return String(n);
 }
 
 // ============================================================
-// POPUP
+// POPUP — render INSTAN pakai harga cache dulu (biar gak nunggu
+// API luar yang bisa 1-8 detik), lalu di background kita coba
+// ambil harga real-time dan TIMPA box yang sudah tampil. Kalau
+// real-time gagal, cache yang sudah tampil dibiarkan (itu fallback-nya).
 // ============================================================
 function openPopup(itemId) {
   document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Memuat...</div>';
   document.getElementById('popupOverlay').classList.add('show');
+
   fetch('/api/market/item/' + itemId)
     .then(r => r.json())
     .then(item => {
-      renderPopup(item);
-      refreshPopupPrices(itemId); // update harga terbaru di background (juga update cache di DB)
+      renderPopup(item);          // instan, pakai harga cache yang sudah ada
+      refreshPopupPrices(itemId); // lalu coba real-time di background, timpa kalau berhasil
     })
     .catch(() => {
       document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Gagal memuat data.</div>';
+    });
+}
+
+// ============================================================
+// REFRESH HARGA (background) — minta backend fetch real-time ke
+// Albion Online Data Project. Kalau berhasil & ada harganya, box
+// ditimpa dengan nilai real-time itu. Kalau gagal/kosong, box
+// dibiarkan seperti apa adanya (masih nunjukin harga cache).
+// ============================================================
+function refreshPopupPrices(itemId) {
+  CITIES.forEach(c => {
+    const boxId = 'cpb-' + c.id.replace(' ', '-');
+    document.getElementById(boxId)?.classList.add('loading');
+  });
+
+  fetch(`/api/market/item/${itemId}/refresh-prices`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRF-TOKEN': getCsrf() },
+  })
+    .then(r => r.json())
+    .then(data => {
+      CITIES.forEach(c => {
+        const boxId = 'cpb-' + c.id.replace(' ', '-');
+        const box = document.getElementById(boxId);
+        if (!box) return; // popup udah ditutup / item lain dibuka
+        box.classList.remove('loading');
+        const price = data.prices?.[c.id] ?? 0;
+        if (!price) return; // gak ada harga sama sekali (real-time maupun cache) → biarkan tampilan sebelumnya
+        box.classList.remove('no-data');
+        box.querySelector('.cpb-val').textContent = formatSilver(price);
+      });
+    })
+    .catch(() => {
+      CITIES.forEach(c => document.getElementById('cpb-' + c.id.replace(' ', '-'))?.classList.remove('loading'));
+      // gagal total → biarkan harga cache yang sudah tampil dari renderPopup
     });
 }
 
@@ -692,14 +672,14 @@ function renderPopup(item) {
   const tierText = (item.tier ?? '') + (enc > 0 ? '.' + enc : '');
   const apiIdEnc = enc > 0 ? `${item.api_id}@${enc}` : item.api_id;
 
-  // Kotak harga kota — langsung pakai harga cache (instan), gak nunggu fetch dulu.
-  // refreshPopupPrices() bakal nimpa nilai ini kalau ada update terbaru dari API.
+  // Kotak harga kota — langsung pakai harga cache dulu (instan), gak nunggu
+  // fetch real-time. refreshPopupPrices() bakal nimpa box ini di background
+  // begitu hasil real-time datang.
   const cityBoxes = CITIES.map(c => {
     const price = item.prices?.[c.id] ?? 0;
     const boxId = 'cpb-' + c.id.replace(' ', '-');
     return `
-    <div class="city-price-box ${price ? '' : 'no-data'} ${c.cls}" id="${boxId}">
-      <span>${c.label}</span>
+    <div class="city-price-box ${price ? '' : 'no-data'} ${c.cls}" id="${boxId}" title="${c.id}">
       <span class="cpb-val">${price ? formatSilver(price) : '—'}</span>
     </div>
   `;
@@ -745,31 +725,6 @@ function preloadCategoryPrices(categoryId) {
     .catch(() => {}); // kalau gagal, biarkan aja, fallback ke per-item nanti
 }
 
-// ============================================================
-// REFRESH HARGA — minta backend fetch ulang ke Albion Online Data
-// Project, sekalian update cache di DB. Dipanggil pas popup dibuka
-// (bukan tiap render list), jadi gak bikin banyak request eksternal.
-// ============================================================
-function refreshPopupPrices(itemId) {
-  fetch(`/api/market/item/${itemId}/refresh-prices`, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: { 'X-CSRF-TOKEN': getCsrf() },
-  })
-    .then(r => r.json())
-    .then(data => {
-      CITIES.forEach(c => {
-        const boxId = 'cpb-' + c.id.replace(' ', '-');
-        const box = document.getElementById(boxId);
-        if (!box) return; // popup udah ditutup / item lain dibuka
-        const price = data.prices?.[c.id] ?? 0;
-        box.classList.toggle('no-data', !price);
-        box.querySelector('.cpb-val').textContent = price ? formatSilver(price) : '—';
-      });
-    })
-    .catch(() => {}); // gagal refresh → biarkan harga cache yang sudah tampil
-}
-
 function getCsrf() {
   return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 }
@@ -792,7 +747,6 @@ fetch('/api/market/categories')
     buildCol1();
     buildTierDrop();
     buildEncDrop();
-    buildQualityDrop();
     fetchItems(); // load semua item dari awal, gak perlu pilih kategori dulu
   });
 </script>

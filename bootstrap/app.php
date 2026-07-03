@@ -15,9 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/bot/catat-aktivitas',
         ]);
+        $middleware->alias([
+            'daily.bonus' => \App\Http\Middleware\DailyLoginBonus::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn(Request $request) => $request->is('api/*'),
         );
     })->create();

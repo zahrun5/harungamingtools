@@ -124,16 +124,30 @@ class MarketController extends Controller
 	{
 	    return $this->parseApiId($apiId)['name'];
 	}
-	
-	// --- GANTI recipeItems() DENGAN INI ---
-	
+
+	// ============================================================
+	// GROUPING HELPER: sama persis logikanya dengan getBaseKey()
+	// di frontend (test.blade.php), biar konsisten. Dipakai buat
+	// ngelompokin item per base-name (T1..T8 + enchant) sebelum
+	// dipaginate, jadi satu base item gak pernah kepotong halaman.
+	// ============================================================
+	private function getBaseKey(string $apiId): string
+	{
+	    $key = preg_replace('/@\d$/', '', $apiId);       // buang suffix enchant equipment @1..@4
+	    $key = preg_replace('/_LEVEL[1-4]$/', '', $key); // buang suffix enchant resource _LEVEL1..4
+	    $key = preg_replace('/^T[1-8]_/', '', $key);     // buang prefix tier T1_...T8_
+	    $key = preg_replace('/^2H_/', '', $key);         // buang prefix 2H_
+	    return $key;
+	}
+
+	// --- GANTI recipeItems() DENGAN INI (versi grouping per-base-item) ---
+
 	public function recipeItems(Request $request)
 	{
-	    $perPage = 50;
-	    $page    = max(1, (int) $request->get('page', 1));
-	    $search  = trim($request->get('search', ''));
+	    $perPageGroups = 20; // jumlah GROUP (base item) per halaman, bukan jumlah row
+	    $page   = max(1, (int) $request->get('page', 1));
+	    $search = trim($request->get('search', ''));
 
-	    // Query dasar (tanpa search) yang dipakai di kedua cabang di bawah
 	    $baseQuery = function () {
 	        return DB::table('item_recipes')
 	            ->select('item_api_id')
@@ -145,34 +159,48 @@ class MarketController extends Controller
 	            ->where('item_api_id', 'not like', 'UNIQUE%');
 	    };
 
-	    if ($search === '') {
-	        // Tanpa search: cukup query SQL biasa + pagination di DB (ringan)
-	        $total  = $baseQuery()->count();
-	        $apiIds = $baseQuery()
-	            ->orderBy('item_api_id')
-	            ->offset(($page - 1) * $perPage)
-	            ->limit($perPage)
-	            ->pluck('item_api_id');
-	    } else {
-	        // Dengan search: "nama item" itu hasil olahan parseApiId(), BUKAN kolom asli
-	        // di DB, jadi gak bisa di-LIKE langsung di SQL kayak api_id. Solusinya: ambil
-	        // semua kandidat id dulu, cocokkan ke api_id ATAU nama hasil parse di PHP,
-	        // baru di-paginate manual.
-	        $allApiIds = $baseQuery()->orderBy('item_api_id')->pluck('item_api_id');
+	    // Ambil SEMUA api_id yang lolos filter dasar (belum di-DB, bukan quest/unique).
+	    // Wajib diambil semua (bukan per-halaman) karena grouping & pagination
+	    // sekarang dilakukan per BASE-ITEM, bukan per-row, supaya satu base item
+	    // (T1..T8 + enchant) selalu utuh dalam satu halaman yang sama.
+	    $allApiIds = $baseQuery()->orderBy('item_api_id')->pluck('item_api_id');
 
+	    if ($search !== '') {
+	        // "nama item" itu hasil olahan parseApiId(), BUKAN kolom asli di DB,
+	        // jadi gak bisa di-LIKE langsung di SQL. Solusinya: cocokkan di PHP
+	        // ke api_id ATAU nama hasil parse, baru di-group & di-paginate.
 	        $searchLower = mb_strtolower($search);
-	        $matched = $allApiIds->filter(function ($apiId) use ($searchLower) {
+	        $allApiIds = $allApiIds->filter(function ($apiId) use ($searchLower) {
 	            if (str_contains(mb_strtolower($apiId), $searchLower)) {
 	                return true;
 	            }
 	            $name = mb_strtolower($this->parseApiId($apiId)['name']);
 	            return str_contains($name, $searchLower);
 	        })->values();
-
-	        $total  = $matched->count();
-	        $apiIds = $matched->slice(($page - 1) * $perPage, $perPage)->values();
 	    }
-	
+
+	    // Group berdasarkan base key (strip tier + enchant) — logikanya sama
+	    // persis dengan getBaseKey() di test.blade.php, biar konsisten.
+	    $groups = [];
+	    foreach ($allApiIds as $apiId) {
+	        $baseKey = $this->getBaseKey($apiId);
+	        $groups[$baseKey][] = $apiId;
+	    }
+	    ksort($groups); // urut alfabetis per base key biar stabil & predictable
+
+	    $groupKeys   = array_keys($groups);
+	    $totalGroups = count($groupKeys);
+	    $totalItems  = $allApiIds->count();
+
+	    $pageKeys = array_slice($groupKeys, ($page - 1) * $perPageGroups, $perPageGroups);
+
+	    $apiIds = collect();
+	    foreach ($pageKeys as $key) {
+	        foreach ($groups[$key] as $id) {
+	            $apiIds->push($id);
+	        }
+	    }
+
 	    // Ambil distinct enchantment_level per item_api_id dari item_recipes (1 query, hindari N+1)
 	    $encLevels = DB::table('item_recipes')
 	        ->whereIn('item_api_id', $apiIds)
@@ -181,14 +209,14 @@ class MarketController extends Controller
 	        ->get()
 	        ->groupBy('item_api_id')
 	        ->map(fn($rows) => $rows->pluck('enchantment_level')->sort()->values());
-	
+
 	    $items = $apiIds->map(function ($apiId) use ($encLevels) {
 	        $parsed = $this->parseApiId($apiId);
 	        $parts  = explode('_', $apiId);
 	        $tier   = isset($parts[0]) && preg_match('/^T(\d)$/', $parts[0], $m) ? (int) $m[1] : null;
-	
+
 	        $levels = $encLevels->get($apiId, collect([0]));
-	
+
 	        return [
 	            'api_id'     => $apiId,
 	            'name'       => $parsed['name'],
@@ -199,13 +227,14 @@ class MarketController extends Controller
 	            'img_url'    => "https://render.albiononline.com/v1/item/{$apiId}.png",
 	        ];
 	    });
-	
+
 	    return response()->json([
-	        'data'      => $items,
-	        'total'     => $total,
-	        'page'      => $page,
-	        'per_page'  => $perPage,
-	        'last_page' => (int) ceil($total / $perPage),
+	        'data'         => $items,
+	        'total'        => $totalItems,
+	        'total_groups' => $totalGroups,
+	        'page'         => $page,
+	        'per_page'     => $perPageGroups,
+	        'last_page'    => (int) ceil($totalGroups / $perPageGroups),
 	    ]);
 	}
 
@@ -248,7 +277,6 @@ class MarketController extends Controller
             'category_id' => 'nullable|integer|exists:categories,id',
             'tier'        => 'nullable|integer|min:1|max:8',
             'enc'         => 'nullable|integer|min:0|max:4',
-            'quality'     => 'nullable|string',
         ]);
 
         $query = Item::with('category');
@@ -272,24 +300,14 @@ class MarketController extends Controller
             $query->where('enc', $request->enc);
         }
 
-        if ($request->filled('quality')) {
-            $query->where('quality', $request->quality);
-        }
-
         $items = $query->orderBy('tier')->orderBy('name')->get();
 
-        // Ambil semua harga cache untuk item-item ini sekaligus (1 query, hindari N+1
-        // dan hindari fetch ke API eksternal langsung dari frontend untuk tiap item)
-        $apiIds = $items->pluck('api_id')->filter()->unique()->values();
-        $priceRows = ItemPrice::whereIn('item_api_id', $apiIds)->get()
-            ->groupBy(fn($p) => $p->item_api_id . '#' . $p->enc);
-
-        $items = $items->map(function ($item) use ($priceRows) {
+        // List sengaja TIDAK ikut ambil harga sama sekali (dulu sempat join ke
+        // item_prices di sini, tapi bikin berat kalau list-nya panjang). Harga
+        // cuma di-fetch pas user buka popup item (real-time-first, lihat
+        // refreshPrices() / itemDetail()).
+        $items = $items->map(function ($item) {
             $enc = (int) ($item->enc ?? 0);
-            $key = $item->api_id . '#' . $enc;
-            $prices = $priceRows->get($key, collect())
-                ->mapWithKeys(fn($p) => [$p->city => (int) $p->sell_price_min]);
-
             $apiIdWithEnc = $item->api_id
                 ? ($enc > 0 ? "{$item->api_id}@{$enc}" : $item->api_id)
                 : null;
@@ -305,7 +323,6 @@ class MarketController extends Controller
                 'img_url'  => $apiIdWithEnc
                     ? "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png"
                     : null,
-                'prices'   => $prices, // {city: harga} dari cache, bisa kosong kalau belum pernah di-refresh
             ];
         });
 

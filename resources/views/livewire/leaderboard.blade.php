@@ -26,7 +26,7 @@
                         <div style="font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $user->display_name }}</div>
                     </div>
                     <div style="font-family:'JetBrains Mono',monospace;color:var(--gold);font-weight:700;font-size:.88rem;white-space:nowrap;">
-                        {{ $user->calculator_usages_count }} EXP
+                        {{ $user->points }} EXP
                     </div>
                 </div>
             @endforeach
