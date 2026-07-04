@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DeathRecapController;
 
 // ─── Auth Google ─────────────────────────────────────────────────────────────
 Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
@@ -65,8 +66,15 @@ Route::post('/api/market/item/{id}/refresh-prices', [MarketController::class, 'r
 Route::post('/api/market/category/{categoryId}/refresh-prices', [MarketController::class, 'refreshCategoryPrices']);
 Route::post('/api/market/item/{id}/refresh-single', [MarketController::class, 'refreshItemPriceSingle']);
 
+// === Death Recap ===
+Route::get('/death-recap', [DeathRecapController::class, 'index']);
+Route::post('/api/death-recap/search', [DeathRecapController::class, 'search']);
+Route::post('/api/death-recap/load-more', [DeathRecapController::class, 'loadMore']);
+Route::get('/death-recap/event/{eventId}', [DeathRecapController::class, 'show']);
+
 // ─── Auth Required ────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'daily.bonus'])->group(function () {
+
 
     // Dashboard & Profile
     Route::get('/dashboard', fn() => view('dashboard'));

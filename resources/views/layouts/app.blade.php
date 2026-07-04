@@ -48,6 +48,29 @@
 .float-saweria:hover{border-color:var(--teal);color:var(--teal);}
   @media (max-width:480px){.float-btn span{display:none;}.float-btn{padding:11px 13px;}}
 
+  /* ===== Station cards (halaman utama) ===== */
+  .section-title{font-family:'Fraunces',serif;color:var(--gold);font-size:1.15rem;margin:36px 0 16px;display:flex;align-items:center;gap:8px;}
+  .section-sub{font-size:0.85rem;color:var(--text-muted);margin-top:-10px;margin-bottom:18px;}
+
+  .station-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  @media (min-width:640px){.station-grid{grid-template-columns:repeat(3,1fr);}}
+  @media (min-width:960px){.station-grid{grid-template-columns:repeat(4,1fr);}}
+
+  .station-card{position:relative;display:block;border-radius:12px;overflow:hidden;aspect-ratio:4/3;border:1px solid var(--border);background-color:var(--bg-card);background-size:cover;background-position:center;transition:transform .18s ease,border-color .18s ease;}
+  .station-card:hover{transform:translateY(-3px);border-color:var(--gold);}
+  .station-card::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(10,8,6,0.92) 0%,rgba(10,8,6,0.45) 45%,rgba(10,8,6,0.05) 75%);}
+  .station-card .station-badge{position:absolute;top:10px;right:10px;z-index:2;background:rgba(20,17,15,0.75);border:1px solid var(--border);color:var(--gold);font-size:0.68rem;font-weight:600;padding:3px 9px;border-radius:20px;font-family:'JetBrains Mono',monospace;}
+  .station-card .station-body{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:14px;}
+  .station-card .station-name{font-family:'Fraunces',serif;font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:3px;}
+  .station-card .station-desc{font-size:0.74rem;color:var(--text-muted);line-height:1.3;}
+
+  .tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:30px;}
+  .tool-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:18px;display:block;transition:border-color .2s;}
+  .tool-card:hover{border-color:var(--gold);}
+  .tool-icon{font-size:1.6rem;margin-bottom:8px;}
+  .tool-name{font-weight:600;margin-bottom:4px;}
+  .tool-desc{font-size:.8rem;color:var(--text-muted);}
+
   footer{border-top:1px solid var(--border);padding:32px 0;margin-top:48px;}
   .footer-links{display:flex;gap:20px;flex-wrap:wrap;font-size:0.85rem;color:var(--text-muted);}
   .footer-links a:hover{color:var(--gold);}

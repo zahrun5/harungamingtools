@@ -150,11 +150,107 @@
 .rw .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:200; white-space:nowrap; }
 .rw .toast.show { transform:translateX(-50%) translateY(0); }
 
+/* MODE TOGGLE */
+.rw .mode-toggle { display:flex; gap:0; background:var(--sbg); border:1px solid var(--sbd); border-radius:4px; padding:3px; margin-bottom: 4px; }
+.rw .mode-btn { flex:1; background:transparent; border:none; color:var(--dim); font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; border-radius:3px; text-transform:uppercase; transition:all .15s; }
+.rw .mode-btn.active { background:linear-gradient(180deg,#4a3818,#2e2210); color:var(--gold); border:1px solid var(--bd); }
+
+/* WIZARD (MODE SIMPLE) */
+.rw .wiz-step { padding:14px 0; border-bottom:1px solid rgba(107,79,26,.3); }
+.rw .wiz-step:last-child { border-bottom:none; }
+.rw .wiz-label { font-family:'Cinzel',serif; font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+.rw .wiz-options { display:flex; flex-wrap:wrap; gap:7px; }
+.rw .wiz-opt { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--bd); border-radius:4px; color:var(--lt); font-family:'Crimson Text',serif; font-size:14px; padding:9px 15px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px; }
+.rw .wiz-opt:hover { border-color:var(--gold); }
+.rw .wiz-opt.sel { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
+.rw .wiz-opt img { width:28px; height:28px; object-fit:contain; }
+.rw .wiz-input-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.rw .wiz-input-row label { font-size:12px; color:var(--dim); min-width:130px; }
+.rw .wiz-input-row input[type=number] { background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-size:14px; padding:8px 10px; outline:none; width:120px; }
+.rw .wiz-input-row input:focus { border-color:var(--gold); }
+.rw .wiz-btn-hitung { width:100%; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:12px; cursor:pointer; text-transform:uppercase; margin-top:4px; }
+.rw .wiz-btn-hitung:hover { background:linear-gradient(180deg,#a05800,#703800); }
+.rw .wiz-result { margin:14px 0; background:linear-gradient(180deg,#2e2210,#1e1608); border:2px solid var(--bd); border-radius:4px; padding:16px; }
+.rw .wiz-result-text { font-size:15px; line-height:1.7; color:var(--lt); }
+.rw .wiz-result-text b { color:var(--gold); }
+
   
 </style>
 
 <div class="rw">
   <div class="app">
+
+    <div class="mode-toggle">
+      <button id="btnModeSimple" class="mode-btn active" onclick="setMode('simple')">📝 Mode Simple</button>
+      <button id="btnModeAdvance" class="mode-btn" onclick="setMode('advance')">⚙️ Mode Advance</button>
+    </div>
+
+    <div id="modeSimpleWrap">
+      <div class="panel">
+        <div class="ph">
+          <span>📝</span>
+          <span class="ph-title">Refine — Mode Simple</span>
+        </div>
+        <div style="padding:16px;">
+
+          @php
+            $simpleStations = [
+                ['slug' => 'smelter',    'jenis' => 'logam', 'name' => 'Smelter',    'desc' => 'Olah bijih jadi batangan logam'],
+                ['slug' => 'lumbermill', 'jenis' => 'kayu',  'name' => 'Lumbermill', 'desc' => 'Olah kayu jadi papan kayu'],
+                ['slug' => 'stonemason', 'jenis' => 'batu',  'name' => 'Stonemason', 'desc' => 'Olah batu jadi batu bata'],
+                ['slug' => 'tanner',     'jenis' => 'kulit', 'name' => 'Tannery',    'desc' => 'Olah kulit jadi kulit samak'],
+                ['slug' => 'weaver',     'jenis' => 'serat', 'name' => 'Weaver',     'desc' => 'Olah serat jadi kain'],
+            ];
+          @endphp
+
+          <div class="wiz-step" id="wizNoJenis" style="display:none;">
+            <div class="wiz-label">Pilih Stasiun Refine</div>
+            <div class="station-grid" style="grid-template-columns:repeat(2,1fr);">
+              @foreach ($simpleStations as $s)
+                <a href="/kalkulator/refine?jenis={{ $s['jenis'] }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$s['slug'].'.jpg') }}');">
+                  <div class="station-body">
+                    <div class="station-name">{{ $s['name'] }}</div>
+                    <div class="station-desc">{{ $s['desc'] }}</div>
+                  </div>
+                </a>
+              @endforeach
+            </div>
+          </div>
+
+          <div class="wiz-step" id="wizStep2" style="display:none;">
+            <div class="wiz-label">1. Pilih Tier</div>
+            <div class="wiz-options" id="wizStep2Opts"></div>
+          </div>
+
+          <div class="wiz-step" id="wizStep3" style="display:none;">
+            <div class="wiz-label">2. Pilih Enchant</div>
+            <div class="wiz-options" id="wizStep3Opts"></div>
+          </div>
+
+          <div class="wiz-step" id="wizStep4" style="display:none;">
+            <div class="wiz-label">3. Jumlah &amp; Return Bonus</div>
+            <div class="wiz-input-row">
+              <label>Mau buat berapa?</label>
+              <input type="number" id="wizQty" value="100" min="1">
+            </div>
+            <div class="wiz-input-row">
+              <label>Return bonus (%)</label>
+              <input type="number" id="wizReturn" value="36.7" min="0" max="100" step="0.1">
+            </div>
+            <button class="wiz-btn-hitung" onclick="wizCompute()">⚔️ Refine</button>
+          </div>
+
+          <div class="wiz-result" id="wizResult" style="display:none;">
+            <div class="wiz-result-text" id="wizResultText"></div>
+            <div id="wizResultVisual" style="margin-top:12px;"></div>
+            <button class="reset-btn" style="margin-top:14px;width:100%;" onclick="wizReset()">🔄 Hitung Ulang</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div id="modeAdvanceWrap" style="display:none">
     <div class="panel">
       <div class="ph">
         <span>⚙️</span>
@@ -263,6 +359,7 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 </div>
 
@@ -354,8 +451,8 @@ function buildItems() {
       const mR = ti<2 ? 0 : maxRaw;
       const mH = ti<2 ? 0 : maxHasil;
       for (let e=0; e<=mR; e++) its.push({jenis,tipe:'raw',tier,enc:e,name:rawName[ti]+(e>0?` .${e}`:''),api:api(rawBase[ti],e),desc:`${rawName[ti]}${e>0?' .'+e:''}`});
-      if (ti < 6) // hasil max T7 (index 5), T8 tidak ada hasil
-        for (let e=0; e<=mH; e++) its.push({jenis,tipe:'hasil',tier,enc:e,name:hasilName[ti]+(e>0?` .${e}`:''),api:api(hasilBase[ti],e),desc:`${hasilName[ti]}${e>0?' .'+e:''}`});
+      // T8 hasil tetap dibuat (dipakai utk proses refine & harga), tapi disembunyikan dari tabel di filterItems()
+      for (let e=0; e<=mH; e++) its.push({jenis,tipe:'hasil',tier,enc:e,name:hasilName[ti]+(e>0?` .${e}`:''),api:api(hasilBase[ti],e),desc:`${hasilName[ti]}${e>0?' .'+e:''}`});
     }
   }
   add('logam',
@@ -391,6 +488,200 @@ function buildItems() {
   return its;
 }
 const ITEMS = buildItems();
+
+// Jenis material yang dibawa dari homepage (klik card station), kalau ada
+const urlJenis = @json(request('jenis'));
+
+// ===================== MODE TOGGLE =====================
+function setMode(mode) {
+  localStorage.setItem('rw_mode', mode);
+  document.getElementById('modeSimpleWrap').style.display  = mode==='simple'  ? '' : 'none';
+  document.getElementById('modeAdvanceWrap').style.display = mode==='advance' ? '' : 'none';
+  document.getElementById('btnModeSimple').classList.toggle('active', mode==='simple');
+  document.getElementById('btnModeAdvance').classList.toggle('active', mode==='advance');
+}
+
+// ===================== WIZARD (MODE SIMPLE) =====================
+const JENIS_META = {
+  logam: {label:'Logam', emoji:'⚙️'},
+  kayu:  {label:'Kayu',  emoji:'🪵'},
+  serat: {label:'Serat', emoji:'🧵'},
+  kulit: {label:'Kulit', emoji:'🐾'},
+  batu:  {label:'Batu',  emoji:'🪨'},
+};
+const SIMPLE_TIERS = ['T2','T3','T4','T5','T6','T7','T8'];
+let wiz = { jenis:null, tier:null, enc:0 };
+
+function initWizard() {
+  if (!urlJenis || !JENIS_META[urlJenis]) {
+    document.getElementById('wizNoJenis').style.display = '';
+    return;
+  }
+  wiz.jenis = urlJenis;
+  document.getElementById('wizStep2').style.display = '';
+  renderWizStep2();
+}
+
+// Semua enchant HASIL (bahan jadi) yang benar-benar ada untuk jenis+tier ini.
+// Balok batu otomatis cuma punya 1 opsi (enc 0) karena hasilnya emang gak ber-enchant.
+function getHasilEncOptions(jenis, tier) {
+  return ITEMS.filter(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===tier)
+              .map(i=>i.enc).sort((a,b)=>a-b);
+}
+
+function renderWizStep2() {
+  const el = document.getElementById('wizStep2Opts');
+  el.innerHTML = SIMPLE_TIERS.map(t => {
+    const rep = ITEMS.find(i=>i.jenis===wiz.jenis && i.tipe==='hasil' && i.tier===t && i.enc===0);
+    const img = rep ? `<img src="${iconUrl(rep.api)}" alt="">` : '';
+    return `<div class="wiz-opt ${wiz.tier===t?'sel':''}" onclick="wizSelectTier('${t}')">${img}${t}</div>`;
+  }).join('');
+}
+
+function wizSelectTier(t) {
+  wiz.tier = t; wiz.enc = 0;
+  renderWizStep2();
+  const encOptions = getHasilEncOptions(wiz.jenis, t);
+  if (encOptions.length <= 1) {
+    wiz.enc = encOptions[0] ?? 0;
+    document.getElementById('wizStep3').style.display = 'none';
+    document.getElementById('wizStep4').style.display = '';
+  } else {
+    document.getElementById('wizStep3').style.display = '';
+    renderWizStep3(encOptions);
+    document.getElementById('wizStep4').style.display = 'none';
+  }
+  document.getElementById('wizResult').style.display = 'none';
+}
+
+function renderWizStep3(encOptions) {
+  const el = document.getElementById('wizStep3Opts');
+  el.innerHTML = encOptions.map(e => {
+    const item = ITEMS.find(i=>i.jenis===wiz.jenis && i.tipe==='hasil' && i.tier===wiz.tier && i.enc===e);
+    const img  = item ? `<img src="${iconUrl(item.api)}" alt="">` : '';
+    return `<div class="wiz-opt ${wiz.enc===e?'sel':''}" onclick="wizSelectEnc(${e})">${img}${e===0?'Normal':'.'+e}</div>`;
+  }).join('');
+}
+
+function wizSelectEnc(e) {
+  wiz.enc = e;
+  renderWizStep3(getHasilEncOptions(wiz.jenis, wiz.tier));
+  document.getElementById('wizStep4').style.display = '';
+  document.getElementById('wizResult').style.display = 'none';
+}
+
+function bahanSlotHTML(item, qty, isHasil) {
+  return `<div class="bahan-slot">
+      <img src="${iconUrl(item.api)}" alt="">
+      <div class="bahan-qty"><span class="${isHasil?'punya':'butuh'}">${qty}</span></div>
+      <div class="bahan-name">${item.name}</div>
+    </div>`;
+}
+
+function wizCompute() {
+  const qty    = Math.max(1, parseInt(document.getElementById('wizQty').value) || 1);
+  const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('wizReturn').value) || 0));
+  const { jenis, tier, enc } = wiz;
+  if (!jenis || !tier) return;
+
+  const f        = FORMULA[tier];
+  const prevTier = TIER_ORDER[TIER_ORDER.indexOf(tier)-1];
+  const isBatu   = jenis === 'batu';
+  const hasilItem = ITEMS.find(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===tier && i.enc===enc);
+
+  // Balok batu: hasilnya cuma 1 varian, tapi bisa dicapai lewat beberapa
+  // enchant batu mentah (masing2 beda rasio efisiensi via BATU_ENC_MULT).
+  // Tampilkan semua opsi sekaligus sebagai alternatif.
+  if (isBatu) {
+    const maxRawEnc = (tier==='T2'||tier==='T3') ? 0 : 3;
+    const rows = [];
+    for (let e=0; e<=maxRawEnc; e++) {
+      const mult = BATU_ENC_MULT[e] || 1;
+      const ops  = Math.ceil(qty / mult);
+      const actualOutput = ops * mult;
+      const rawGross  = ops * f.raw;
+      const rawReturn = Math.round(rawGross * retPct/100);
+      const rawNeeded = rawGross - rawReturn;
+      let prevNeeded = 0, prevItem = null;
+      if (f.prev > 0 && prevTier) {
+        const prevGross  = ops * f.prev;
+        const prevReturn = Math.round(prevGross * retPct/100);
+        prevNeeded = prevGross - prevReturn;
+        prevItem   = ITEMS.find(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===prevTier && i.enc===0);
+      }
+      const rawItem = ITEMS.find(i=>i.jenis===jenis && i.tipe==='raw' && i.tier===tier && i.enc===e);
+      rows.push({ enc:e, rawItem, rawNeeded, prevItem, prevNeeded, actualOutput });
+    }
+
+    document.getElementById('wizResultText').innerHTML =
+      `Untuk membuat <b>${hasilItem.name}</b> sejumlah <b>${qty}</b>, dengan return <b>${retPct}%</b>, dibutuhkan salah satu dari opsi bahan mentah berikut:`;
+
+    document.getElementById('wizResultVisual').innerHTML = rows.map((r,idx) => {
+      let row = `<div class="bahan-row">`;
+      row += bahanSlotHTML(r.rawItem, r.rawNeeded, false);
+      if (r.prevItem) row += `<span class="bahan-arrow">+</span>` + bahanSlotHTML(r.prevItem, r.prevNeeded, false);
+      row += `<span class="bahan-arrow">→</span>` + bahanSlotHTML(hasilItem, r.actualOutput, true);
+      row += `</div>`;
+      if (idx < rows.length-1) {
+        row += `<div style="text-align:center;color:var(--dim);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;margin:8px 0;">— ATAU —</div>`;
+      }
+      return row;
+    }).join('');
+
+    document.getElementById('wizResult').style.display = '';
+    document.getElementById('wizResult').scrollIntoView({behavior:'smooth', block:'nearest'});
+    return;
+  }
+
+  // Jenis selain batu: 1 jalur lurus (enchant hasil = enchant bahan mentah)
+  const rawItem  = ITEMS.find(i=>i.jenis===jenis && i.tipe==='raw' && i.tier===tier && i.enc===enc);
+  const rawGross  = qty * f.raw;
+  const rawReturn = Math.round(rawGross * retPct/100);
+  const rawNeeded = rawGross - rawReturn;
+
+  let prevNeeded = 0, prevItem = null;
+  if (f.prev > 0 && prevTier) {
+    const prevEnc    = (tier==='T3'||tier==='T4') ? 0 : enc;
+    const prevGross  = qty * f.prev;
+    const prevReturn = Math.round(prevGross * retPct/100);
+    prevNeeded = prevGross - prevReturn;
+    prevItem   = ITEMS.find(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===prevTier && i.enc===prevEnc);
+  }
+
+  let kalimat = `Untuk membuat <b>${hasilItem.name}</b> sejumlah <b>${qty}</b>, dengan return <b>${retPct}%</b>, dibutuhkan <b>${rawItem.name}</b> sebanyak <b>${rawNeeded}</b>`;
+  if (prevItem) kalimat += ` dan <b>${prevItem.name}</b> sebanyak <b>${prevNeeded}</b>`;
+  kalimat += '.';
+
+  let visual = bahanSlotHTML(rawItem, rawNeeded, false);
+  if (prevItem) visual += `<span class="bahan-arrow">+</span>` + bahanSlotHTML(prevItem, prevNeeded, false);
+  visual += `<span class="bahan-arrow">→</span>` + bahanSlotHTML(hasilItem, qty, true);
+
+  document.getElementById('wizResultText').innerHTML   = kalimat;
+  document.getElementById('wizResultVisual').innerHTML = `<div class="bahan-row">${visual}</div>`;
+  document.getElementById('wizResult').style.display = '';
+  document.getElementById('wizResult').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function wizReset() {
+  wiz.tier = null; wiz.enc = 0;
+  renderWizStep2();
+  document.getElementById('wizStep3').style.display = 'none';
+  document.getElementById('wizStep4').style.display = 'none';
+  document.getElementById('wizResult').style.display = 'none';
+}
+
+// ===================== ADVANCE: FILTER OTOMATIS DARI HOMEPAGE =====================
+function applyUrlJenisAdvance() {
+  if (!urlJenis || !JENIS_META[urlJenis]) return;
+  const sel = document.getElementById('selMat');
+  const m   = JENIS_META[urlJenis];
+  const opt = document.createElement('option');
+  opt.value = urlJenis;
+  opt.textContent = `${m.emoji} ${m.label} — Semua`;
+  opt.selected = true;
+  sel.insertBefore(opt, sel.options[1] || null);
+  filterItems();
+}
 
 // ===================== STATE =====================
 let inventory  = [];   // [{item, qty, harga}]
@@ -675,8 +966,6 @@ function getAvailableRefines() {
         // Cari item hasil
         const hasilEnc = jenis==='batu' ? 0 : enc;
         const hasilTier = tier; // hasil selalu tier yang sama
-        // Tapi hasil T8 tidak ada
-        if (tier==='T8') continue;
         const hasilItem = ITEMS.find(i=>i.jenis===jenis&&i.tipe==='hasil'&&i.tier===hasilTier&&i.enc===hasilEnc);
         if (!hasilItem) continue;
         // Hitung max output
@@ -931,6 +1220,9 @@ async function catatAktivitas() {
 filterItems();
 renderInventory();
 onKotaChange();
+initWizard();
+applyUrlJenisAdvance();
+setMode(localStorage.getItem('rw_mode') || 'simple');
 
 </script>
 
