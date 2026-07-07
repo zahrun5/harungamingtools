@@ -14,20 +14,29 @@
         return "https://render.albiononline.com/v1/item/{$item['Type']}.png?size=64&quality=" . ($item['Quality'] ?? 1);
     }
 
-    // weapon 2-tangan: kalau OffHand kosong tapi MainHand ada, mirror MainHand ke OffHand
-    function resolveSlot($equipment, $slot) {
+    // gambar placeholder buat slot kosong, nama file sesuai slot (lowercase)
+    function placeholderUrl($slot) {
         if (!$slot) return null;
+        return asset('images/equipment/' . strtolower($slot) . '.png');
+    }
 
-        if (isset($equipment[$slot])) return $equipment[$slot];
+    // weapon 2-tangan: kalau OffHand kosong tapi MainHand ada, mirror MainHand ke OffHand
+    // return array ['item' => ..., 'mirrored' => bool] biar bisa dibedain di tampilan
+    function resolveSlot($equipment, $slot) {
+        if (!$slot) return ['item' => null, 'mirrored' => false];
+
+        if (isset($equipment[$slot])) {
+            return ['item' => $equipment[$slot], 'mirrored' => false];
+        }
 
         if ($slot === 'OffHand') {
             $mainHand = $equipment['MainHand'] ?? null;
             if ($mainHand && str_contains($mainHand['Type'] ?? '', '2H_')) {
-                return $mainHand; // pinjem icon MainHand buat placeholder
+                return ['item' => $mainHand, 'mirrored' => true]; // pinjem icon MainHand, tandai sebagai mirror
             }
         }
 
-        return null;
+        return ['item' => null, 'mirrored' => false];
     }
 @endphp
 
@@ -61,10 +70,16 @@
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#1a1d24;padding:12px;border-radius:8px;">
                 @foreach ($equipSlots as $slot)
-                    @php $item = resolveSlot($killer['Equipment'], $slot); @endphp
-                    <div style="aspect-ratio:1;background:#000;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                    @php
+                        $resolved = resolveSlot($killer['Equipment'], $slot);
+                        $item = $resolved['item'];
+                        $mirrored = $resolved['mirrored'];
+                    @endphp
+                    <div style="aspect-ratio:1;background:{{ $slot ? '#000' : 'transparent' }};border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
                         @if ($item)
-                            <img src="{{ iconUrl($item) }}" style="width:100%;height:100%;object-fit:contain;" title="{{ $item['Type'] }}">
+                            <img src="{{ iconUrl($item) }}" style="width:100%;height:100%;object-fit:contain;{{ $mirrored ? 'opacity:0.5;' : '' }}" title="{{ $item['Type'] }}">
+                        @elseif ($slot)
+                            <img src="{{ placeholderUrl($slot) }}" style="width:100%;height:100%;object-fit:contain;">
                         @endif
                     </div>
                 @endforeach
@@ -79,10 +94,16 @@
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#1a1d24;padding:12px;border-radius:8px;">
                 @foreach ($equipSlots as $slot)
-                    @php $item = resolveSlot($victim['Equipment'], $slot); @endphp
-                    <div style="aspect-ratio:1;background:#000;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                    @php
+                        $resolved = resolveSlot($victim['Equipment'], $slot);
+                        $item = $resolved['item'];
+                        $mirrored = $resolved['mirrored'];
+                    @endphp
+                    <div style="aspect-ratio:1;background:{{ $slot ? '#000' : 'transparent' }};border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
                         @if ($item)
-                            <img src="{{ iconUrl($item) }}" style="width:100%;height:100%;object-fit:contain;" title="{{ $item['Type'] }}">
+                            <img src="{{ iconUrl($item) }}" style="width:100%;height:100%;object-fit:contain;{{ $mirrored ? 'opacity:0.5;' : '' }}" title="{{ $item['Type'] }}">
+                        @elseif ($slot)
+                            <img src="{{ placeholderUrl($slot) }}" style="width:100%;height:100%;object-fit:contain;">
                         @endif
                     </div>
                 @endforeach

@@ -33,24 +33,37 @@
 .rw .api-status.ok { color:#6b8; }
 .rw .api-status.err { color:#f86; }
 
-/* TOOLBAR */
-.rw .toolbar { background: linear-gradient(180deg,#251a08,#1a1005); border-bottom:1px solid var(--bd); padding:8px 12px; display:flex; flex-wrap:wrap; gap:6px; }
-.rw .sel-wrap { position:relative; flex:1; min-width:88px; }
-.rw .sel { width:100%; background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--bd); border-radius:3px; color:var(--lt); font-family:'Crimson Text',serif; font-size:13px; padding:6px 22px 6px 8px; appearance:none; cursor:pointer; outline:none; }
-.rw .sel:focus { border-color:var(--gold); }
-.rw .sel option { background:#2a1f0e; }
-.rw .sel-wrap::after { content:"▾"; position:absolute; right:6px; top:50%; transform:translateY(-50%); color:var(--gold); pointer-events:none; font-size:10px; }
+/* HEADER SEARCH (ala Market) */
+.rw .header-search { margin-left:auto; background:linear-gradient(180deg,#1a1208,#110e05); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-family:'Crimson Text',serif; font-size:13px; padding:6px 10px; outline:none; transition:border-color .15s; width:170px; }
+.rw .header-search:focus { border-color:var(--gold-dk); }
+.rw .header-search::placeholder { color:var(--dim); }
 
-/* ITEM LIST */
-.rw .item-list { max-height:320px; overflow-y:auto; }
-.rw .item-row { display:flex; align-items:center; gap:8px; padding:7px 12px; border-bottom:1px solid rgba(107,79,26,.3); cursor:pointer; transition:background .1s; }
+/* FILTER BAR (ala Market — tombol + dropdown popover) */
+.rw .flt-bar { background: linear-gradient(180deg,#251a08,#1a1005); border-bottom:1px solid var(--bd); padding:10px 12px; display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:visible; position:relative; }
+.rw .flt-wrap { position:relative; }
+.rw .flt-btn { display:flex; align-items:center; gap:6px; background:linear-gradient(180deg,#c8a84a,#a07828); border:1px solid #8b6820; border-radius:3px; color:#2a1800; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:.5px; padding:7px 12px; cursor:pointer; user-select:none; white-space:nowrap; transition:all .1s; justify-content:space-between; }
+.rw .flt-btn:hover { background:linear-gradient(180deg,#dabb5a,#b88838); border-color:var(--gold); }
+.rw .flt-btn.open { background:linear-gradient(180deg,#b89030,#907020); border-color:var(--gold); box-shadow:0 0 8px rgba(240,192,64,.3); }
+.rw .flt-btn .flt-label { flex:1; text-align:left; }
+.rw .flt-btn .flt-val { font-size:10px; opacity:.75; max-width:90px; overflow:hidden; text-overflow:ellipsis; }
+.rw .flt-btn .flt-arrow { font-size:8px; opacity:.7; margin-left:2px; transition:transform .15s; }
+.rw .flt-btn.open .flt-arrow { transform:rotate(180deg); }
+
+.rw .drop-wrap { position:fixed; z-index:9999; display:none; gap:2px; filter:drop-shadow(0 6px 20px rgba(0,0,0,.85)); }
+.rw .drop-wrap.show { display:flex; }
+.rw .drop-col { min-width:175px; max-height:370px; overflow-y:auto; background:linear-gradient(180deg,#e8cf88,#d4b468); border:1px solid #8b6820; border-radius:3px; padding:4px; display:flex; flex-direction:column; gap:2px; }
+.rw .drop-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:2px; background:transparent; border:1px solid transparent; cursor:pointer; font-family:'Crimson Text',serif; font-size:14px; font-weight:600; color:#2a1800; transition:all .08s; white-space:nowrap; }
+.rw .drop-item:hover { background:linear-gradient(180deg,#f2dc9a,#e2c878); border-color:#a07828; }
+.rw .drop-item.active { background:linear-gradient(180deg,#b88a28,#906818); border-color:#7a5010; color:#fff8e0; }
+.rw .drop-item .di-arrow { font-size:9px; color:#6b4f1a; margin-left:8px; flex-shrink:0; }
+.rw .drop-item.active .di-arrow { color:#ffe090; }
+
+/* ITEM LIST (ala Market — icon 48px, cuma nama, harga di kanan) */
+.rw .item-list { max-height:420px; overflow-y:auto; }
+.rw .item-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid rgba(107,79,26,.3); cursor:pointer; transition:background .1s; }
 .rw .item-row:hover { background:rgba(61,46,21,.5); }
-.rw .icon-wrap { position:relative; flex-shrink:0; }
-.rw .item-icon { width:40px; height:40px; border:1px solid var(--sbd); border-radius:3px; background:var(--sbg); display:block; object-fit:contain; }
-.rw .tbadge { position:absolute; top:1px; left:1px; width:14px; height:14px; border-radius:2px; font-family:'Cinzel',serif; font-size:8px; font-weight:700; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.75); border:1px solid currentColor; }
-.rw .ebadge { position:absolute; bottom:1px; right:1px; width:12px; height:12px; border-radius:2px; font-size:7px; font-weight:700; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.8); }
-.rw .item-name { font-size:14px; color:var(--lt); font-weight:600; flex:1; }
-.rw .item-tag { font-size:11px; color:var(--dim); background:rgba(0,0,0,.3); padding:2px 5px; border-radius:3px; }
+.rw .item-icon { width:48px; height:48px; border:1px solid var(--sbd); border-radius:3px; background:var(--sbg); display:block; object-fit:contain; flex-shrink:0; }
+.rw .item-name { font-family:'Crimson Text',serif; font-size:15px; color:var(--lt); font-weight:600; flex:1; }
 .rw .item-price { font-size:12px; color:var(--gold); font-family:'Cinzel',serif; min-width:55px; text-align:right; }
 
 /* BOTTOM BAR */
@@ -255,52 +268,55 @@
       <div class="ph">
         <span>⚙️</span>
         <span class="ph-title">Refine Calculator</span>
+        <input type="text" class="header-search" id="searchInputRefine" placeholder="Cari nama item..." oninput="onSearchRefine()">
         <span class="api-status" id="apiStatus"></span>
       </div>
 
-      <div class="toolbar">
-        <div class="sel-wrap">
-          <select class="sel" id="selMat" onchange="filterItems()">
-            <option value="">Semua Material</option>
-            <option value="logam_raw">⚙️ Logam — Bijih</option>
-            <option value="logam_hasil">⚙️ Logam — Batang</option>
-            <option value="kayu_raw">🪵 Kayu — Kayu</option>
-            <option value="kayu_hasil">🪵 Kayu — Papan</option>
-            <option value="serat_raw">🧵 Serat — Serat</option>
-            <option value="serat_hasil">🧵 Serat — Kain</option>
-            <option value="kulit_raw">🐾 Kulit — Mentah</option>
-            <option value="kulit_hasil">🐾 Kulit — Jadi</option>
-            <option value="batu_raw">🪨 Batu — Mentah</option>
-            <option value="batu_hasil">🪨 Batu — Balok</option>
-          </select>
+      <div class="flt-bar" id="fltBarRefine">
+        <!-- MATERIAL (2 level: Jenis -> Mentah/Hasil) -->
+        <div class="flt-wrap">
+          <div class="flt-btn" id="btnMat" onclick="toggleDrop('mat')">
+            <span class="flt-label" id="lblMat">Material</span>
+            <span class="flt-val" id="valMat" style="display:none"></span>
+            <span class="flt-arrow">▼</span>
+          </div>
+          <div class="drop-wrap" id="dropMat">
+            <div class="drop-col" id="colMat1"></div>
+            <div class="drop-col" id="colMat2" style="display:none"></div>
+          </div>
         </div>
-        <div class="sel-wrap">
-          <select class="sel" id="selTier" onchange="filterItems()">
-            <option value="">Semua Tier</option>
-            <option value="T2">T2</option><option value="T3">T3</option>
-            <option value="T4">T4</option><option value="T5">T5</option>
-            <option value="T6">T6</option><option value="T7">T7</option>
-            <option value="T8">T8</option>
-          </select>
+        <!-- TIER -->
+        <div class="flt-wrap">
+          <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
+            <span class="flt-label" id="lblTier">Tier</span>
+            <span class="flt-val" id="valTier" style="display:none"></span>
+            <span class="flt-arrow">▼</span>
+          </div>
+          <div class="drop-wrap" id="dropTier">
+            <div class="drop-col" id="colTier"></div>
+          </div>
         </div>
-        <div class="sel-wrap">
-          <select class="sel" id="selEnc" onchange="filterItems()">
-            <option value="">Semua Enchant</option>
-            <option value="0">.0</option><option value="1">.1</option>
-            <option value="2">.2</option><option value="3">.3</option><option value="4">.4</option>
-          </select>
+        <!-- ENCHANT -->
+        <div class="flt-wrap">
+          <div class="flt-btn" id="btnEnc" onclick="toggleDrop('enc')">
+            <span class="flt-label" id="lblEnc">Enchant</span>
+            <span class="flt-val" id="valEnc" style="display:none"></span>
+            <span class="flt-arrow">▼</span>
+          </div>
+          <div class="drop-wrap" id="dropEnc">
+            <div class="drop-col" id="colEnc"></div>
+          </div>
         </div>
-        <div class="sel-wrap">
-          <select class="sel" id="selKota" onchange="onKotaChange()">
-            <option value="">— Pilih Kota —</option>
-            <option value="Caerleon" selected>Caerleon</option>
-            <option value="Bridgewatch">Bridgewatch</option>
-            <option value="Fort Sterling">Fort Sterling</option>
-            <option value="Lymhurst">Lymhurst</option>
-            <option value="Martlock">Martlock</option>
-            <option value="Thetford">Thetford</option>
-            <option value="Brecilien">Brecilien</option>
-          </select>
+        <!-- KOTA -->
+        <div class="flt-wrap">
+          <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
+            <span class="flt-label" id="lblKota" style="display:none">Kota</span>
+            <span class="flt-val" id="valKota">Caerleon</span>
+            <span class="flt-arrow">▼</span>
+          </div>
+          <div class="drop-wrap" id="dropKota">
+            <div class="drop-col" id="colKota"></div>
+          </div>
         </div>
       </div>
 
@@ -673,13 +689,8 @@ function wizReset() {
 // ===================== ADVANCE: FILTER OTOMATIS DARI HOMEPAGE =====================
 function applyUrlJenisAdvance() {
   if (!urlJenis || !JENIS_META[urlJenis]) return;
-  const sel = document.getElementById('selMat');
-  const m   = JENIS_META[urlJenis];
-  const opt = document.createElement('option');
-  opt.value = urlJenis;
-  opt.textContent = `${m.emoji} ${m.label} — Semua`;
-  opt.selected = true;
-  sel.insertBefore(opt, sel.options[1] || null);
+  fJenis = urlJenis; fTipe = null;
+  buildMatCol2(); updateMatLabel();
   filterItems();
 }
 
@@ -698,36 +709,176 @@ function iconUrl(api) {
   return `https://render.albiononline.com/v1/item/${base}.png?size=64&quality=1`;
 }
 
+// ===================== FILTER BAR (dropdown ala Market) =====================
+// Pohon material 2 level: Jenis -> Mentah/Hasil (subkategori)
+const MATERIAL_TREE = [
+  { id:'logam', name:'⚙️ Logam', children:[ {id:'raw', name:'Bijih Mentah'}, {id:'hasil', name:'Balok / Batang'} ] },
+  { id:'kayu',  name:'🪵 Kayu',  children:[ {id:'raw', name:'Kayu Mentah'},  {id:'hasil', name:'Papan Kayu'}    ] },
+  { id:'serat', name:'🧵 Serat', children:[ {id:'raw', name:'Serat Mentah'}, {id:'hasil', name:'Kain'}          ] },
+  { id:'kulit', name:'🐾 Kulit', children:[ {id:'raw', name:'Kulit Mentah'}, {id:'hasil', name:'Kulit Samak'}   ] },
+  { id:'batu',  name:'🪨 Batu',  children:[ {id:'raw', name:'Batu Mentah'},  {id:'hasil', name:'Batu Bata'}     ] },
+];
+const KOTA_LIST = ['Caerleon','Bridgewatch','Fort Sterling','Lymhurst','Martlock','Thetford','Brecilien'];
+
+// State filter (menggantikan value dari <select> lama — logic filterItems() di bawah tetap sama)
+let fJenis  = null;      // 'logam' | 'kayu' | ...
+let fTipe   = null;      // 'raw' | 'hasil'
+let fTier   = null;      // 'T2'..'T8'
+let fEnc    = null;      // 0..4
+let fKota   = 'Caerleon';
+let fSearch = '';
+
+let openDropR = null;
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function toggleDrop(name) {
+  if (openDropR === name) { closeDrop(); return; }
+  closeDrop();
+  openDropR = name;
+  const btn  = document.getElementById('btn'  + cap(name));
+  const drop = document.getElementById('drop' + cap(name));
+  const rect = btn.getBoundingClientRect();
+  drop.style.top  = (rect.bottom + 3) + 'px';
+  drop.style.left = rect.left + 'px';
+  drop.classList.add('show');
+  btn.classList.add('open');
+}
+
+function closeDrop() {
+  if (!openDropR) return;
+  document.getElementById('drop' + cap(openDropR)).classList.remove('show');
+  document.getElementById('btn'  + cap(openDropR)).classList.remove('open');
+  openDropR = null;
+}
+
+document.addEventListener('click', e => {
+  if (openDropR && !e.target.closest('.flt-wrap')) closeDrop();
+});
+
+function setFilterVal(lblId, valId, value) {
+  const lbl = document.getElementById(lblId);
+  const val = document.getElementById(valId);
+  if (value) { lbl.style.display='none'; val.style.display=''; val.textContent=value; }
+  else       { lbl.style.display='';     val.style.display='none'; }
+}
+
+function makeItem(text, hasArrow, isActive, onClick) {
+  const el = document.createElement('div');
+  el.className = 'drop-item' + (isActive ? ' active' : '');
+  el.innerHTML = text + (hasArrow ? '<span class="di-arrow">▶</span>' : '');
+  el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return el;
+}
+
+// --- MATERIAL (2 kolom) ---
+function buildMatCol1() {
+  const col = document.getElementById('colMat1');
+  col.innerHTML = '';
+  col.appendChild(makeItem('Semua', false, !fJenis, () => {
+    fJenis = null; fTipe = null;
+    buildMatCol2(); updateMatLabel(); closeDrop(); filterItems();
+  }));
+  MATERIAL_TREE.forEach(j => {
+    col.appendChild(makeItem(j.name, true, fJenis === j.id, () => {
+      fJenis = j.id; fTipe = null;
+      buildMatCol2(); updateMatLabel(); filterItems();
+    }));
+  });
+}
+
+function buildMatCol2() {
+  const col2 = document.getElementById('colMat2');
+  if (!fJenis) { col2.style.display = 'none'; return; }
+  const j = MATERIAL_TREE.find(x => x.id === fJenis);
+  col2.style.display = ''; col2.innerHTML = '';
+  col2.appendChild(makeItem('Semua', false, !fTipe, () => {
+    fTipe = null; updateMatLabel(); closeDrop(); filterItems();
+  }));
+  j.children.forEach(c => {
+    col2.appendChild(makeItem(c.name, false, fTipe === c.id, () => {
+      fTipe = c.id; updateMatLabel(); closeDrop(); filterItems();
+    }));
+  });
+}
+
+function updateMatLabel() {
+  let label = null;
+  if (fJenis) {
+    const j = MATERIAL_TREE.find(x => x.id === fJenis);
+    label = j.name.replace(/^\S+\s/, '') + (fTipe ? ' — ' + j.children.find(c => c.id === fTipe).name : '');
+  }
+  setFilterVal('lblMat', 'valMat', label);
+}
+
+// --- TIER ---
+function buildTierDropRefine() {
+  const col = document.getElementById('colTier');
+  col.innerHTML = '';
+  col.appendChild(makeItem('Semua', false, !fTier, () => {
+    fTier = null; setFilterVal('lblTier','valTier',null); closeDrop(); filterItems();
+  }));
+  SIMPLE_TIERS.forEach(t => col.appendChild(makeItem(t, false, fTier === t, () => {
+    fTier = t; setFilterVal('lblTier','valTier', t); closeDrop(); filterItems();
+  })));
+}
+
+// --- ENCHANT ---
+const ENC_LIST_REFINE = [0,1,2,3,4];
+function buildEncDropRefine() {
+  const col = document.getElementById('colEnc');
+  col.innerHTML = '';
+  col.appendChild(makeItem('Semua', false, fEnc === null, () => {
+    fEnc = null; setFilterVal('lblEnc','valEnc',null); closeDrop(); filterItems();
+  }));
+  ENC_LIST_REFINE.forEach(e => col.appendChild(makeItem('Enchant .' + e, false, fEnc === e, () => {
+    fEnc = e; setFilterVal('lblEnc','valEnc','.' + e); closeDrop(); filterItems();
+  })));
+}
+
+// --- KOTA ---
+function buildKotaDropRefine() {
+  const col = document.getElementById('colKota');
+  col.innerHTML = '';
+  KOTA_LIST.forEach(k => col.appendChild(makeItem(k, false, fKota === k, () => {
+    fKota = k; setFilterVal('lblKota','valKota', k); closeDrop(); onKotaChange();
+  })));
+}
+
+// --- SEARCH ---
+let searchTimerRefine = null;
+function onSearchRefine() {
+  clearTimeout(searchTimerRefine);
+  searchTimerRefine = setTimeout(() => {
+    fSearch = document.getElementById('searchInputRefine').value.trim();
+    filterItems();
+  }, 300);
+}
+
 // ===================== FILTER & RENDER LIST =====================
 function filterItems() {
-  const matVal = document.getElementById('selMat').value;
-  const tier   = document.getElementById('selTier').value;
-  const enc    = document.getElementById('selEnc').value;
-  let jenis='', tipe='';
-  if (matVal) [jenis,tipe] = matVal.split('_');
-  const filtered = ITEMS.filter(it => {
+  const jenis = fJenis || '';
+  const tipe  = fTipe  || '';
+  const tier  = fTier  || '';
+  let filtered = ITEMS.filter(it => {
     if (it.tipe==='hasil' && it.tier==='T8') return false;
     if (jenis && it.jenis!==jenis) return false;
     if (tipe  && it.tipe!==tipe)  return false;
     if (tier  && it.tier!==tier)  return false;
-    if (enc!=='' && it.enc!==parseInt(enc)) return false;
+    if (fEnc!==null && it.enc!==fEnc) return false;
     return true;
   });
+  if (fSearch) {
+    const q = fSearch.toLowerCase();
+    filtered = filtered.filter(it => it.name.toLowerCase().includes(q));
+  }
   window._fl = filtered;
   const el = document.getElementById('itemList');
   if (!filtered.length) { el.innerHTML='<div class="empty-inv">Tidak ada item yang cocok</div>'; return; }
   el.innerHTML = filtered.map((it,i) => {
-    const tc = TIER_COL[it.tier]||'#fff';
-    const ec = ENC_COL[it.enc]||'#888';
-    const h  = priceCache[it.api];
+    const h = priceCache[it.api];
     return `<div class="item-row" onclick="openAdd(${i})">
-      <div class="icon-wrap">
-        <img class="item-icon" src="${iconUrl(it.api)}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><rect width=%2240%22 height=%2240%22 fill=%22%231a1208%22/></svg>'">
-        <span class="tbadge" style="color:${tc}">${it.tier[1]}</span>
-        ${it.enc>0?`<span class="ebadge" style="color:${ec}">.${it.enc}</span>`:''}
-      </div>
+      <img class="item-icon" src="${iconUrl(it.api)}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%231a1208%22/></svg>'">
       <div class="item-name">${it.name}</div>
-      <span class="item-tag">${it.tipe==='raw'?'Mentah':'Hasil'}</span>
       ${h?`<span class="item-price">${fmt(h)}</span>`:''}
     </div>`;
   }).join('');
@@ -747,7 +898,7 @@ async function fetchBatch(ids, kota) {
 }
 
 async function onKotaChange() {
-  const kota = document.getElementById('selKota').value;
+  const kota = fKota;
   if (!kota) return;
   const st = document.getElementById('apiStatus');
   st.className='api-status loading'; st.textContent='⏳ Mengambil harga...';
@@ -993,7 +1144,7 @@ function openRefinePopup(i) {
   const rawButuh  = b.f.raw;
   const rawCukup  = rawPunya >= rawButuh;
   const rawCityInfo = priceCityCache[b.rawInv.item.api];
-  const rawFallback = rawCityInfo && rawCityInfo.kota !== (document.getElementById('selKota').value||'')
+  const rawFallback = rawCityInfo && rawCityInfo.kota !== (fKota||'')
     ? `<div class="fallback-tag">${rawCityInfo.kota}</div>` : '';
 
   let bahanHTML = `
@@ -1013,7 +1164,7 @@ function openRefinePopup(i) {
     const prevButuh = b.f.prev;
     const prevCukup = prevPunya >= prevButuh;
     const prevCityInfo = priceCityCache[b.prevInv.item.api];
-    const prevFallback = prevCityInfo && prevCityInfo.kota !== (document.getElementById('selKota').value||'')
+    const prevFallback = prevCityInfo && prevCityInfo.kota !== (fKota||'')
       ? `<div class="fallback-tag">${prevCityInfo.kota}</div>` : '';
     bahanHTML += `
     <span class="bahan-arrow">+</span>
@@ -1217,6 +1368,11 @@ async function catatAktivitas() {
 }
 
 // ===================== INIT =====================
+buildMatCol1();
+buildMatCol2();
+buildTierDropRefine();
+buildEncDropRefine();
+buildKotaDropRefine();
 filterItems();
 renderInventory();
 onKotaChange();

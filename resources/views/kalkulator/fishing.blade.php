@@ -3,181 +3,271 @@
 @section('title', 'Kalkulator Mancing - HarunGamingTools')
 
 @section('content')
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-  .fish-wrap{
-    --panel:#1C1712; --card:#221C15; --slot:#1A1510;
-    --border:#332B21; --border-soft:#2A2318;
-    --red:#C97B5F;
-  }
-  .fish-header{padding:26px 20px 18px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0c0a08,var(--panel));margin:-48px -24px 24px;}
-  .fish-header h1{font-family:'Fraunces',serif;font-size:clamp(1.15rem,4vw,1.55rem);color:var(--gold);letter-spacing:.04em;}
-  .fish-header p{margin-top:6px;font-size:.82rem;color:var(--text-muted);}
+.fish-wrap{
+  --bd:      #6b4f1a;
+  --gold:    #f0c040;
+  --gold-dk: #b8860b;
+  --lt:      #dcc08a;
+  --dim:     #a08040;
+  --sbg:     #1a1208;
+  --sbd:     #4a3510;
+  --teal:    #7fd8a8;
+  --red:     #f0806a;
+  background: #0d0a05;
+  color: var(--lt);
+  font-family: 'Crimson Text', Georgia, serif;
+  margin: -48px -24px;
+  padding: 20px 0 60px;
+}
+.fish-wrap *{ box-sizing:border-box; }
+.fish-wrap .app{ max-width:900px; margin:0 auto; padding:0 12px; display:flex; flex-direction:column; gap:10px; }
 
-  .price-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 16px;margin-bottom:18px;flex-wrap:wrap;}
-  .price-bar label{font-size:.82rem;color:var(--text-muted);}
-  .price-bar input{width:130px;background:var(--slot);border:1px solid var(--border);border-radius:6px;color:var(--gold);font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.92rem;padding:7px 10px;outline:none;}
-  .price-bar input:focus{border-color:var(--gold);}
-  .price-bar span{font-size:.75rem;color:var(--text-muted);}
+/* PANEL */
+.fish-wrap .panel{ background:linear-gradient(180deg,#2e2210,#1e1608); border:2px solid var(--bd); border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,.7); overflow:hidden; }
+.fish-wrap .ph{ background:linear-gradient(180deg,#3d2e15,#2a1f0e); border-bottom:1px solid var(--bd); padding:9px 14px; display:flex; align-items:center; gap:8px; }
+.fish-wrap .ph-title{ font-family:'Cinzel',serif; font-size:13px; color:var(--gold); letter-spacing:1px; text-transform:uppercase; flex:1; }
+.fish-wrap .api-status{ font-size:10px; font-family:'Cinzel',serif; color:var(--dim); }
+.fish-wrap .api-status.loading{ color:var(--gold); }
+.fish-wrap .api-status.ok{ color:#6b8; }
+.fish-wrap .api-status.err{ color:#f86; }
 
-  .btn-add-fish{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1px dashed var(--border-soft);color:var(--gold);font-weight:600;font-size:.92rem;padding:14px;border-radius:10px;cursor:pointer;transition:border-color .2s, background .2s;margin-bottom:20px;}
-  .btn-add-fish:hover{border-color:var(--gold);background:#241d12;}
+/* HEADER SEARCH (ala Refine) */
+.fish-wrap .header-search{ margin-left:auto; background:linear-gradient(180deg,#1a1208,#110e05); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-family:'Crimson Text',serif; font-size:13px; padding:6px 10px; outline:none; transition:border-color .15s; width:170px; }
+.fish-wrap .header-search:focus{ border-color:var(--gold-dk); }
+.fish-wrap .header-search::placeholder{ color:var(--dim); }
 
-  .inv-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-  .inv-title{font-family:'Fraunces',serif;font-size:.92rem;color:var(--gold);letter-spacing:.05em;}
-  .inv-count{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text-muted);margin-left:8px;}
-  .btn-toggle{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);color:var(--text-muted);font-size:.78rem;font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer;transition:color .2s, border-color .2s;}
-  .btn-toggle:hover{color:var(--gold);border-color:var(--gold-dim);}
+/* FILTER BAR (ala Refine — tombol + dropdown popover) */
+.fish-wrap .flt-bar{ background:linear-gradient(180deg,#251a08,#1a1005); border-bottom:1px solid var(--bd); padding:10px 12px; display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:visible; position:relative; }
+.fish-wrap .flt-wrap{ position:relative; }
+.fish-wrap .flt-btn{ display:flex; align-items:center; gap:6px; background:linear-gradient(180deg,#c8a84a,#a07828); border:1px solid #8b6820; border-radius:3px; color:#2a1800; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:.5px; padding:7px 12px; cursor:pointer; user-select:none; white-space:nowrap; transition:all .1s; justify-content:space-between; }
+.fish-wrap .flt-btn:hover{ background:linear-gradient(180deg,#dabb5a,#b88838); border-color:var(--gold); }
+.fish-wrap .flt-btn.open{ background:linear-gradient(180deg,#b89030,#907020); border-color:var(--gold); box-shadow:0 0 8px rgba(240,192,64,.3); }
+.fish-wrap .flt-btn .flt-label{ flex:1; text-align:left; }
+.fish-wrap .flt-btn .flt-val{ font-size:10px; opacity:.75; max-width:90px; overflow:hidden; text-overflow:ellipsis; }
+.fish-wrap .flt-btn .flt-arrow{ font-size:8px; opacity:.7; margin-left:2px; transition:transform .15s; }
+.fish-wrap .flt-btn.open .flt-arrow{ transform:rotate(180deg); }
 
-  .inv-empty{text-align:center;color:var(--text-muted);font-size:.85rem;padding:30px 10px;border:1px dashed var(--border-soft);border-radius:10px;background:var(--card);}
+.fish-wrap .drop-wrap{ position:fixed; z-index:9999; display:none; gap:2px; filter:drop-shadow(0 6px 20px rgba(0,0,0,.85)); }
+.fish-wrap .drop-wrap.show{ display:flex; }
+.fish-wrap .drop-col{ min-width:175px; max-height:370px; overflow-y:auto; background:linear-gradient(180deg,#e8cf88,#d4b468); border:1px solid #8b6820; border-radius:3px; padding:4px; display:flex; flex-direction:column; gap:2px; }
+.fish-wrap .drop-item{ display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:2px; background:transparent; border:1px solid transparent; cursor:pointer; font-family:'Crimson Text',serif; font-size:14px; font-weight:600; color:#2a1800; transition:all .08s; white-space:nowrap; }
+.fish-wrap .drop-item:hover{ background:linear-gradient(180deg,#f2dc9a,#e2c878); border-color:#a07828; }
+.fish-wrap .drop-item.active{ background:linear-gradient(180deg,#b88a28,#906818); border-color:#7a5010; color:#fff8e0; }
+.fish-wrap .drop-item .di-arrow{ font-size:9px; color:#6b4f1a; margin-left:8px; flex-shrink:0; }
+.fish-wrap .drop-item.active .di-arrow{ color:#ffe090; }
 
-  .inv-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
-  .inv-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
-  .inv-icon{width:44px;height:44px;border-radius:8px;background:var(--slot);border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;}
-  .inv-icon img{width:100%;height:100%;object-fit:contain;}
-  .inv-icon .fallback{font-family:'Fraunces',serif;font-weight:700;color:var(--gold);font-size:1rem;}
-  .inv-tier{position:absolute;bottom:-1px;right:-1px;background:var(--gold);color:#1a1208;font-size:.6rem;font-weight:700;padding:1px 4px;border-radius:4px 0 0 0;font-family:'JetBrains Mono',monospace;}
-  .inv-info{flex:1;min-width:0;}
-  .inv-name{font-size:.88rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .inv-sub{font-size:.72rem;color:var(--text-muted);margin-top:2px;}
+/* ITEM LIST (polos — icon 48px, nama, harga di kanan) */
+.fish-wrap .item-list{ max-height:340px; overflow-y:auto; }
+.fish-wrap .item-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid rgba(107,79,26,.3); cursor:pointer; transition:background .1s; }
+.fish-wrap .item-row:hover{ background:rgba(61,46,21,.5); }
+.fish-wrap .item-icon{ width:48px; height:48px; border:1px solid var(--sbd); border-radius:3px; background:var(--sbg); display:block; object-fit:contain; flex-shrink:0; }
+.fish-wrap .item-name{ font-family:'Crimson Text',serif; font-size:15px; color:var(--lt); font-weight:600; flex:1; }
+.fish-wrap .item-price{ font-size:12px; color:var(--gold); font-family:'Cinzel',serif; min-width:55px; text-align:right; }
+.fish-wrap .empty-inv{ text-align:center; padding:18px; color:var(--dim); font-style:italic; font-size:13px; }
 
-  .qty-stepper{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:7px;overflow:hidden;flex-shrink:0;}
-  .qty-stepper button{width:26px;height:30px;background:var(--slot);border:none;color:var(--text-muted);font-size:.95rem;cursor:pointer;}
-  .qty-stepper button:hover{color:var(--gold);}
-  .qty-stepper input{width:38px;height:30px;text-align:center;background:var(--slot);border:none;border-left:1px solid var(--border);border-right:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;outline:none;}
+/* BOTTOM BAR */
+.fish-wrap .bot-bar{ display:flex; gap:6px; align-items:center; padding:8px 12px; border-top:1px solid var(--bd); background:linear-gradient(180deg,#251a08,#1a1005); flex-wrap:wrap; }
+.fish-wrap .ret-wrap{ display:flex; align-items:center; gap:5px; background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; padding:5px 9px; }
+.fish-wrap .ret-wrap label{ font-size:11px; color:var(--dim); white-space:nowrap; }
+.fish-wrap .ret-inp{ width:60px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.fish-wrap .inv-btn{ background:linear-gradient(180deg,#4a3818,#2e2210); border:1px solid var(--bd); border-radius:3px; color:var(--lt); font-size:12px; padding:7px 12px; cursor:pointer; white-space:nowrap; transition:all .15s; flex:1; }
+.fish-wrap .inv-btn:hover, .fish-wrap .inv-btn.active{ border-color:var(--gold); color:var(--gold); }
+.fish-wrap .reset-btn{ background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-size:12px; padding:7px 12px; cursor:pointer; white-space:nowrap; }
+.fish-wrap .reset-btn:hover{ border-color:#c04040; }
 
-  .inv-price{width:78px;flex-shrink:0;}
-  .inv-price input{width:100%;background:var(--slot);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:6px 6px;outline:none;text-align:right;}
-  .inv-price input:focus{border-color:var(--teal);}
+/* INVENTORY */
+.fish-wrap .inv-section{ padding:10px 12px; display:none; border-top:1px solid var(--bd); }
+.fish-wrap .inv-section.show{ display:block; }
+.fish-wrap .inv-lbl{ font-family:'Cinzel',serif; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.fish-wrap .inv-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:4px; }
+.fish-wrap .slot{ aspect-ratio:1; background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; position:relative; cursor:pointer; overflow:hidden; }
+.fish-wrap .slot.filled:hover{ border-color:var(--gold); }
+.fish-wrap .slot img{ width:100%; height:100%; object-fit:contain; display:block; }
+.fish-wrap .slot .st{ position:absolute; top:1px; left:1px; font-family:'Cinzel',serif; font-size:7px; font-weight:700; color:#fff; background:rgba(0,0,0,.7); padding:0 2px; border-radius:1px; }
+.fish-wrap .slot .sq{ position:absolute; bottom:1px; right:2px; font-size:9px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; }
+.fish-wrap .slot .sh{ position:absolute; top:1px; right:2px; font-size:7px; color:var(--gold); font-family:'Cinzel',serif; text-shadow:0 1px 2px #000; }
 
-  .inv-total{width:70px;flex-shrink:0;text-align:right;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--gold);font-weight:600;}
+/* PERBANDINGAN (preview jual vs cincang vs optimal) */
+.fish-wrap .preview-section{ padding:10px 12px; display:none; border-top:1px solid var(--bd); }
+.fish-wrap .preview-section.show{ display:block; }
+.fish-wrap .summary-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.fish-wrap .summary-card{ background:var(--sbg); border:1px solid var(--sbd); border-radius:4px; padding:12px 6px; text-align:center; }
+.fish-wrap .s-label{ font-family:'Cinzel',serif; font-size:.6rem; color:var(--dim); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+.fish-wrap .s-val{ font-family:'Cinzel',serif; font-size:.9rem; font-weight:700; }
+.fish-wrap .s-val.neutral{ color:var(--lt); }
+.fish-wrap .s-val.accent{ color:var(--gold); }
+.fish-wrap .s-val.profit{ color:var(--teal); }
 
-  .btn-remove{width:26px;height:26px;flex-shrink:0;background:none;border:none;color:var(--text-muted);font-size:1rem;cursor:pointer;border-radius:6px;transition:color .15s, background .15s;}
-  .btn-remove:hover{color:var(--red);background:#2a1815;}
+/* COIN FOOTER (modal vs nilai sekarang vs profit) */
+.fish-wrap .coin-footer{ display:none; flex-direction:column; padding:10px 12px; background:rgba(0,0,0,.3); border-top:1px solid var(--bd); gap:8px; }
+.fish-wrap .coin-footer.show{ display:flex; }
+.fish-wrap .coin-row{ display:flex; justify-content:space-between; align-items:center; }
+.fish-wrap .coin-side{ display:flex; align-items:center; gap:8px; }
+.fish-wrap .coin-icon{ width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 35% 35%,#888,#333); display:flex; align-items:center; justify-content:center; font-size:13px; border:2px solid #555; flex-shrink:0; }
+.fish-wrap .coin-lbl{ font-size:10px; color:var(--dim); display:block; }
+.fish-wrap .coin-val{ font-family:'Cinzel',serif; font-size:15px; font-weight:700; color:var(--gold); }
+.fish-wrap .profit-row{ display:flex; justify-content:flex-end; padding-top:6px; border-top:1px solid rgba(107,79,26,.4); }
+.fish-wrap .profit-item{ display:flex; flex-direction:column; align-items:flex-end; }
+.fish-wrap .profit-lbl{ font-size:10px; color:var(--dim); }
+.fish-wrap .profit-val{ font-family:'Cinzel',serif; font-size:15px; font-weight:700; }
+.fish-wrap .profit-val.pos{ color:#6f8; }
+.fish-wrap .profit-val.neg{ color:#f86; }
 
-  .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
-  .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border-radius:8px;border:none;font-weight:600;font-size:.85rem;cursor:pointer;transition:opacity .15s, transform .1s;}
-  .btn:active{transform:scale(.97);}
-  .btn-reset{background:#2a1e1e;color:var(--red);border:1px solid #3e2020;}
-  .btn-calc{background:var(--gold);color:#1a1208;margin-left:auto;}
-  .btn-calc:hover{background:#e8b863;}
+/* PROSES BUTTON */
+.fish-wrap .hitung-wrap{ padding:12px; border-top:1px solid var(--bd); background:rgba(0,0,0,.2); }
+.fish-wrap .btn-hitung{ width:100%; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:12px; cursor:pointer; text-transform:uppercase; }
+.fish-wrap .btn-hitung:hover{ background:linear-gradient(180deg,#a05800,#703800); }
 
-  #hasil{margin-top:30px;display:none;}
-  .hasil-header{font-family:'Fraunces',serif;font-size:.92rem;color:var(--gold);letter-spacing:.05em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
-  .summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;}
-  .summary-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px 10px;text-align:center;}
-  .s-label{font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
-  .s-val{font-family:'Fraunces',serif;font-size:.98rem;font-weight:700;}
-  .s-val.profit{color:var(--teal);}
-  .s-val.neutral{color:var(--text);}
-  .s-val.accent{color:var(--gold);}
+/* POPUP */
+.fish-wrap .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:100; display:none; align-items:center; justify-content:center; }
+.fish-wrap .overlay.show{ display:flex; }
+.fish-wrap .popup{ background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:2px solid var(--bd); border-radius:4px; box-shadow:0 8px 40px rgba(0,0,0,.9); width:310px; max-width:95vw; overflow:hidden; }
+.fish-wrap .pop-head{ display:flex; gap:10px; padding:12px; background:linear-gradient(180deg,#4a3818,#2e2210); border-bottom:1px solid var(--bd); align-items:flex-start; }
+.fish-wrap .pop-icon{ width:52px; height:52px; border:1px solid var(--sbd); border-radius:3px; background:var(--sbg); flex-shrink:0; object-fit:contain; }
+.fish-wrap .pop-name{ font-family:'Cinzel',serif; font-size:14px; color:var(--gold); margin-bottom:3px; }
+.fish-wrap .pop-desc{ font-size:11px; color:var(--dim); font-style:italic; }
+.fish-wrap .pop-close{ margin-left:auto; background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:50%; color:#f0c0c0; width:24px; height:24px; font-size:13px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.fish-wrap .pop-body{ padding:12px; display:flex; flex-direction:column; gap:10px; }
+.fish-wrap .pop-field label{ display:block; font-family:'Cinzel',serif; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+.fish-wrap .pop-field input[type=number]{ width:100%; background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-size:14px; padding:6px 9px; outline:none; }
+.fish-wrap .pop-field input[type=number]:focus{ border-color:var(--gold); }
+.fish-wrap .slider-wrap{ display:flex; align-items:center; gap:7px; }
+.fish-wrap .slider-wrap input[type=range]{ flex:1; accent-color:var(--gold); }
+.fish-wrap .slider-val{ background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; width:60px; text-align:center; padding:4px 5px; outline:none; }
+.fish-wrap .pop-btn-row{ display:flex; gap:7px; }
+.fish-wrap .btn-add{ flex:1; background:linear-gradient(180deg,#4a6b1a,#2e4210); border:1px solid #6b8b30; border-radius:3px; color:#d0f0a0; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; text-transform:uppercase; }
+.fish-wrap .btn-add:hover{ border-color:#8bc040; color:#fff; }
+.fish-wrap .btn-del{ background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-family:'Cinzel',serif; font-size:12px; font-weight:700; padding:10px 13px; cursor:pointer; }
+.fish-wrap .btn-del:hover{ border-color:#c04040; }
 
-  .res-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
-  .res-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
-  .res-info{flex:1;min-width:0;}
-  .res-name{font-size:.86rem;font-weight:600;}
-  .res-detail{font-size:.72rem;color:var(--text-muted);margin-top:2px;}
-  .res-diff{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;text-align:right;width:90px;flex-shrink:0;}
-  .diff-pos{color:var(--teal);}
-  .diff-neg{color:var(--red);}
-  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;flex-shrink:0;letter-spacing:.03em;}
-  .badge-sell{background:#0e2a1a;color:var(--teal);border:1px solid #1a5030;}
-  .badge-cut{background:#2e1010;color:var(--red);border:1px solid #5e2020;}
-
-  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(2px);}
-  .modal-backdrop.open{display:flex;}
-  .picker{background:var(--bg-panel,var(--panel));border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:720px;height:82vh;display:flex;flex-direction:column;animation:slideUp .2s ease-out;}
-  @media (min-width:640px){.modal-backdrop{align-items:center;}.picker{border-radius:14px;height:78vh;}}
-  @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-  .picker-head{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid var(--border);}
-  .picker-head h2{font-family:'Fraunces',serif;font-size:.92rem;color:var(--gold);flex:1;}
-  .picker-close{background:var(--card);border:1px solid var(--border);color:var(--text-muted);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:1rem;}
-  .picker-close:hover{color:var(--red);}
-  .picker-search{padding:12px 16px;border-bottom:1px solid var(--border);}
-  .picker-search input{width:100%;background:var(--slot);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:.85rem;outline:none;}
-  .picker-search input:focus{border-color:var(--gold);}
-
-  /* === PERBAIKAN TIER PILL === */
-  .picker-tiers{
-    display:flex;align-items:center;gap:6px;padding:10px 16px 12px;
-    overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--border);
-    scrollbar-width:none;-ms-overflow-style:none;flex-shrink:0;min-height:48px;
-  }
-  .picker-tiers::-webkit-scrollbar{display:none;height:0;}
-  .tier-pill{
-    flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;
-    color:var(--text-muted);background:var(--card);border:1px solid var(--border);
-    padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;line-height:1;
-    transition:background .15s, color .15s, border-color .15s;
-  }
-  .tier-pill.active{background:var(--gold);color:#1a1208;border-color:var(--gold);box-shadow:0 2px 6px rgba(217,166,83,0.35);}
-  /* === END PERBAIKAN === */
-
-  .picker-list{list-style:none;overflow-y:auto;flex:1;padding:8px 10px 16px;}
-  .picker-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;cursor:pointer;transition:background .15s;}
-  .picker-item:hover{background:var(--card);}
-  .picker-icon{width:42px;height:42px;border-radius:8px;background:var(--slot);border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
-  .picker-icon img{width:100%;height:100%;object-fit:contain;}
-  .picker-icon .fallback{font-family:'Fraunces',serif;font-weight:700;color:var(--gold);font-size:.95rem;}
-  .picker-info{flex:1;min-width:0;}
-  .picker-name{font-size:.86rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .picker-sub{font-size:.72rem;color:var(--text-muted);margin-top:2px;}
-  .picker-price{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--gold);flex-shrink:0;}
-  .picker-empty{text-align:center;color:var(--text-muted);font-size:.85rem;padding:30px 10px;}
-
-  @media (max-width:480px){.summary-grid{grid-template-columns:1fr 1fr;}.inv-sub{display:none;}}
+.fish-wrap .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:200; white-space:nowrap; }
+.fish-wrap .toast.show{ transform:translateX(-50%) translateY(0); }
 </style>
 
 <div class="fish-wrap">
-  <div class="fish-header">
-    <h1>🎣 Kalkulator Mancing</h1>
-    <p>Albion Online &middot; Bandingkan untung jual ikan langsung vs dicincang</p>
-  </div>
+  <div class="app">
 
-  <div class="price-bar">
-    <label>🥩 Harga Daging Cincang (T1) per unit</label>
-    <input type="number" id="hargaCincang" value="336" min="1">
-    <span>silver</span>
-  </div>
+    <div class="panel">
+      <div class="ph">
+        <span>🎣</span>
+        <span class="ph-title">Kalkulator Mancing</span>
+        <input type="text" class="header-search" id="searchInputFish" placeholder="Cari nama ikan..." oninput="onSearchFish()">
+        <span class="api-status" id="apiStatus"></span>
+      </div>
 
-  <button class="btn-add-fish" id="btnOpenPicker">＋ Tambah Ikan</button>
+      <div class="flt-bar" id="fltBarFish">
+        <!-- TIER -->
+        <div class="flt-wrap">
+          <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
+            <span class="flt-label" id="lblTier">Tier</span>
+            <span class="flt-val" id="valTier" style="display:none"></span>
+            <span class="flt-arrow">▼</span>
+          </div>
+          <div class="drop-wrap" id="dropTier">
+            <div class="drop-col" id="colTier"></div>
+          </div>
+        </div>
+        <!-- KOTA -->
+        <div class="flt-wrap">
+          <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
+            <span class="flt-label" id="lblKota" style="display:none">Kota</span>
+            <span class="flt-val" id="valKota">Thetford</span>
+            <span class="flt-arrow">▼</span>
+          </div>
+          <div class="drop-wrap" id="dropKota">
+            <div class="drop-col" id="colKota"></div>
+          </div>
+        </div>
+      </div>
 
-  <div class="inv-header">
-    <div><span class="inv-title">INVENTORY</span><span class="inv-count" id="invCount">(0)</span></div>
-    <button class="btn-toggle" id="btnToggleInv"><span id="toggleIcon">👁</span> <span id="toggleLabel">Sembunyikan</span></button>
-  </div>
+      <div class="item-list" id="itemList"></div>
 
-  <div id="invContainer">
-    <div class="inv-empty" id="invEmpty">Belum ada ikan. Klik "Tambah Ikan" buat mulai.</div>
-    <ul class="inv-list" id="invList"></ul>
-  </div>
+      <div class="bot-bar">
+        <div class="ret-wrap">
+          <label>🥩 Cincang (T1)</label>
+          <input class="ret-inp" type="number" id="hargaCincang" value="336" min="1" onchange="renderInventory()">
+        </div>
+        <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
+        <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
+      </div>
 
-  <div class="actions">
-    <button class="btn btn-reset" onclick="resetAll()">↺ Reset</button>
-    <button class="btn btn-calc" onclick="hitung()">⚖ Hitung Sekarang</button>
-  </div>
+      <div class="inv-section" id="invSection">
+        <div class="inv-lbl">📦 Inventory</div>
+        <div class="inv-grid" id="invGrid"></div>
+      </div>
 
-  <div id="hasil">
-    <div class="hasil-header">📊 Hasil Analisis</div>
-    <div class="summary-grid" id="summaryGrid"></div>
-    <ul class="res-list" id="resList"></ul>
+      <div class="preview-section" id="previewSection">
+        <div class="inv-lbl">📊 Perbandingan (kalau diproses sekarang)</div>
+        <div class="summary-grid" id="summaryGrid"></div>
+      </div>
+
+      <div class="hitung-wrap">
+        <button class="btn-hitung" onclick="prosesCincang()">🔪 Proses Cincang</button>
+      </div>
+
+      <div class="coin-footer" id="coinFooter">
+        <div class="coin-row">
+          <div class="coin-side">
+            <div class="coin-icon">🪙</div>
+            <div>
+              <span class="coin-lbl">Modal (Ikan Sebelum Diproses)</span>
+              <span class="coin-val" id="coinModal">0</span>
+            </div>
+          </div>
+          <div class="coin-side">
+            <div>
+              <span class="coin-lbl" style="text-align:right;display:block">Nilai Sekarang</span>
+              <span class="coin-val" id="coinNilai">0</span>
+            </div>
+            <div class="coin-icon">🪙</div>
+          </div>
+        </div>
+        <div class="profit-row">
+          <div class="profit-item">
+            <span class="profit-lbl">Profit</span>
+            <span class="profit-val" id="profitVal">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="picker">
-    <div class="picker-head">
-      <h2>Pilih Ikan</h2>
-      <button class="picker-close" id="btnClosePicker">✕</button>
+<div class="fish-wrap">
+  <div class="overlay" id="overlayItem" onclick="closeOverlayOutside(event,'overlayItem')">
+    <div class="popup">
+      <div class="pop-head">
+        <img class="pop-icon" id="popIcon" src="" alt="">
+        <div>
+          <div class="pop-name" id="popName">—</div>
+          <div class="pop-desc" id="popDesc">—</div>
+        </div>
+        <button class="pop-close" onclick="closeOverlay('overlayItem')">✕</button>
+      </div>
+      <div class="pop-body">
+        <div class="pop-field">
+          <label>Harga per ekor (silver)</label>
+          <input type="number" id="popHarga" placeholder="0" min="0">
+        </div>
+        <div class="pop-field">
+          <label>Jumlah ekor</label>
+          <div class="slider-wrap">
+            <input type="range" id="popSlider" min="1" max="999" value="10" oninput="syncQty('s')">
+            <input class="slider-val" type="number" id="popQty" value="10" min="1" max="999999" oninput="syncQty('v')">
+          </div>
+        </div>
+        <div class="pop-btn-row" id="popBtnRow"></div>
+      </div>
     </div>
-    <div class="picker-search">
-      <input type="text" id="searchInput" placeholder="Cari nama ikan...">
-    </div>
-    <div class="picker-tiers" id="tierPills"></div>
-    <ul class="picker-list" id="pickerList"></ul>
   </div>
+  <div class="toast" id="toast"></div>
 </div>
 
 <script>
+// ===================== DATA =====================
 const IKAN_DB = [
   {uid:"T1_FISH_FRESHWATER_ALL_COMMON", id:"Rud Biasa", tier:"I", potong:1, def:273},
   {uid:"T1_FISH_SALTWATER_ALL_COMMON", id:"Haring Biasa", tier:"I", potong:1, def:456},
@@ -217,143 +307,417 @@ const IKAN_DB = [
   {uid:"T8_FISH_SALTWATER_ALL_COMMON", id:"Todak Sisik Besi", tier:"VIII", potong:14, def:8022},
   {uid:"T8_FISH_SALTWATER_ALL_BOSS_SHARK", id:"Hiu", tier:"VIII", potong:200, def:99000},
 ];
-const TIERS = ["I","II","III","IV","V","VI","VII","VIII"];
 
-function renderUrl(uid, size=84){ return `https://render.albiononline.com/v1/item/${uid}.png?size=${size}`; }
-function iconHtml(uid, name){
-  return `<img src="${renderUrl(uid)}" alt="${name}" loading="lazy"
-    onerror="this.style.display='none';this.parentElement.querySelector('.fallback')?.classList.remove('hidden')||this.parentElement.insertAdjacentHTML('beforeend','<span class=\\'fallback\\'>${name.charAt(0)}</span>')">`;
+// Item hasil cincang — pseudo-item, gak muncul di item-list, cuma nongol di inventory
+const DAGING_UID = "T1_FISHCHOPS";
+IKAN_DB.push({uid:DAGING_UID, id:"Daging Cincang", tier:"I", potong:0, def:0});
+
+const TIER_COL   = {I:'#ccc', II:'#aaa', III:'#6b8', IV:'#68f', V:'#c8f', VI:'#fa8', VII:'#f64', VIII:'#ff0'};
+const FISH_TIERS = ['I','II','III','IV','V','VI','VII','VIII'];
+const KOTA_LIST  = ['Caerleon','Bridgewatch','Fort Sterling','Lymhurst','Martlock','Thetford','Brecilien'];
+
+function iconUrl(uid){ return `https://render.albiononline.com/v1/item/${uid}.png?size=64&quality=1`; }
+function fmt(n){ return Math.round(n||0).toLocaleString('id-ID'); }
+function tierLabel(tier){ return 'T' + (FISH_TIERS.indexOf(tier)+1); }
+
+let inventory = [];      // {uid, qty, harga, manual}
+let invShown  = false;
+let popupUid  = null;
+let popupInvIdx = null;
+let priceCache = {};     // uid -> harga
+let priceCityCache = {}; // uid -> {harga, kota}
+let modalLock = null;    // null = belum pernah proses, number = nilai ikan sebelum proses pertama
+
+// ===================== FILTER STATE =====================
+let fTier   = null;      // 'I'..'VIII'
+let fKota   = 'Thetford';
+let fSearch = '';
+
+// ===================== DROPDOWN HELPERS (ala Refine) =====================
+let openDropR = null;
+function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function toggleDrop(name){
+  if (openDropR === name) { closeDrop(); return; }
+  closeDrop();
+  openDropR = name;
+  const btn  = document.getElementById('btn'  + cap(name));
+  const drop = document.getElementById('drop' + cap(name));
+  const rect = btn.getBoundingClientRect();
+  drop.style.top  = (rect.bottom + 3) + 'px';
+  drop.style.left = rect.left + 'px';
+  drop.classList.add('show');
+  btn.classList.add('open');
+}
+function closeDrop(){
+  if (!openDropR) return;
+  document.getElementById('drop' + cap(openDropR)).classList.remove('show');
+  document.getElementById('btn'  + cap(openDropR)).classList.remove('open');
+  openDropR = null;
+}
+document.addEventListener('click', e => {
+  if (openDropR && !e.target.closest('.flt-wrap')) closeDrop();
+});
+function setFilterVal(lblId, valId, value){
+  const lbl = document.getElementById(lblId);
+  const val = document.getElementById(valId);
+  if (value) { lbl.style.display='none'; val.style.display=''; val.textContent=value; }
+  else       { lbl.style.display='';     val.style.display='none'; }
+}
+function makeItem(text, hasArrow, isActive, onClick){
+  const el = document.createElement('div');
+  el.className = 'drop-item' + (isActive ? ' active' : '');
+  el.innerHTML = text + (hasArrow ? '<span class="di-arrow">▶</span>' : '');
+  el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return el;
 }
 
-let inventory = [];
-let rowSeq = 0;
-let invVisible = true;
-let activeTier = 'ALL';
+// --- TIER ---
+function buildTierDropFish(){
+  const col = document.getElementById('colTier');
+  col.innerHTML = '';
+  col.appendChild(makeItem('Semua', false, !fTier, () => {
+    fTier = null; setFilterVal('lblTier','valTier',null); closeDrop(); filterItems();
+  }));
+  FISH_TIERS.forEach(t => col.appendChild(makeItem(tierLabel(t), false, fTier === t, () => {
+    fTier = t; setFilterVal('lblTier','valTier', tierLabel(t)); closeDrop(); filterItems();
+  })));
+}
 
-const modalBackdrop = document.getElementById('modalBackdrop');
-document.getElementById('btnOpenPicker').onclick = () => { modalBackdrop.classList.add('open'); renderPickerList(); document.getElementById('searchInput').focus(); };
-document.getElementById('btnClosePicker').onclick = () => modalBackdrop.classList.remove('open');
-modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) modalBackdrop.classList.remove('open'); });
+// --- KOTA ---
+function buildKotaDropFish(){
+  const col = document.getElementById('colKota');
+  col.innerHTML = '';
+  KOTA_LIST.forEach(k => col.appendChild(makeItem(k, false, fKota === k, () => {
+    fKota = k; setFilterVal('lblKota','valKota', k); closeDrop(); onKotaChange();
+  })));
+}
 
-function buildTierPills(){
-  const wrap = document.getElementById('tierPills');
-  wrap.innerHTML = `<button class="tier-pill active" data-tier="ALL">Semua</button>` +
-    TIERS.map(tr => `<button class="tier-pill" data-tier="${tr}">T${TIERS.indexOf(tr)+1}</button>`).join('');
-  wrap.querySelectorAll('.tier-pill').forEach(btn => {
-    btn.onclick = () => {
-      activeTier = btn.dataset.tier;
-      wrap.querySelectorAll('.tier-pill').forEach(b => b.classList.toggle('active', b === btn));
-      renderPickerList();
-    };
+// --- SEARCH (debounce) ---
+let searchTimerFish = null;
+function onSearchFish(){
+  clearTimeout(searchTimerFish);
+  searchTimerFish = setTimeout(() => {
+    fSearch = document.getElementById('searchInputFish').value.trim();
+    filterItems();
+  }, 300);
+}
+
+// ===================== FILTER & RENDER LIST =====================
+function filterItems(){
+  const tier = fTier || '';
+  const q    = fSearch.toLowerCase();
+  const filtered = IKAN_DB.filter(i => {
+    if (i.uid === DAGING_UID) return false; // pseudo-item, gak ditambah manual
+    if (tier && i.tier !== tier) return false;
+    if (q && !i.id.toLowerCase().includes(q)) return false;
+    return true;
   });
+  window._fl = filtered;
+  const el = document.getElementById('itemList');
+  if (!filtered.length){ el.innerHTML = '<div class="empty-inv">Ikan tidak ditemukan.</div>'; return; }
+  el.innerHTML = filtered.map((i, idx) => {
+    const h = priceCache[i.uid];
+    return `<div class="item-row" onclick="openAdd(${idx})">
+      <img class="item-icon" src="${iconUrl(i.uid)}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%231a1208%22/></svg>'">
+      <div class="item-name">${i.id}</div>
+      ${h ? `<span class="item-price">${fmt(h)}</span>` : ''}
+    </div>`;
+  }).join('');
 }
 
-function renderPickerList(){
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const list = document.getElementById('pickerList');
-  const filtered = IKAN_DB.filter(i => (activeTier === 'ALL' || i.tier === activeTier) && i.id.toLowerCase().includes(q));
-  if (!filtered.length){ list.innerHTML = `<li class="picker-empty">Ikan tidak ditemukan.</li>`; return; }
-  list.innerHTML = filtered.map(i => `
-    <li class="picker-item" data-uid="${i.uid}">
-      <div class="picker-icon">${iconHtml(i.uid, i.id)}</div>
-      <div class="picker-info">
-        <div class="picker-name">${i.id}</div>
-        <div class="picker-sub">Tier ${i.tier} &middot; ${i.potong} ptg cincang</div>
-      </div>
-      <div class="picker-price">${i.def.toLocaleString('id-ID')}</div>
-    </li>`).join('');
-  list.querySelectorAll('.picker-item').forEach(li => { li.onclick = () => addToInventory(li.dataset.uid); });
-}
-document.getElementById('searchInput').addEventListener('input', renderPickerList);
+// ===================== FETCH HARGA PER KOTA =====================
+const FALLBACK_ORDER = ['Bridgewatch','Fort Sterling','Lymhurst','Martlock','Thetford','Caerleon','Brecilien'];
 
-function addToInventory(uid){
-  const existing = inventory.find(it => it.uid === uid);
-  if (existing){ existing.qty += 1; }
-  else { const data = IKAN_DB.find(i => i.uid === uid); inventory.push({ id: ++rowSeq, uid, qty: 1, price: data.def }); }
+async function fetchBatch(ids, kota){
+  const url = `https://west.albion-online-data.com/api/v2/stats/prices/${ids.join(',')}?locations=${encodeURIComponent(kota)}&qualities=1`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const result = {};
+  for (const e of data) if (e.sell_price_min > 0) result[e.item_id] = e.sell_price_min;
+  return result;
+}
+
+async function onKotaChange(){
+  const kota = fKota;
+  if (!kota) return;
+  const st = document.getElementById('apiStatus');
+  st.className = 'api-status loading'; st.textContent = '⏳ Mengambil harga...';
+
+  const allKeys = IKAN_DB.filter(i => i.uid !== DAGING_UID).map(i => i.uid);
+  priceCache = {}; priceCityCache = {};
+  const fallbacks = FALLBACK_ORDER.filter(k => k !== kota);
+
+  try {
+    for (let i = 0; i < allKeys.length; i += 200) {
+      const batch = allKeys.slice(i, i + 200);
+      const result = await fetchBatch(batch, kota);
+      for (const [id, harga] of Object.entries(result)) { priceCache[id] = harga; priceCityCache[id] = {harga, kota}; }
+    }
+    let missing = allKeys.filter(k => !priceCache[k]);
+    for (const fbKota of fallbacks) {
+      if (!missing.length) break;
+      for (let i = 0; i < missing.length; i += 200) {
+        const batch = missing.slice(i, i + 200);
+        const result = await fetchBatch(batch, fbKota);
+        for (const [id, harga] of Object.entries(result)) { priceCache[id] = harga; priceCityCache[id] = {harga, kota: fbKota}; }
+      }
+      missing = allKeys.filter(k => !priceCache[k]);
+    }
+    const fetched  = Object.keys(priceCache).length;
+    const fallback = Object.values(priceCityCache).filter(v => v.kota !== kota).length;
+    st.className = 'api-status ok';
+    st.textContent = `✅ ${fetched} harga${fallback > 0 ? ` (${fallback} fallback)` : ''}`;
+
+    for (const inv of inventory) {
+      if (inv.uid === DAGING_UID) continue;
+      const c = priceCache[inv.uid];
+      if (c && c > 0 && !inv.manual) inv.harga = c;
+    }
+    filterItems(); renderInventory();
+  } catch (e) { st.className = 'api-status err'; st.textContent = '⚠️ Gagal fetch'; }
+}
+
+// ===================== POPUP TAMBAH / EDIT =====================
+function openAdd(idx){
+  const i = window._fl[idx];
+  popupUid = i.uid; popupInvIdx = null;
+  document.getElementById('popIcon').src = iconUrl(i.uid);
+  document.getElementById('popName').textContent = i.id;
+  document.getElementById('popDesc').textContent = `Tier ${tierLabel(i.tier)} · ${i.potong} ptg cincang/ekor`;
+  const cached = priceCache[i.uid] || i.def || 0;
+  document.getElementById('popHarga').value = cached;
+  document.getElementById('popSlider').value = 10;
+  document.getElementById('popQty').value = 10;
+  document.getElementById('popSlider').closest('.pop-field').style.display = '';
+  document.getElementById('popBtnRow').innerHTML = `<button class="btn-add" onclick="doAdd()">➕ Tambah ke Inventory</button>`;
+  openOverlay('overlayItem');
+}
+
+function openEdit(i){
+  const inv = inventory[i];
+  if (!inv) return;
+  const d = IKAN_DB.find(x => x.uid === inv.uid);
+  popupUid = inv.uid; popupInvIdx = i;
+  document.getElementById('popIcon').src = iconUrl(inv.uid);
+  document.getElementById('popName').textContent = d.id;
+  document.getElementById('popDesc').textContent = inv.uid === DAGING_UID
+    ? 'Daging hasil cincang ikan'
+    : `Tier ${tierLabel(d.tier)} · ${d.potong} ptg cincang/ekor`;
+  document.getElementById('popHarga').value = inv.harga || 0;
+  document.getElementById('popSlider').value = Math.min(inv.qty, 999);
+  document.getElementById('popQty').value = inv.qty;
+  document.getElementById('popSlider').closest('.pop-field').style.display = '';
+  document.getElementById('popBtnRow').innerHTML = `
+    <button class="btn-add" onclick="doEdit()">💾 Simpan</button>
+    <button class="btn-del" onclick="doHapus()">🗑</button>`;
+  openOverlay('overlayItem');
+}
+
+function syncQty(src){
+  const s = document.getElementById('popSlider'), v = document.getElementById('popQty');
+  if (src === 's') v.value = s.value; else s.value = Math.min(parseInt(v.value) || 1, 999);
+}
+
+function doAdd(){
+  if (!popupUid) return;
+  const qty = Math.min(parseInt(document.getElementById('popQty').value) || 1, 999999);
+  const harga = parseFloat(document.getElementById('popHarga').value) || 0;
+  const d = IKAN_DB.find(i => i.uid === popupUid);
+  const ex = inventory.findIndex(inv => inv.uid === popupUid);
+  if (ex >= 0) {
+    inventory[ex].qty = Math.min(inventory[ex].qty + qty, 999999);
+    inventory[ex].harga = harga || inventory[ex].harga;
+    inventory[ex].manual = true;
+    showToast(`📦 ${d.id} → ${inventory[ex].qty}`);
+  } else {
+    inventory.push({ uid: popupUid, qty, harga, manual: true });
+    showToast(`✅ ${d.id} × ${qty}`);
+  }
+  if (!invShown) toggleInv();
+  closeOverlay('overlayItem');
   renderInventory();
 }
 
-function renderInventory(){
-  document.getElementById('invCount').textContent = `(${inventory.length})`;
-  document.getElementById('invEmpty').style.display = inventory.length ? 'none' : 'block';
-  const list = document.getElementById('invList');
-  list.innerHTML = inventory.map(it => {
-    const d = IKAN_DB.find(i => i.uid === it.uid);
-    const total = it.qty * it.price;
-    return `
-    <li class="inv-row" data-id="${it.id}">
-      <div class="inv-icon">${iconHtml(d.uid, d.id)}<span class="inv-tier">T${TIERS.indexOf(d.tier)+1}</span></div>
-      <div class="inv-info"><div class="inv-name">${d.id}</div><div class="inv-sub">${d.potong} ptg cincang/ekor</div></div>
-      <div class="qty-stepper">
-        <button onclick="stepQty(${it.id},-1)">−</button>
-        <input type="number" value="${it.qty}" min="1" oninput="setQty(${it.id}, this.value)">
-        <button onclick="stepQty(${it.id},1)">+</button>
-      </div>
-      <div class="inv-price"><input type="number" value="${it.price}" min="0" oninput="setPrice(${it.id}, this.value)"></div>
-      <div class="inv-total">${total.toLocaleString('id-ID')}</div>
-      <button class="btn-remove" onclick="removeItem(${it.id})">✕</button>
-    </li>`;
-  }).join('');
+function doEdit(){
+  if (popupInvIdx === null) return;
+  inventory[popupInvIdx].qty = Math.min(parseInt(document.getElementById('popQty').value) || 1, 999999);
+  inventory[popupInvIdx].harga = parseFloat(document.getElementById('popHarga').value) || 0;
+  inventory[popupInvIdx].manual = true;
+  closeOverlay('overlayItem');
+  renderInventory();
+  showToast('✏️ Diperbarui');
 }
 
-function stepQty(id, delta){ const it = inventory.find(i => i.id === id); if (it){ it.qty = Math.max(1, it.qty + delta); const row = document.querySelector(`.inv-row[data-id="${id}"]`); if (row) row.querySelector('.qty-stepper input').value = it.qty; updateRowTotal(id); } }
-function setQty(id, val){ const it = inventory.find(i => i.id === id); if (it){ it.qty = Math.max(1, parseInt(val) || 1); updateRowTotal(id); } }
-function setPrice(id, val){ const it = inventory.find(i => i.id === id); if (it){ it.price = Math.max(0, parseFloat(val) || 0); updateRowTotal(id); } }
-function updateRowTotal(id){ const it = inventory.find(i => i.id === id); const row = document.querySelector(`.inv-row[data-id="${id}"]`); if (it && row){ row.querySelector('.inv-total').textContent = (it.qty * it.price).toLocaleString('id-ID'); } }
-function removeItem(id){ inventory = inventory.filter(i => i.id !== id); renderInventory(); }
+function doHapus(){
+  if (popupInvIdx === null) return;
+  const d = IKAN_DB.find(i => i.uid === inventory[popupInvIdx].uid);
+  inventory.splice(popupInvIdx, 1);
+  closeOverlay('overlayItem');
+  renderInventory();
+  showToast(`🗑 ${d.id} dihapus`);
+}
 
-document.getElementById('btnToggleInv').onclick = () => {
-  invVisible = !invVisible;
-  document.getElementById('invContainer').style.display = invVisible ? 'block' : 'none';
-  document.getElementById('toggleLabel').textContent = invVisible ? 'Sembunyikan' : 'Tampilkan';
-  document.getElementById('toggleIcon').textContent = invVisible ? '👁' : '🙈';
-};
+function doReset(){
+  inventory = [];
+  modalLock = null;
+  renderInventory();
+  document.getElementById('coinFooter').classList.remove('show');
+  showToast('↺ Direset');
+}
 
-function resetAll(){ inventory = []; renderInventory(); document.getElementById('hasil').style.display = 'none'; }
-function fmt(n){ return Math.round(n).toLocaleString('id-ID'); }
+// ===================== INVENTORY GRID (stack max 999/slot) =====================
+function toggleInv(){
+  invShown = !invShown;
+  document.getElementById('invSection').classList.toggle('show', invShown);
+  document.getElementById('invBtn').classList.toggle('active', invShown);
+}
 
-function hitung(){
+function renderInventory(){
+  // Sinkronkan harga stack Daging Cincang ke input "Harga Cincang" biar nilainya live
+  const hargaCincang = parseFloat(document.getElementById('hargaCincang').value) || 336;
+  const dagingInv = inventory.find(inv => inv.uid === DAGING_UID);
+  if (dagingInv) dagingInv.harga = hargaCincang;
+
+  // Pecah tiap stack jadi slot visual, max 999/slot (kalau lebih, lanjut ke slot baru)
+  let visualSlots = [];
+  inventory.forEach((inv, i) => {
+    let sisa = inv.qty;
+    while (sisa > 0) {
+      visualSlots.push({ inv, i, qty: Math.min(sisa, 999) });
+      sisa -= 999;
+    }
+  });
+
+  document.getElementById('invCount').textContent = inventory.length;
+  const grid = document.getElementById('invGrid');
+  const slots = Math.max(visualSlots.length, 10);
+  let html = '';
+  for (let s = 0; s < slots; s++) {
+    const vs = visualSlots[s];
+    if (vs) {
+      const inv = vs.inv;
+      const d = IKAN_DB.find(i => i.uid === inv.uid);
+      const isDaging = inv.uid === DAGING_UID;
+      const tc = TIER_COL[d.tier] || '#fff';
+      html += `<div class="slot filled" title="${d.id} × ${inv.qty}" onclick="openEdit(${vs.i})">
+        <img src="${iconUrl(inv.uid)}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%231a1208%22/></svg>'">
+        <span class="st" style="color:${isDaging ? 'var(--gold)' : tc}">${isDaging ? '🥩' : tierLabel(d.tier)}</span>
+        <span class="sq">${vs.qty}</span>
+        ${inv.harga > 0 ? `<span class="sh">${fmt(inv.harga)}</span>` : ''}
+      </div>`;
+    } else html += `<div class="slot"></div>`;
+  }
+  grid.innerHTML = html;
+
+  renderPreview();
+  updateFooter();
+}
+
+// ===================== PERBANDINGAN & MODAL/PROFIT =====================
+function calcNilaiInventory(){
+  return inventory.reduce((s, inv) => s + inv.qty * (inv.harga || 0), 0);
+}
+
+// Kalau diproses sekarang: berapa kalau semua ikan dijual, semua dicincang, atau pilihan terbaik per ikan
+// (item Daging Cincang yang udah ada gak dihitung ulang, nilainya udah final)
+function calcPreview(){
+  const hargaCincang = parseFloat(document.getElementById('hargaCincang').value) || 336;
+  let totalJual = 0, totalCincang = 0, totalOptimal = 0;
+  inventory.forEach(inv => {
+    if (inv.uid === DAGING_UID) return;
+    const d = IKAN_DB.find(i => i.uid === inv.uid);
+    const jual    = inv.qty * (inv.harga || 0);
+    const cincang = inv.qty * d.potong * hargaCincang;
+    totalJual    += jual;
+    totalCincang += cincang;
+    totalOptimal += Math.max(jual, cincang);
+  });
+  return { totalJual, totalCincang, totalOptimal };
+}
+
+function renderPreview(){
+  const wrap = document.getElementById('previewSection');
+  const adaIkan = inventory.some(inv => inv.uid !== DAGING_UID);
+  if (!adaIkan) { wrap.classList.remove('show'); return; }
+  wrap.classList.add('show');
+  const { totalJual, totalCincang, totalOptimal } = calcPreview();
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-card"><div class="s-label">Semua Dijual</div><div class="s-val neutral">${fmt(totalJual)}</div></div>
+    <div class="summary-card"><div class="s-label">Semua Dicincang</div><div class="s-val accent">${fmt(totalCincang)}</div></div>
+    <div class="summary-card"><div class="s-label">Pilihan Terbaik</div><div class="s-val profit">${fmt(totalOptimal)}</div></div>`;
+}
+
+function updateFooter(){
+  if (modalLock === null) return; // belum pernah proses
+  const nilaiSekarang = calcNilaiInventory();
+  const profit = nilaiSekarang - modalLock;
+  document.getElementById('coinModal').textContent = fmt(modalLock);
+  document.getElementById('coinNilai').textContent = fmt(nilaiSekarang);
+  const pEl = document.getElementById('profitVal');
+  pEl.textContent = (profit >= 0 ? '+' : '') + fmt(profit);
+  pEl.className   = 'profit-val ' + (profit >= 0 ? 'pos' : 'neg');
+}
+
+// ===================== PROSES CINCANG (otomatis, hasil masuk inventory) =====================
+function prosesCincang(){
   if (!inventory.length){ alert('Tambahkan minimal satu ikan dulu.'); return; }
   const hargaCincang = parseFloat(document.getElementById('hargaCincang').value) || 336;
-  let totalJualAll = 0, totalCincangAll = 0;
-  const items = inventory.map(it => {
-    const d = IKAN_DB.find(i => i.uid === it.uid);
-    const totalJual = it.qty * it.price;
-    const totalPotongan = d.potong * it.qty;
-    const totalCincang = totalPotongan * hargaCincang;
-    const selisih = totalJual - totalCincang;
-    totalJualAll += totalJual; totalCincangAll += totalCincang;
-    return { d, qty: it.qty, totalJual, totalPotongan, totalCincang, selisih };
+
+  // Snapshot modal SEBELUM ikan dikonversi jadi daging (cuma sekali, pas proses pertama)
+  if (modalLock === null) {
+    modalLock = calcNilaiInventory();
+    document.getElementById('coinFooter').classList.add('show');
+  }
+
+  let dagingTambahan = 0, jumlahDicincang = 0, jumlahDisimpan = 0;
+
+  inventory = inventory.filter(inv => {
+    if (inv.uid === DAGING_UID) return true; // stack daging yang udah ada, jangan diproses ulang
+    const d = IKAN_DB.find(i => i.uid === inv.uid);
+    const nilaiCincang = d.potong * hargaCincang;
+    const nilaiJual     = inv.harga || 0;
+    if (nilaiCincang > nilaiJual) {
+      dagingTambahan  += d.potong * inv.qty;
+      jumlahDicincang += inv.qty;
+      return false; // ikan ini dikonsumsi, jadi daging
+    }
+    jumlahDisimpan += inv.qty;
+    return true; // lebih untung dijual apa adanya, tetap disimpan
   });
-  const optimalTotal = items.reduce((s, it) => s + Math.max(it.totalJual, it.totalCincang), 0);
 
-  document.getElementById('summaryGrid').innerHTML = `
-    <div class="summary-card"><div class="s-label">Semua Dijual</div><div class="s-val neutral">${fmt(totalJualAll)}</div></div>
-    <div class="summary-card"><div class="s-label">Semua Dicincang</div><div class="s-val accent">${fmt(totalCincangAll)}</div></div>
-    <div class="summary-card"><div class="s-label">Optimal</div><div class="s-val profit">${fmt(optimalTotal)}</div></div>`;
+  if (dagingTambahan > 0) {
+    const ex = inventory.find(inv => inv.uid === DAGING_UID);
+    if (ex) ex.qty = Math.min(ex.qty + dagingTambahan, 999999999);
+    else inventory.push({ uid: DAGING_UID, qty: dagingTambahan, harga: hargaCincang, manual: true });
+  }
 
-  document.getElementById('resList').innerHTML = items.map(it => {
-    const rec = it.selisih >= 0 ? `<span class="badge badge-sell">✔ Jual</span>` : `<span class="badge badge-cut">✂ Cincang</span>`;
-    return `
-    <li class="res-row">
-      <div class="inv-icon">${iconHtml(it.d.uid, it.d.id)}</div>
-      <div class="res-info"><div class="res-name">${it.d.id} <span style="color:var(--text-muted);font-weight:400;">×${it.qty}</span></div>
-      <div class="res-detail">Jual ${fmt(it.totalJual)} &middot; Cincang ${fmt(it.totalCincang)} (${fmt(it.totalPotongan)} ptg)</div></div>
-      ${rec}
-      <div class="res-diff ${it.selisih >= 0 ? 'diff-pos' : 'diff-neg'}">${it.selisih >= 0 ? '+' : ''}${fmt(it.selisih)}</div>
-    </li>`;
-  }).join('');
+  renderInventory();
+  if (!invShown) toggleInv();
 
-  const hasil = document.getElementById('hasil');
-  hasil.style.display = 'block';
-  hasil.scrollIntoView({ behavior:'smooth', block:'start' });
+  if (jumlahDicincang === 0) {
+    showToast('👍 Semua ikan lebih untung dijual, gak ada yang dicincang');
+  } else {
+    showToast(`🔪 ${jumlahDicincang} ekor dicincang → ${dagingTambahan} daging · ${jumlahDisimpan} ekor tetap disimpan`);
+  }
   catatAktivitas();
+}
+
+// ===================== HELPER UMUM =====================
+function openOverlay(id){ document.getElementById(id).classList.add('show'); }
+function closeOverlay(id){ document.getElementById(id).classList.remove('show'); }
+function closeOverlayOutside(e, id){ if (e.target === document.getElementById(id)) closeOverlay(id); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
 }
 
 async function catatAktivitas(){
   const loggedIn = @json(auth()->check());
   if (!loggedIn) return;
-  try{
+  try {
     await fetch('/api/catat-aktivitas', {
       method: 'POST',
       headers: {
@@ -362,26 +726,15 @@ async function catatAktivitas(){
       },
       body: JSON.stringify({ type: 'fishing' })
     });
-    tampilkanNotifPoin();
-  }catch(err){}
+  } catch (err) {}
 }
 
-function tampilkanNotifPoin(){
-  let toast = document.getElementById('poinToast');
-  if (!toast){
-    toast = document.createElement('div');
-    toast.id = 'poinToast';
-    toast.style.cssText = `position:fixed;bottom:18px;left:18px;z-index:70;background:var(--teal);color:var(--bg);font-size:0.8rem;font-weight:600;padding:10px 16px;border-radius:30px;box-shadow:0 6px 18px rgba(0,0,0,0.35);transition:opacity .3s;`;
-    document.body.appendChild(toast);
-  }
-  toast.textContent = '+1 EXP keaktifan 🎉';
-  toast.style.opacity = '1';
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2200);
-}
-
-buildTierPills();
+// ===================== INIT =====================
+buildTierDropFish();
+buildKotaDropFish();
+filterItems();
 renderInventory();
+onKotaChange();
 </script>
 
 <x-comments page="fishing" />

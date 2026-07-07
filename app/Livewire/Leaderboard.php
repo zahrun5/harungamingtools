@@ -13,7 +13,7 @@ public function mount()
 {
     $this->topUsers = User::where('points', '>', 0)
         ->orderByDesc('points')
-        ->take(10)
+        ->take(3)
         ->get();
 }
     public function render()

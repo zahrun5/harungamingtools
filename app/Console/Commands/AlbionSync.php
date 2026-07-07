@@ -66,7 +66,7 @@ class AlbionSync extends Command
     ];
 
     // Base URL raw file dari GitHub
-    const BASE_URL = 'https://raw.githubusercontent.com/broderickhyman/ao-bin-dumps/master/';
+    const BASE_URL = 'https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/';
 
     // Folder penyimpanan di dalam storage/app/
     const STORAGE_DIR = 'albion';

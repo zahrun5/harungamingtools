@@ -175,4 +175,6 @@ characterInput.addEventListener('keydown', (e) => {
 });
 loadMoreBtn.addEventListener('click', doLoadMore);
 </script>
+<x-comments page="death-recap" />
+
 @endsection

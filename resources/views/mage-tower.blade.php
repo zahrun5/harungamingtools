@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Cek Harga Item — HGT')
+@section('title', 'Mages Tower — HGT')
 @section('content')
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -270,13 +270,133 @@
 
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-thumb { background: #8b6820; border-radius: 3px; }
+
+/* ====== MODE TOGGLE (Simple / Advance) ====== */
+.mode-toggle { display:flex; gap:0; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:4px; padding:3px; margin-bottom:10px; }
+.mode-btn { flex:1; background:transparent; border:none; color:var(--text-dim); font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; border-radius:3px; text-transform:uppercase; transition:all .15s; }
+.mode-btn.active { background:linear-gradient(180deg,#4a3818,#2e2210); color:var(--gold); border:1px solid var(--panel-bd); }
+
+/* ====== WIZARD (MODE SIMPLE) ====== */
+.wiz-step { padding:14px 0; border-bottom:1px solid rgba(107,79,26,.3); }
+.wiz-step:last-child { border-bottom:none; }
+.wiz-label { font-family:'Cinzel',serif; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+.wiz-options { display:flex; flex-wrap:wrap; gap:7px; }
+.wiz-opt { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--panel-bd); border-radius:4px; color:var(--text-lt); font-family:'Crimson Text',serif; font-size:14px; padding:9px 15px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px; }
+.wiz-opt:hover { border-color:var(--gold); }
+.wiz-opt.sel { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
+.wiz-opt .wo-arrow { font-size:9px; opacity:.7; }
+.wiz-cat-crumb { font-family:'Crimson Text',serif; font-style:italic; font-size:12px; color:var(--text-dim); margin:12px 0 8px 16px; }
+.wiz-cat-crumb-3 { margin-left:32px; }
+.wiz-cat-lvl2 { margin-left:16px; padding-left:10px; border-left:2px solid rgba(240,192,64,.35); }
+.wiz-cat-lvl3 { margin-left:32px; padding-left:10px; border-left:2px solid rgba(240,192,64,.6); }
+.wiz-next-row { margin-top:10px; }
+.wiz-btn-lanjut { background:linear-gradient(180deg,#4a6b1a,#2e4210); border:1px solid #6b8b30; border-radius:3px; color:#d0f0a0; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:9px 16px; cursor:pointer; text-transform:uppercase; }
+.wiz-btn-lanjut:hover { border-color:#8bc040; color:#fff; }
+.wiz-btn-lanjut:disabled { opacity:.4; cursor:not-allowed; }
+.wiz-item-list { max-height:360px; overflow-y:auto; border:1px solid var(--slot-bd); border-radius:3px; }
+.wiz-input-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.wiz-input-row label { font-size:12px; color:var(--text-dim); min-width:150px; }
+.wiz-input-row input[type=number] { background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-lt); font-size:14px; padding:8px 10px; outline:none; width:120px; }
+.wiz-input-row input:focus { border-color:var(--gold); }
+.wiz-btn-hitung { width:100%; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:12px; cursor:pointer; text-transform:uppercase; margin-top:4px; }
+.wiz-btn-hitung:hover { background:linear-gradient(180deg,#a05800,#703800); }
+.wiz-selected-item { display:flex; align-items:center; gap:10px; background:rgba(0,0,0,.25); border:1px solid var(--slot-bd); border-radius:4px; padding:8px 10px; margin-bottom:12px; }
+.wiz-selected-item img { width:40px; height:40px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); }
+.wiz-selected-item .wsi-name { flex:1; font-family:'Crimson Text',serif; font-size:14px; color:var(--gold); }
+.wiz-selected-item .wsi-change { background:none; border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-dim); font-size:11px; padding:5px 9px; cursor:pointer; }
+.wiz-selected-item .wsi-change:hover { border-color:var(--gold); color:var(--gold); }
+.wiz-result { margin:14px 0; background:linear-gradient(180deg,#2e2210,#1e1608); border:2px solid var(--panel-bd); border-radius:4px; padding:16px; }
+.wiz-result-text { font-size:15px; line-height:1.7; color:var(--text-lt); }
+.wiz-result-text b { color:var(--gold); }
+.bahan-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+.bahan-slot { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.bahan-slot img { width:44px; height:44px; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); object-fit:contain; }
+.bahan-qty { font-family:'Cinzel',serif; font-size:11px; font-weight:700; text-align:center; }
+.bahan-qty .butuh { color:var(--gold); }
+.bahan-qty .punya { color:#6f8; }
+.bahan-name { font-size:9px; color:var(--text-dim); text-align:center; max-width:60px; line-height:1.2; }
+.bahan-arrow { font-size:16px; color:var(--text-dim); align-self:center; padding-bottom:18px; }
+.reset-btn { background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-size:12px; padding:9px 12px; cursor:pointer; }
+.reset-btn:hover { border-color:#c04040; }
 </style>
 
+<div class="mode-toggle">
+  <button id="btnModeSimple" class="mode-btn active" onclick="setMTMode('simple')">🧙 Mode Simple</button>
+  <button id="btnModeAdvance" class="mode-btn" onclick="setMTMode('advance')">⚙️ Mode Advance</button>
+</div>
+
+<!-- ====== MODE SIMPLE (WIZARD) ====== -->
+<div id="mtSimpleWrap">
+  <div class="panel">
+    <div class="panel-header">
+      <span>🧙</span>
+      <span class="panel-title">Mages Tower — Mode Simple</span>
+    </div>
+    <div style="padding:16px;">
+
+      <div class="wiz-step" id="wizMtCatStep">
+        <div class="wiz-label">1. Pilih Kategori</div>
+        <div class="wiz-options" id="wizMtCat1Opts"></div>
+
+        <div id="wizMtCat2Block" style="display:none;">
+          <div class="wiz-cat-crumb" id="wizMtCat2Label"></div>
+          <div class="wiz-options wiz-cat-lvl2" id="wizMtCat2Opts"></div>
+        </div>
+
+        <div id="wizMtCat3Block" style="display:none;">
+          <div class="wiz-cat-crumb wiz-cat-crumb-3" id="wizMtCat3Label"></div>
+          <div class="wiz-options wiz-cat-lvl3" id="wizMtCat3Opts"></div>
+        </div>
+
+        <div class="wiz-next-row">
+          <button class="wiz-btn-lanjut" id="wizMtCatLanjut" disabled onclick="wizMtGoToItemStep()">Lanjut ke Pilih Item →</button>
+        </div>
+      </div>
+
+      <div class="wiz-selected-item" id="wizMtCatSummary" style="display:none;"></div>
+
+      <div class="wiz-step" id="wizMtItemStep" style="display:none;">
+        <div class="wiz-label">2. Pilih Item</div>
+        <div class="wiz-options" id="wizMtTierOpts" style="margin-bottom:8px;"></div>
+        <div class="wiz-options" id="wizMtEncOpts" style="margin-bottom:8px;"></div>
+        <input type="text" class="header-search" id="wizMtSearch" placeholder="Cari nama item..." style="width:100%;margin-bottom:8px;" oninput="wizMtOnSearch()">
+        <div class="wiz-item-list" id="wizMtItemList">
+          <div style="padding:16px;text-align:center;color:var(--text-dim);font-style:italic;" id="wizMtItemListEmpty">Memuat item...</div>
+          <div id="wizMtItemGrid"></div>
+        </div>
+      </div>
+
+      <div class="wiz-step" id="wizMtQtyStep" style="display:none;">
+        <div class="wiz-label">3. Jumlah &amp; Return Bonus</div>
+        <div class="wiz-selected-item" id="wizMtSelectedItem"></div>
+        <div class="wiz-input-row">
+          <label>Mau buat berapa?</label>
+          <input type="number" id="wizMtQty" value="1" min="1">
+        </div>
+        <div class="wiz-input-row">
+          <label>Return bonus (%)</label>
+          <input type="number" id="wizMtReturn" value="15.2" min="0" max="100" step="0.1">
+        </div>
+        <button class="wiz-btn-hitung" onclick="wizMtCompute()">🪄 Hitung Bahan</button>
+      </div>
+
+      <div class="wiz-result" id="wizMtResult" style="display:none;">
+        <div class="wiz-result-text" id="wizMtResultText"></div>
+        <div id="wizMtResultVisual" style="margin-top:12px;"></div>
+        <button class="reset-btn" style="margin-top:14px;width:100%;" onclick="wizMtReset()">🔄 Hitung Ulang</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODE ADVANCE (existing, tidak diubah) ====== -->
+<div id="mtAdvanceWrap" style="display:none">
 <div>
   <div class="panel">
     <div class="panel-header">
-      <span>💰</span>
-      <span class="panel-title">Cek Harga Item</span>
+      <span>🪄</span>
+      <span class="panel-title">Mages Tower</span>
       <input type="text" class="header-search" id="searchInput" placeholder="Cari nama item..." oninput="onSearch()">
     </div>
 
@@ -321,12 +441,13 @@
 
     <!-- Item List -->
     <div class="item-list" id="itemList">
-      <div class="item-list-empty" id="emptyMsg">Pilih kategori untuk melihat item 🗡️</div>
+      <div class="item-list-empty" id="emptyMsg">Pilih kategori untuk melihat senjata & armor 🪄</div>
       <div class="item-table-wrap" id="itemTableWrap" style="display:none">
         <div id="itemGrid"></div>
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <!-- ====== POPUP OVERLAY ====== -->
@@ -559,7 +680,7 @@ function fetchItems() {
   if (selCatId) params.set('category_id', selCatId);
   if (selTier)  params.set('tier', selTier);
   if (selEnc !== null) params.set('enc', selEnc);
-  fetch('/api/market/items?' + params.toString())
+  fetch('/api/crafting/items?' + params.toString())
     .then(r => r.json())
     .then(items => {
       let filtered = items;
@@ -620,7 +741,7 @@ function openPopup(itemId) {
   document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Memuat...</div>';
   document.getElementById('popupOverlay').classList.add('show');
 
-  fetch('/api/market/item/' + itemId)
+  fetch('/api/crafting/item/' + itemId)
     .then(r => r.json())
     .then(item => {
       renderPopup(item);          // instan, pakai harga cache yang sudah ada
@@ -643,7 +764,7 @@ function refreshPopupPrices(itemId) {
     document.getElementById(boxId)?.classList.add('loading');
   });
 
-  fetch(`/api/market/item/${itemId}/refresh-prices`, {
+  fetch(`/api/crafting/item/${itemId}/refresh-prices`, {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'X-CSRF-TOKEN': getCsrf() },
@@ -721,7 +842,7 @@ function renderPopup(item) {
 // pas user buka item di kategori itu, harga udah di-cache.
 // ============================================================
 function preloadCategoryPrices(categoryId) {
-  fetch('/api/market/category/' + categoryId + '/refresh-prices', { method: 'POST' })
+  fetch('/api/crafting/category/' + categoryId + '/refresh-prices', { method: 'POST' })
     .catch(() => {}); // kalau gagal, biarkan aja, fallback ke per-item nanti
 }
 
@@ -738,17 +859,270 @@ function closePopupOnBg(e) {
 }
 
 // ============================================================
+// MODE TOGGLE (Simple / Advance)
+// ============================================================
+function setMTMode(mode) {
+  const isSimple = mode === 'simple';
+  document.getElementById('mtSimpleWrap').style.display = isSimple ? '' : 'none';
+  document.getElementById('mtAdvanceWrap').style.display = isSimple ? 'none' : '';
+  document.getElementById('btnModeSimple').classList.toggle('active', isSimple);
+  document.getElementById('btnModeAdvance').classList.toggle('active', !isSimple);
+  localStorage.setItem('mt_mode', mode);
+}
+
+// ============================================================
+// WIZARD (MODE SIMPLE) — pilih kategori (drill-down) → pilih item
+// → jumlah & return% → hitung bahan (1 level resep, dari 'resources')
+// ============================================================
+let wizMt = {
+  cat1: null, cat2: null, cat3: null, // objek kategori terpilih tiap level
+  catId: null,                        // id kategori terdalam yang aktif (dipakai utk fetch item)
+  tier: null, enc: null,
+  itemId: null, item: null,
+  searchTimer: null,
+};
+
+function wizMtOptButton(label, isActive, hasArrow, onClick) {
+  const el = document.createElement('div');
+  el.className = 'wiz-opt' + (isActive ? ' sel' : '');
+  el.innerHTML = label + (hasArrow ? '<span class="wo-arrow">▶</span>' : '');
+  el.addEventListener('click', onClick);
+  return el;
+}
+
+function wizMtBuildCat1() {
+  const el = document.getElementById('wizMtCat1Opts');
+  el.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const hasSub = cat.children && cat.children.length > 0;
+    el.appendChild(wizMtOptButton(cat.name, wizMt.cat1 && wizMt.cat1.id === cat.id, hasSub, () => wizMtSelectCat(1, cat)));
+  });
+}
+
+function wizMtBuildCat2() {
+  const block = document.getElementById('wizMtCat2Block');
+  const el    = document.getElementById('wizMtCat2Opts');
+  if (!wizMt.cat1 || !wizMt.cat1.children || !wizMt.cat1.children.length) {
+    block.style.display = 'none'; el.innerHTML = ''; return;
+  }
+  block.style.display = '';
+  document.getElementById('wizMtCat2Label').textContent = '↳ Sub-kategori dari "' + wizMt.cat1.name + '"';
+  el.innerHTML = '';
+  wizMt.cat1.children.forEach(sub => {
+    const hasSub2 = sub.children && sub.children.length > 0;
+    el.appendChild(wizMtOptButton(sub.name, wizMt.cat2 && wizMt.cat2.id === sub.id, hasSub2, () => wizMtSelectCat(2, sub)));
+  });
+}
+
+function wizMtBuildCat3() {
+  const block = document.getElementById('wizMtCat3Block');
+  const el    = document.getElementById('wizMtCat3Opts');
+  if (!wizMt.cat2 || !wizMt.cat2.children || !wizMt.cat2.children.length) {
+    block.style.display = 'none'; el.innerHTML = ''; return;
+  }
+  block.style.display = '';
+  document.getElementById('wizMtCat3Label').textContent = '↳ Sub-kategori dari "' + wizMt.cat2.name + '"';
+  el.innerHTML = '';
+  wizMt.cat2.children.forEach(leaf => {
+    el.appendChild(wizMtOptButton(leaf.name, wizMt.cat3 && wizMt.cat3.id === leaf.id, false, () => wizMtSelectCat(3, leaf)));
+  });
+}
+
+function wizMtCategoryBreadcrumb() {
+  return [wizMt.cat1, wizMt.cat2, wizMt.cat3].filter(Boolean).map(c => c.name).join(' → ');
+}
+
+// Klik kategori level manapun langsung jadi kandidat "catId" aktif (sama kayak
+// Mode Advance: kategori tengah pun bisa langsung dipakai buat lihat item-nya
+// beserta descendant-nya). Kalau kategori yang diklik gak punya sub (leaf),
+// langsung auto-lanjut ke Step 2 tanpa perlu klik tombol.
+function wizMtSelectCat(level, cat) {
+  if (level === 1) { wizMt.cat1 = cat; wizMt.cat2 = null; wizMt.cat3 = null; }
+  if (level === 2) { wizMt.cat2 = cat; wizMt.cat3 = null; }
+  if (level === 3) { wizMt.cat3 = cat; }
+  wizMt.catId = cat.id;
+  wizMtBuildCat1(); wizMtBuildCat2(); wizMtBuildCat3();
+  document.getElementById('wizMtCatLanjut').disabled = false;
+
+  const isLeaf = !(cat.children && cat.children.length);
+  if (isLeaf) {
+    wizMtGoToItemStep();
+  } else {
+    document.getElementById('wizMtCatStep').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+}
+
+function wizMtGoToItemStep() {
+  // Sembunyikan Step 1, ganti jadi ringkasan breadcrumb + tombol "Ganti Kategori"
+  document.getElementById('wizMtCatStep').style.display = 'none';
+  const summary = document.getElementById('wizMtCatSummary');
+  summary.style.display = '';
+  summary.innerHTML = `
+    <span class="wsi-name">📁 ${wizMtCategoryBreadcrumb()}</span>
+    <button class="wsi-change" onclick="wizMtBackToCatStep()">Ganti Kategori</button>`;
+
+  document.getElementById('wizMtItemStep').style.display = '';
+  document.getElementById('wizMtQtyStep').style.display  = 'none';
+  document.getElementById('wizMtResult').style.display   = 'none';
+  wizMt.tier = null; wizMt.enc = null;
+  wizMtBuildTierOpts();
+  wizMtBuildEncOpts();
+  document.getElementById('wizMtSearch').value = '';
+  wizMtFetchItems();
+  document.getElementById('wizMtItemStep').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function wizMtBackToCatStep() {
+  document.getElementById('wizMtCatSummary').style.display = 'none';
+  document.getElementById('wizMtItemStep').style.display   = 'none';
+  document.getElementById('wizMtQtyStep').style.display    = 'none';
+  document.getElementById('wizMtResult').style.display     = 'none';
+  document.getElementById('wizMtCatStep').style.display    = '';
+  document.getElementById('wizMtCatStep').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function wizMtBuildTierOpts() {
+  const el = document.getElementById('wizMtTierOpts');
+  el.innerHTML = '';
+  el.appendChild(wizMtOptButton('Semua Tier', wizMt.tier === null, false, () => { wizMt.tier = null; wizMtBuildTierOpts(); wizMtFetchItems(); }));
+  TIERS.forEach(t => el.appendChild(wizMtOptButton(TIER_LABEL[t], wizMt.tier === t, false, () => { wizMt.tier = t; wizMtBuildTierOpts(); wizMtFetchItems(); })));
+}
+
+function wizMtBuildEncOpts() {
+  const el = document.getElementById('wizMtEncOpts');
+  el.innerHTML = '';
+  el.appendChild(wizMtOptButton('Semua Enchant', wizMt.enc === null, false, () => { wizMt.enc = null; wizMtBuildEncOpts(); wizMtFetchItems(); }));
+  ENCS.forEach(e => el.appendChild(wizMtOptButton('Enc ' + e, wizMt.enc === e, false, () => { wizMt.enc = e; wizMtBuildEncOpts(); wizMtFetchItems(); })));
+}
+
+function wizMtOnSearch() {
+  clearTimeout(wizMt.searchTimer);
+  wizMt.searchTimer = setTimeout(wizMtFetchItems, 400);
+}
+
+function wizMtFetchItems() {
+  const empty = document.getElementById('wizMtItemListEmpty');
+  const grid  = document.getElementById('wizMtItemGrid');
+  empty.style.display = ''; empty.textContent = 'Memuat item...'; grid.innerHTML = '';
+
+  const params = new URLSearchParams();
+  if (wizMt.catId) params.set('category_id', wizMt.catId);
+  if (wizMt.tier)  params.set('tier', wizMt.tier);
+  if (wizMt.enc !== null) params.set('enc', wizMt.enc);
+
+  fetch('/api/crafting/items?' + params.toString())
+    .then(r => r.json())
+    .then(items => {
+      const q = document.getElementById('wizMtSearch').value.trim().toLowerCase();
+      const filtered = q ? items.filter(i => i.name.toLowerCase().includes(q)) : items;
+      if (!filtered.length) { empty.style.display = ''; empty.textContent = 'Tidak ada item ditemukan 😔'; return; }
+      empty.style.display = 'none';
+      grid.innerHTML = filtered.map(item => `
+        <div class="item-row" onclick="wizMtSelectItem(${item.id})">
+          <div class="item-icon-wrap">
+            ${item.img_url
+              ? `<img class="item-icon" src="${item.img_url}" alt="${item.name}" loading="lazy" onerror="this.style.display='none'">`
+              : `<div class="item-icon" style="display:flex;align-items:center;justify-content:center;font-size:18px;">?</div>`}
+          </div>
+          <div class="item-info"><span class="item-name">${item.name}</span></div>
+        </div>`).join('');
+    })
+    .catch(() => { empty.style.display = ''; empty.textContent = 'Gagal memuat item. Coba lagi.'; });
+}
+
+function wizMtSelectItem(itemId) {
+  fetch('/api/crafting/item/' + itemId)
+    .then(r => r.json())
+    .then(item => {
+      wizMt.itemId = itemId;
+      wizMt.item = item;
+      document.getElementById('wizMtItemStep').style.display = 'none';
+      document.getElementById('wizMtQtyStep').style.display  = '';
+      document.getElementById('wizMtResult').style.display   = 'none';
+      document.getElementById('wizMtSelectedItem').innerHTML = `
+        <img src="${item.img_url}" alt="${item.name}">
+        <span class="wsi-name">${item.name}</span>
+        <button class="wsi-change" onclick="wizMtBackToItemStep()">Ganti Item</button>`;
+      document.getElementById('wizMtQtyStep').scrollIntoView({behavior:'smooth', block:'nearest'});
+    })
+    .catch(() => {
+      document.getElementById('wizMtSelectedItem').innerHTML = '<span style="color:#f86">Gagal memuat detail item.</span>';
+    });
+}
+
+function wizMtBackToItemStep() {
+  document.getElementById('wizMtQtyStep').style.display  = 'none';
+  document.getElementById('wizMtItemStep').style.display = '';
+}
+
+// Hitung bahan — cuma 1 level resep (sesuai data 'resources' dari API),
+// dikali jumlah target, dikurangi return%. Gak breakdown rekursif sampai bahan mentah.
+function wizMtCompute() {
+  const item = wizMt.item;
+  if (!item) return;
+  const qty    = Math.max(1, parseInt(document.getElementById('wizMtQty').value) || 1);
+  const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('wizMtReturn').value) || 0));
+
+  if (!item.resources || !item.resources.length) {
+    document.getElementById('wizMtResultText').innerHTML   = `<b>${item.name}</b> tidak punya data resep bahan.`;
+    document.getElementById('wizMtResultVisual').innerHTML = '';
+    document.getElementById('wizMtResult').style.display   = '';
+    return;
+  }
+
+  const rows = item.resources.map(r => {
+    const gross  = qty * r.count;
+    const ret    = Math.round(gross * retPct / 100);
+    return { r, needed: gross - ret };
+  });
+
+  let kalimat = `Untuk membuat <b>${item.name}</b> sejumlah <b>${qty}</b>, dengan return <b>${retPct}%</b>, dibutuhkan `;
+  kalimat += rows.map(row => `<b>${row.r.name}</b> sebanyak <b>${row.needed}</b>`).join(', ') + '.';
+
+  let visual = rows.map(row => `
+    <div class="bahan-slot">
+      <img src="${row.r.img_url}" alt="${row.r.name}">
+      <div class="bahan-qty"><span class="butuh">${row.needed}</span></div>
+      <div class="bahan-name">${row.r.name}</div>
+    </div>`).join('<span class="bahan-arrow">+</span>');
+  visual += `<span class="bahan-arrow">→</span>
+    <div class="bahan-slot">
+      <img src="${item.img_url}" alt="${item.name}">
+      <div class="bahan-qty"><span class="punya">${qty}</span></div>
+      <div class="bahan-name">${item.name}</div>
+    </div>`;
+
+  document.getElementById('wizMtResultText').innerHTML   = kalimat;
+  document.getElementById('wizMtResultVisual').innerHTML = `<div class="bahan-row">${visual}</div>`;
+  document.getElementById('wizMtResult').style.display = '';
+  document.getElementById('wizMtResult').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function wizMtReset() {
+  wizMt = { cat1:null, cat2:null, cat3:null, catId:null, tier:null, enc:null, itemId:null, item:null, searchTimer:null };
+  document.getElementById('wizMtCatLanjut').disabled = true;
+  wizMtBuildCat1(); wizMtBuildCat2(); wizMtBuildCat3();
+  document.getElementById('wizMtCatSummary').style.display = 'none';
+  document.getElementById('wizMtCatStep').style.display   = '';
+  document.getElementById('wizMtItemStep').style.display  = 'none';
+  document.getElementById('wizMtQtyStep').style.display   = 'none';
+  document.getElementById('wizMtResult').style.display    = 'none';
+}
+
+// ============================================================
 // INIT
 // ============================================================
-fetch('/api/market/categories')
+fetch('/api/crafting/categories')
   .then(r => r.json())
   .then(data => {
     CATEGORIES = data;
     buildCol1();
     buildTierDrop();
     buildEncDrop();
-    fetchItems(); // load semua item dari awal, gak perlu pilih kategori dulu
+    fetchItems(); // load semua item dari awal (Mode Advance), gak perlu pilih kategori dulu
+    wizMtBuildCat1(); // siapkan step 1 wizard Mode Simple
   });
+setMTMode(localStorage.getItem('mt_mode') || 'simple');
 </script>
-<x-comments page="market" />
+<x-comments page="mages-tower" />
 @endsection

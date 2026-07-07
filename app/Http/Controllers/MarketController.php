@@ -247,6 +247,7 @@ class MarketController extends Controller
 	public function categories()
 	{
 	    $roots = Category::whereNull('parent_id')
+	        ->where('group', 'market')
 	        ->orderBy('id')
 	        ->with(['children' => function ($q) {
 	            $q->orderBy('id')
@@ -456,66 +457,16 @@ public function itemDetail($id)
     // ============================================================
     public function refreshCategoryPrices($categoryId)
     {
-        $cat = Category::findOrFail($categoryId);
+        // Validasi kategorinya ada dulu (biar 404 kalau ID ngaco), tapi kerjaan
+        // berat (fetch API luar + tulis SQLite) dilempar ke QUEUE, bukan
+        // dikerjain langsung di sini. Jadi request ini balik SECEPATNYA dan
+        // gak nyekik request lain (misal fetchItems()) yang lagi jalan bareng.
+        Category::findOrFail($categoryId);
 
-        // Ambil semua item di kategori ini + descendant-nya
-        $ids = $this->getAllDescendantIds($cat);
-        $ids[] = $cat->id;
-
-        $items = Item::whereIn('category_id', $ids)
-            ->whereNotNull('api_id')
-            ->get(['api_id', 'enc'])
-            ->unique(fn($i) => $i->api_id . '@' . (int) ($i->enc ?? 0))
-            ->values();
-
-        if ($items->isEmpty()) {
-            return response()->json(['updated' => 0, 'failed' => 0]);
-        }
-
-        $citiesParam = implode(',', self::CITIES);
-        $updated = 0;
-        $failed = 0;
-
-        // Batch setiap 60 item buat kurangi beban API
-        foreach ($items->chunk(60) as $chunk) {
-            $idsCsv = $chunk->map(fn($i) => ($i->enc > 0 ? "{$i->api_id}@{$i->enc}" : $i->api_id))
-                ->implode(',');
-
-            try {
-                $response = Http::timeout(15)->get(
-                    "https://west.albion-online-data.com/api/v2/stats/prices/{$idsCsv}",
-                    ['locations' => $citiesParam, 'qualities' => 1]
-                );
-
-                if ($response->successful()) {
-                    $now = now();
-                    foreach ($response->json() as $row) {
-                        $price = (int) ($row['sell_price_min'] ?? 0);
-                        if ($price <= 0) continue;
-
-                        [$apiId, $enc] = str_contains($row['item_id'], '@')
-                            ? explode('@', $row['item_id'], 2)
-                            : [$row['item_id'], '0'];
-
-                        ItemPrice::updateOrCreate(
-                            ['item_api_id' => $apiId, 'enc' => (int) $enc, 'city' => $row['city']],
-                            ['sell_price_min' => $price, 'fetched_at' => $now]
-                        );
-                        $updated++;
-                    }
-                } else {
-                    $failed += $chunk->count();
-                }
-            } catch (\Throwable $e) {
-                $failed += $chunk->count();
-            }
-
-            usleep(300_000); // jeda antar batch
-        }
+        \App\Jobs\RefreshCategoryPricesJob::dispatch((int) $categoryId);
 
         return response()->json([
-            'updated' => $updated,
-            'failed'  => $failed,
+            'queued'      => true,
             'category_id' => $categoryId,
         ]);
     }

@@ -20,7 +20,7 @@
 
     <div style="background:var(--bg-card,#221C15);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;">
         <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:4px;">Total EXP Keaktifan</div>
-        <div style="font-family:'Fraunces',serif;font-size:1.6rem;color:var(--gold);font-weight:700;">{{ auth()->user()->calculatorUsages()->count() }}</div>
+        <div style="font-family:'Fraunces',serif;font-size:1.6rem;color:var(--gold);font-weight:700;">{{ auth()->user()->points }}</div>
     </div>
 
     <a href="/" style="color:var(--text-muted);font-size:.85rem;">← Kembali ke Beranda</a>

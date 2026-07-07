@@ -7,6 +7,15 @@ use App\Http\Controllers\MarketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DeathRecapController;
+use App\Http\Controllers\CraftingController;
+
+// ─── Site Map ─────────────────────────────────────────────────────────────
+Route::get('/sitemap.xml', function () {
+    return response()->view('sitemap')->header('Content-Type', 'text/xml');
+});
+
+// ─── crafting ─────────────────────────────────────────────────────────────
+Route::get('/mages-tower', [CraftingController::class, 'index'])->name('mages-tower');
 
 // ─── Auth Google ─────────────────────────────────────────────────────────────
 Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
@@ -65,6 +74,16 @@ Route::get('/api/market/item/{id}',    [MarketController::class, 'itemDetail']);
 Route::post('/api/market/item/{id}/refresh-prices', [MarketController::class, 'refreshPrices']);
 Route::post('/api/market/category/{categoryId}/refresh-prices', [MarketController::class, 'refreshCategoryPrices']);
 Route::post('/api/market/item/{id}/refresh-single', [MarketController::class, 'refreshItemPriceSingle']);
+
+// --------Crafting----------------------------------------------------
+Route::prefix('api/crafting')->group(function () {
+    Route::get('/categories', [CraftingController::class, 'categories']);
+    Route::get('/items', [CraftingController::class, 'items']);
+    Route::get('/item/{id}', [CraftingController::class, 'itemDetail']);
+    Route::post('/item/{id}/refresh-prices', [CraftingController::class, 'refreshPrices']);
+    Route::post('/item/{id}/refresh-price', [CraftingController::class, 'refreshItemPriceSingle']);
+    Route::post('/category/{categoryId}/refresh-prices', [CraftingController::class, 'refreshCategoryPrices']);
+});
 
 // === Death Recap ===
 Route::get('/death-recap', [DeathRecapController::class, 'index']);
