@@ -6,7 +6,6 @@
 <div style="max-width:400px;margin:60px auto;text-align:center;">
     <div style="font-size:2.2rem;margin-bottom:10px;">⚔️</div>
     <h1 style="font-family:'Fraunces',serif;color:var(--gold);font-size:1.4rem;margin-bottom:8px;">Masuk ke HarunGamingTools</h1>
-    <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:30px;">Login pakai Telegram buat masuk leaderboard & simpan riwayat aktivitas kamu.</p>
 
     <div style="background:var(--bg-card,#221C15);border:1px solid var(--border);border-radius:12px;padding:30px 20px;display:flex;justify-content:center;">
         <script async src="https://telegram.org/js/telegram-widget.js?22"

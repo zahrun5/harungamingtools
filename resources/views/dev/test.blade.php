@@ -977,27 +977,57 @@ function makeSavedRow(item) {
     <button class="saved-update-btn" onclick="updateSavedCategory(${item.id})">Update</button>
   `;
 
-  // Auto-fill kategori kalau hasil ini datang dari pencarian via shortcut kategori
-  prefillSavedRowCategory(row, item.id);
+  // Auto-fill kategori: kalau hasil ini datang dari pencarian via shortcut
+  // kategori pakai kategori shortcut itu (buat workflow "assign banyak item ke
+  // kategori yang sama"). Kalau nggak, prefill pakai kategori ITEM ITU SENDIRI
+  // yang udah tersimpan, biar dropdown gak kosong melompong padahal itemnya
+  // udah ada kategori - km tinggal koreksi level yang salah aja.
+  prefillSavedRowCategory(row, item.id, item.category_id);
 
   return row;
+}
+
+// ============================================================
+// CARI PATH kategori (Level1/2/3) dari sebuah category_id di
+// pohon CATEGORIES. Dipakai buat prefill dropdown saved-row
+// berdasarkan kategori item yang sekarang, gak peduli itu ada
+// di level mana (root, sub, atau leaf).
+// ============================================================
+function findCategoryPath(catId) {
+  if (!catId) return null;
+  for (const l1 of CATEGORIES) {
+    if (l1.id === catId) return { id1: l1.id, id2: null, id3: null };
+    for (const l2 of (l1.children || [])) {
+      if (l2.id === catId) return { id1: l1.id, id2: l2.id, id3: null };
+      for (const l3 of (l2.children || [])) {
+        if (l3.id === catId) return { id1: l1.id, id2: l2.id, id3: l3.id };
+      }
+    }
+  }
+  return null;
 }
 
 // ============================================================
 // AUTO-FILL kategori saved-row, sama logikanya kayak
 // prefillGroupCategories() tapi buat pola id scat1/scat2/scat3.
 // ============================================================
-function prefillSavedRowCategory(row, itemId) {
-  if (!lastSearchCat1) return;
-
+function prefillSavedRowCategory(row, itemId, currentCategoryId) {
   const sel1 = row.querySelector('#scat1-' + itemId);
   const sel2 = row.querySelector('#scat2-' + itemId);
   const sel3 = row.querySelector('#scat3-' + itemId);
   if (!sel1) return;
 
-  const cat1 = CATEGORIES.find(c => c.id === lastSearchCat1);
+  // Prioritas 1: shortcut kategori dari pencarian ("Cari Item yang Relevan")
+  // Prioritas 2: kategori item itu sendiri yang udah tersimpan di DB
+  const path = lastSearchCat1
+    ? { id1: lastSearchCat1, id2: lastSearchCat2, id3: lastSearchCat3 }
+    : findCategoryPath(currentCategoryId);
+
+  if (!path || !path.id1) return;
+
+  const cat1 = CATEGORIES.find(c => c.id === path.id1);
   if (!cat1) return;
-  sel1.value = lastSearchCat1;
+  sel1.value = path.id1;
 
   if (cat1.children.length) {
     cat1.children.forEach(c => {
@@ -1006,18 +1036,18 @@ function prefillSavedRowCategory(row, itemId) {
     sel2.disabled = false;
   }
 
-  if (lastSearchCat2) {
-    const cat2 = cat1.children.find(c => c.id === lastSearchCat2);
+  if (path.id2) {
+    const cat2 = cat1.children.find(c => c.id === path.id2);
     if (cat2) {
-      sel2.value = lastSearchCat2;
+      sel2.value = path.id2;
       if (cat2.children.length) {
         cat2.children.forEach(c => {
           sel3.innerHTML += `<option value="${c.id}">${c.name}</option>`;
         });
         sel3.disabled = false;
       }
-      if (lastSearchCat3) {
-        sel3.value = lastSearchCat3;
+      if (path.id3) {
+        sel3.value = path.id3;
       }
     }
   }

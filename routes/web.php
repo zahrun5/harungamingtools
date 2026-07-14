@@ -8,6 +8,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DeathRecapController;
 use App\Http\Controllers\CraftingController;
+use App\Http\Controllers\CraftingStationAdminController;
+use App\Http\Controllers\PlaceholderController;
 
 // ─── Site Map ─────────────────────────────────────────────────────────────
 Route::get('/sitemap.xml', function () {
@@ -15,6 +17,8 @@ Route::get('/sitemap.xml', function () {
 });
 
 // ─── crafting ─────────────────────────────────────────────────────────────
+Route::get('/crafting/{station}', [CraftingController::class, 'index'])->name('crafting.show');
+
 Route::get('/mages-tower', [CraftingController::class, 'index'])->name('mages-tower');
 
 // ─── Auth Google ─────────────────────────────────────────────────────────────
@@ -77,13 +81,30 @@ Route::post('/api/market/item/{id}/refresh-single', [MarketController::class, 'r
 
 // --------Crafting----------------------------------------------------
 Route::prefix('api/crafting')->group(function () {
+    // Legacy — dipakai Mage's Tower, TIDAK DIUBAH sama sekali.
+    // Default station di controller = 'mage-tower', jadi URL ini tetap
+    // jalan persis seperti sebelumnya tanpa perlu ubah blade Mage's Tower.
     Route::get('/categories', [CraftingController::class, 'categories']);
     Route::get('/items', [CraftingController::class, 'items']);
     Route::get('/item/{id}', [CraftingController::class, 'itemDetail']);
     Route::post('/item/{id}/refresh-prices', [CraftingController::class, 'refreshPrices']);
     Route::post('/item/{id}/refresh-price', [CraftingController::class, 'refreshItemPriceSingle']);
     Route::post('/category/{categoryId}/refresh-prices', [CraftingController::class, 'refreshCategoryPrices']);
+
+    // Station lain (Hunter's Lodge, dst) — butuh slug di URL.
+    // Harus diletakkan SETELAH rute /categories dan /items di atas,
+    // supaya tidak "menangkap" duluan request ke /api/crafting/categories.
+    Route::get('/{station}/categories', [CraftingController::class, 'categories']);
+    Route::get('/{station}/items', [CraftingController::class, 'items']);
 });
+
+    Route::get('/dev/crafting-stations', [CraftingStationAdminController::class, 'index']);
+Route::get('/dev/crafting-stations/categories-tree', [CraftingStationAdminController::class, 'categoriesTree']);
+Route::get('/dev/crafting-stations/categories-search', [CraftingStationAdminController::class, 'searchCategories']);
+Route::get('/dev/crafting-stations/{id}/categories', [CraftingStationAdminController::class, 'stationCategories']);
+Route::post('/dev/crafting-stations', [CraftingStationAdminController::class, 'store']);
+Route::post('/dev/crafting-stations/{id}/categories', [CraftingStationAdminController::class, 'syncCategories']);
+Route::delete('/dev/crafting-stations/{id}', [CraftingStationAdminController::class, 'destroy']);
 
 // === Death Recap ===
 Route::get('/death-recap', [DeathRecapController::class, 'index']);
@@ -100,10 +121,16 @@ Route::middleware(['auth', 'daily.bonus'])->group(function () {
     Route::get('/profile',       [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit',  [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-
     // Comments
     Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    // Social (placeholder — arsitektur penuh dibangun di sesi terpisah)
+    Route::get('/social', [PlaceholderController::class, 'social'])->name('social.index');
+    Route::get('/social/post/{id}', [PlaceholderController::class, 'socialPost'])->name('social.show');
+
+    // Notifikasi (placeholder — struktur data belum final, dibangun detail di sesi terpisah)
+    Route::get('/notifikasi', [PlaceholderController::class, 'notifications'])->name('notifications.index');
 
     // Dev Tools (admin only)
     Route::get('/dev/test', function () {

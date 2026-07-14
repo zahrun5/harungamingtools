@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="{{ asset('images/icons/page-icon.png') }}">
 <!-- Google tag (gtag.js) -->
@@ -42,12 +43,14 @@
   .profile button:hover{color:var(--gold);}
 
   main{padding:48px 0;}
+  body{padding-bottom:82px;}
 
-  .float-support{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;flex-direction:column;gap:10px;align-items:flex-end;}
-.float-btn{display:flex;align-items:center;gap:8px;font-size:0.8rem;font-weight:600;padding:10px 16px;border-radius:30px;background:var(--bg-panel);border:1px solid var(--border);color:var(--text-muted);box-shadow:0 4px 14px rgba(0,0,0,0.4);transition:border-color 0.2s,color 0.2s,transform 0.15s;}
-.float-btn:hover{transform:translateY(-2px);border-color:var(--gold);color:var(--gold);}
-.float-saweria:hover{border-color:var(--teal);color:var(--teal);}
-  @media (max-width:480px){.float-btn span{display:none;}.float-btn{padding:11px 13px;}}
+  /* ===== Bottom Navigation ===== */
+  .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:55;display:flex;justify-content:space-around;align-items:stretch;background:rgba(20,17,15,0.96);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
+  .bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;color:var(--text-muted);font-size:0.68rem;font-weight:500;transition:color .2s;}
+  .bottom-nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .bottom-nav-item:hover{color:var(--gold);}
+  .bottom-nav-item.active{color:var(--gold);}
 
   /* ===== Station cards (halaman utama) ===== */
   .section-title{font-family:'Fraunces',serif;color:var(--gold);font-size:1.15rem;margin:36px 0 16px;display:flex;align-items:center;gap:8px;}
@@ -118,12 +121,35 @@
   </div>
 </footer>
 
-<div class="float-support" aria-label="Dukung HarunGamingTools">
-    <a href="https://saweria.co/Mamangharun" target="_blank" class="float-btn float-saweria">Saweria</a>
-    <a href="https://trakteer.id/sahabat%20sambungng" target="_blank" class="float-btn">Trakteer</a>
-    <a href="https://t.me/HarunGamingTools" target="_blank" class="float-btn">Channel</a>
-    <a href="https://t.me/HGTCommunity" target="_blank" class="float-btn">Grup</a>
-</div>
+<nav class="bottom-nav" aria-label="Navigasi utama">
+    <a href="/" class="bottom-nav-item {{ request()->is('/') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+        <span>Home</span>
+    </a>
+
+    <a href="/social" class="bottom-nav-item {{ request()->routeIs('social.*') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.3c2.9.4 5.5 2.5 5.5 5.7"/></svg>
+        <span>Social</span>
+    </a>
+
+    @auth
+        <a href="/notifikasi" class="bottom-nav-item {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
+    @else
+        <a href="/login" class="bottom-nav-item">
+    @endauth
+        <svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0"/></svg>
+        <span>Notifikasi</span>
+    </a>
+
+    @auth
+        <a href="/profile" class="bottom-nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+    @else
+        <a href="/login" class="bottom-nav-item">
+    @endauth
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+        <span>Profil</span>
+    </a>
+</nav>
 
 </body>
 </html>

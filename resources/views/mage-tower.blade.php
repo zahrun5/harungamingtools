@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Mages Tower — HGT')
+@section('title', $stationName . ' — HGT')
 @section('content')
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -318,6 +318,73 @@
 .bahan-arrow { font-size:16px; color:var(--text-dim); align-self:center; padding-bottom:18px; }
 .reset-btn { background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-size:12px; padding:9px 12px; cursor:pointer; }
 .reset-btn:hover { border-color:#c04040; }
+
+/* ====== CRAFT SLOTS ROW (Mode Advance) ====== */
+.craft-slots-row { padding:14px 16px; border-top:1px solid var(--panel-bd); display:flex; flex-direction:column; gap:10px; }
+.craft-slots-empty { color:var(--text-dim); font-style:italic; font-size:13px; font-family:'Crimson Text',serif; }
+.craft-recipe-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+.craft-tab { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--panel-bd); border-radius:4px; color:var(--text-dim); font-family:'Cinzel',serif; font-size:11px; font-weight:700; letter-spacing:.5px; padding:7px 14px; cursor:pointer; text-transform:uppercase; transition:all .12s; }
+.craft-tab:hover { border-color:var(--gold-dk); color:var(--text-lt); }
+.craft-tab.active { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
+.craft-slots-grid { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.craft-slot { width:54px; height:54px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:4px; position:relative; flex-shrink:0; cursor:pointer; }
+.craft-slot img { width:100%; height:100%; object-fit:contain; display:block; }
+.craft-slot .cs-need { position:absolute; bottom:1px; right:2px; font-size:9px; font-weight:700; font-family:'Cinzel',serif; color:#f0c0c0; text-shadow:0 1px 2px #000; padding:0 1px; background:rgba(0,0,0,.55); border-radius:2px; }
+.craft-slot.ok { border-color:#6f8; }
+.craft-slot.ok .cs-need { color:#8fe0a0; }
+.craft-arrow { font-size:18px; color:var(--text-dim); }
+.craft-reset-row { padding:0 16px 14px; }
+
+/* ====== TABEL DIKUNCI SAAT ITEM SEDANG DIPILIH ====== */
+.item-row.ct-dim { opacity:.28; filter:grayscale(65%); pointer-events:none; }
+.item-row.ct-selected { border:1px solid var(--gold); background:rgba(240,192,64,.1); border-radius:3px; }
+#itemTableWrap.ct-locked { overflow:hidden; }
+
+/* ====== BOTTOM BAR: Return % + Tombol Craft ====== */
+.craft-bottom-bar { display:flex; gap:8px; align-items:center; padding:10px 16px; border-top:1px solid var(--panel-bd); background:rgba(0,0,0,.15); flex-wrap:wrap; }
+.craft-ret-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-ret-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-ret-inp { width:52px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.craft-modal-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-modal-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-modal-wrap span { font-family:'Cinzel',serif; font-size:14px; font-weight:700; color:var(--gold); }
+.craft-sell-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-sell-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-sell-inp { width:74px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.craft-result-panel { margin:0 16px 14px; background:linear-gradient(180deg,#2e2210 0%,#1e1608 100%); border:2px solid var(--panel-bd); border-radius:4px; padding:12px 14px; display:flex; flex-direction:column; gap:7px; }
+.crp-row { display:flex; justify-content:space-between; align-items:center; }
+.crp-label { font-family:'Cinzel',serif; font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+.crp-val { font-family:'Cinzel',serif; font-size:15px; font-weight:700; color:var(--gold); }
+.crp-val.positive { color:#8fe0a0; }
+.crp-val.negative { color:#f08080; }
+.craft-btn { flex:1; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; text-transform:uppercase; }
+.craft-btn:hover:not(:disabled) { background:linear-gradient(180deg,#a05800,#703800); }
+.craft-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+/* ====== INVENTORY (Mode Advance Craft) ====== */
+.craft-inv-section { padding:12px 16px 16px; border-top:1px solid var(--panel-bd); }
+.craft-inv-lbl { font-family:'Cinzel',serif; font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.cinv-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+.cinv-slot { aspect-ratio:1; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; position:relative; cursor:pointer; overflow:hidden; }
+.cinv-slot.filled:hover { border-color:var(--gold); }
+.cinv-slot img { width:100%; height:100%; object-fit:contain; display:block; }
+.cinv-slot .cinv-qty { position:absolute; bottom:1px; right:2px; font-size:10px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; }
+
+/* ====== RECIPE POPUP (grouping Resep 1 / Resep 2) ====== */
+.craft-recipe-group { margin-bottom:16px; }
+.craft-recipe-group:last-child { margin-bottom:0; }
+.craft-recipe-title { font-family:'Cinzel',serif; font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.craft-recipe-items { display:flex; gap:10px; flex-wrap:wrap; }
+.craft-res-item { display:flex; flex-direction:column; align-items:center; gap:4px; width:64px; cursor:pointer; padding:6px; border-radius:4px; border:1px solid transparent; transition:all .12s; }
+.craft-res-item:hover { border-color:var(--gold-dk); background:rgba(240,192,64,.06); }
+.craft-res-item img { width:44px; height:44px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); }
+.craft-res-item .cri-count { font-family:'Cinzel',serif; font-size:10px; font-weight:700; color:var(--text-dim); }
+.craft-res-item.ok .cri-count { color:#8fe0a0; }
+.craft-res-item .cri-name { font-size:9px; color:var(--text-dim); text-align:center; line-height:1.2; }
+
+/* ====== TOAST ====== */
+.craft-toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:10001; white-space:nowrap; }
+.craft-toast.show { transform:translateX(-50%) translateY(0); }
 </style>
 
 <div class="mode-toggle">
@@ -330,7 +397,7 @@
   <div class="panel">
     <div class="panel-header">
       <span>🧙</span>
-      <span class="panel-title">Mages Tower — Mode Simple</span>
+      <span class="panel-title">{{ $stationName }} — Mode Simple</span>
     </div>
     <div style="padding:16px;">
 
@@ -381,6 +448,7 @@
       </div>
 
       <div class="wiz-result" id="wizMtResult" style="display:none;">
+        <div class="craft-recipe-tabs" id="wizMtRecipeTabs" style="margin-bottom:10px;"></div>
         <div class="wiz-result-text" id="wizMtResultText"></div>
         <div id="wizMtResultVisual" style="margin-top:12px;"></div>
         <button class="reset-btn" style="margin-top:14px;width:100%;" onclick="wizMtReset()">🔄 Hitung Ulang</button>
@@ -396,7 +464,7 @@
   <div class="panel">
     <div class="panel-header">
       <span>🪄</span>
-      <span class="panel-title">Mages Tower</span>
+      <span class="panel-title">{{ $stationName }}</span>
       <input type="text" class="header-search" id="searchInput" placeholder="Cari nama item..." oninput="onSearch()">
     </div>
 
@@ -446,9 +514,80 @@
         <div id="itemGrid"></div>
       </div>
     </div>
+
+    <!-- SLOT RESEP — tab Resep 1/Resep 2 + slot bahan dari resep aktif -->
+    <div class="craft-slots-row" id="craftSlotsRow">
+      <div class="craft-recipe-tabs" id="craftRecipeTabs"></div>
+      <div class="craft-slots-grid" id="craftSlotsGrid">
+        <div class="craft-slots-empty">Pilih item dari daftar di atas untuk mulai crafting 🪄</div>
+      </div>
+    </div>
+    <div class="craft-reset-row" id="craftResetRow" style="display:none">
+      <button class="reset-btn" onclick="resetCraftTarget()">🔄 Ganti Item</button>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="craft-inv-section">
+      <div class="craft-inv-lbl">📦 Inventory (<span id="craftInvCount">0</span>)</div>
+      <div class="cinv-grid" id="craftInvGrid"></div>
+    </div>
+
+    <!-- BOTTOM BAR: Return % + Harga Jual + Modal + Tombol Craft -->
+    <div class="craft-bottom-bar">
+      <div class="craft-ret-wrap">
+        <label>♻️ Return</label>
+        <input class="craft-ret-inp" type="number" id="craftReturn" value="21.5" min="0" max="100" step="0.1">
+        <span style="color:var(--text-dim);font-size:12px">%</span>
+      </div>
+      <div class="craft-sell-wrap">
+        <label>💵 Harga Jual</label>
+        <input class="craft-sell-inp" type="number" id="craftSellPrice" placeholder="0" min="0" oninput="craftSellPriceIsDefault=false">
+      </div>
+      <div class="craft-modal-wrap">
+        <label>💰 Modal</label>
+        <span id="craftModalVal">0</span>
+      </div>
+      <button class="craft-btn" id="craftBtn" disabled onclick="doCraft()">⚒️ Craft</button>
+    </div>
+
+    <!-- HASIL CRAFT — muncul begitu tombol Craft berhasil ditekan -->
+    <div class="craft-result-panel" id="craftResultPanel" style="display:none">
+      <div class="crp-row"><span class="crp-label">💰 Modal Dipakai</span><span class="crp-val" id="crpModal">0</span></div>
+      <div class="crp-row"><span class="crp-label">💵 Harga Akhir</span><span class="crp-val" id="crpSell">0</span></div>
+      <div class="crp-row"><span class="crp-label">📈 Profit</span><span class="crp-val" id="crpProfit">0</span></div>
+    </div>
   </div>
 </div>
 </div>
+
+<!-- ====== POPUP TAMBAH BAHAN KE INVENTORY ====== -->
+<div class="popup-overlay" id="craftAddOverlay" onclick="closeCraftAddOnBg(event)">
+  <div class="popup-box" id="craftAddBox" style="max-width:340px;">
+    <button class="popup-close" onclick="closeCraftAddOverlay()">✕</button>
+    <div class="popup-head">
+      <img id="caIcon" src="" alt="" onerror="this.style.opacity=.3">
+      <div>
+        <div class="popup-item-name" id="caName">—</div>
+        <div class="popup-item-sub" id="caNeed">—</div>
+      </div>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Harga per unit (opsional)</label>
+        <input type="number" id="caHarga" placeholder="0" min="0" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+      </div>
+      <div>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Jumlah</label>
+        <input type="number" id="caQty" value="1" min="1" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+      </div>
+      <div class="pop-btn-row" id="caBtnRow" style="display:flex;gap:7px;">
+        <button class="wiz-btn-hitung" style="flex:1" onclick="doCraftAddResource()">➕ Tambah ke Inventory</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="craft-toast" id="craftToast"></div>
 
 <!-- ====== POPUP OVERLAY ====== -->
 <div class="popup-overlay" id="popupOverlay" onclick="closePopupOnBg(event)">
@@ -461,6 +600,7 @@
 </div>
 
 <script>
+    
 // ============================================================
 // KOTA & WARNA
 // ============================================================
@@ -680,7 +820,7 @@ function fetchItems() {
   if (selCatId) params.set('category_id', selCatId);
   if (selTier)  params.set('tier', selTier);
   if (selEnc !== null) params.set('enc', selEnc);
-  fetch('/api/crafting/items?' + params.toString())
+  fetch(`${CRAFT_API_BASE}/items?` + params.toString())
     .then(r => r.json())
     .then(items => {
       let filtered = items;
@@ -693,7 +833,6 @@ function fetchItems() {
     })
     .catch(() => showEmpty('Gagal memuat item. Coba lagi.'));
 }
-
 // ============================================================
 // RENDER ITEM ROWS (flex, gaya refine)
 // ============================================================
@@ -717,7 +856,8 @@ function renderItems(items) {
         <span class="item-name">${item.name}</span>
       </div>`;
 
-    row.addEventListener('click', () => openPopup(item.id));
+    row.dataset.itemId = item.id;
+    row.addEventListener('click', () => selectCraftTarget(item.id));
     grid.appendChild(row);
   });
 }
@@ -879,6 +1019,8 @@ let wizMt = {
   catId: null,                        // id kategori terdalam yang aktif (dipakai utk fetch item)
   tier: null, enc: null,
   itemId: null, item: null,
+  recipes: [], activeRecipe: 0,       // grup resep (heuristik sama kayak Mode Advance) + resep yg lagi aktif
+  qty: 1, retPct: 15.2,
   searchTimer: null,
 };
 
@@ -1010,7 +1152,7 @@ function wizMtFetchItems() {
   if (wizMt.tier)  params.set('tier', wizMt.tier);
   if (wizMt.enc !== null) params.set('enc', wizMt.enc);
 
-  fetch('/api/crafting/items?' + params.toString())
+  fetch(`${CRAFT_API_BASE}/items?` + params.toString())
     .then(r => r.json())
     .then(items => {
       const q = document.getElementById('wizMtSearch').value.trim().toLowerCase();
@@ -1036,6 +1178,8 @@ function wizMtSelectItem(itemId) {
     .then(item => {
       wizMt.itemId = itemId;
       wizMt.item = item;
+      wizMt.recipes = groupRecipeResources(item.resources); // pisah per resep (sama kayak Mode Advance)
+      wizMt.activeRecipe = 0;
       document.getElementById('wizMtItemStep').style.display = 'none';
       document.getElementById('wizMtQtyStep').style.display  = '';
       document.getElementById('wizMtResult').style.display   = 'none';
@@ -1057,22 +1201,51 @@ function wizMtBackToItemStep() {
 
 // Hitung bahan — cuma 1 level resep (sesuai data 'resources' dari API),
 // dikali jumlah target, dikurangi return%. Gak breakdown rekursif sampai bahan mentah.
+// Kalau item punya >1 resep alternatif (misal Adept's Cultist Robe), resource-nya
+// dipisah pakai groupRecipeResources() (heuristik sama kayak Mode Advance) dan
+// ditampilkan lewat tab Resep 1/Resep 2, bukan digabung jadi satu kalimat/visual.
 function wizMtCompute() {
   const item = wizMt.item;
   if (!item) return;
-  const qty    = Math.max(1, parseInt(document.getElementById('wizMtQty').value) || 1);
-  const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('wizMtReturn').value) || 0));
+  wizMt.qty    = Math.max(1, parseInt(document.getElementById('wizMtQty').value) || 1);
+  wizMt.retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('wizMtReturn').value) || 0));
 
-  if (!item.resources || !item.resources.length) {
+  if (!wizMt.recipes.length) {
+    document.getElementById('wizMtRecipeTabs').innerHTML   = '';
     document.getElementById('wizMtResultText').innerHTML   = `<b>${item.name}</b> tidak punya data resep bahan.`;
     document.getElementById('wizMtResultVisual').innerHTML = '';
     document.getElementById('wizMtResult').style.display   = '';
+    document.getElementById('wizMtResult').scrollIntoView({behavior:'smooth', block:'nearest'});
     return;
   }
 
-  const rows = item.resources.map(r => {
-    const gross  = qty * r.count;
-    const ret    = Math.round(gross * retPct / 100);
+  wizMtRenderResult();
+  document.getElementById('wizMtResult').style.display = '';
+  document.getElementById('wizMtResult').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function wizMtSwitchRecipe(gi) {
+  if (gi === wizMt.activeRecipe) return;
+  wizMt.activeRecipe = gi;
+  wizMtRenderResult();
+}
+
+function wizMtRenderResult() {
+  const item   = wizMt.item;
+  const qty    = wizMt.qty;
+  const retPct = wizMt.retPct;
+
+  // Tab Resep 1 / Resep 2 — cuma ditampilin kalau emang ada >1 alternatif resep
+  document.getElementById('wizMtRecipeTabs').innerHTML = wizMt.recipes.length > 1
+    ? wizMt.recipes.map((_, gi) => `
+        <button class="craft-tab ${gi === wizMt.activeRecipe ? 'active' : ''}" onclick="wizMtSwitchRecipe(${gi})">Resep ${gi + 1}</button>
+      `).join('')
+    : '';
+
+  const activeGroup = wizMt.recipes[wizMt.activeRecipe] || [];
+  const rows = activeGroup.map(r => {
+    const gross = qty * r.count;
+    const ret   = Math.round(gross * retPct / 100);
     return { r, needed: gross - ret };
   });
 
@@ -1094,13 +1267,12 @@ function wizMtCompute() {
 
   document.getElementById('wizMtResultText').innerHTML   = kalimat;
   document.getElementById('wizMtResultVisual').innerHTML = `<div class="bahan-row">${visual}</div>`;
-  document.getElementById('wizMtResult').style.display = '';
-  document.getElementById('wizMtResult').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 function wizMtReset() {
-  wizMt = { cat1:null, cat2:null, cat3:null, catId:null, tier:null, enc:null, itemId:null, item:null, searchTimer:null };
+  wizMt = { cat1:null, cat2:null, cat3:null, catId:null, tier:null, enc:null, itemId:null, item:null, recipes:[], activeRecipe:0, qty:1, retPct:15.2, searchTimer:null };
   document.getElementById('wizMtCatLanjut').disabled = true;
+  document.getElementById('wizMtRecipeTabs').innerHTML = '';
   wizMtBuildCat1(); wizMtBuildCat2(); wizMtBuildCat3();
   document.getElementById('wizMtCatSummary').style.display = 'none';
   document.getElementById('wizMtCatStep').style.display   = '';
@@ -1110,9 +1282,407 @@ function wizMtReset() {
 }
 
 // ============================================================
+// CRAFTING (Mode Advance) — pilih item target dari tabel,
+// pilih bahan dari resep (Resep 1 / Resep 2), kumpulin di
+// Inventory, lalu Craft kalau salah satu resep udah lengkap.
+// ============================================================
+let craftTarget       = null; // item yg lagi mau dibuat
+let craftRecipes      = [];   // array grup resep, tiap grup = array resource
+let craftActiveRecipe = 0;    // index resep yg lagi aktif/dipilih (tab)
+let craftInv          = [];   // {itemId, name, imgUrl, qty, harga}
+let craftPending       = null; // resource yg lagi diproses di popup tambah
+let craftSellPriceIsDefault = false; // true kalau nilai di input Harga Jual masih hasil auto-fill (belum diedit manual)
+let bahanPriceCache = {}; // cache {item_id: harga_termurah_dari_api}, buat pre-fill popup "Tambah ke Inventory"
+let craftEditIdx       = null; // index craftInv yg lagi diedit (null = mode tambah baru)
+
+// CATATAN: belum ada penanda resep di data (lihat diskusi soal Adept's Cultist
+// Robe yg py 2 resep tercampur 1 array). Sementara dipisah pakai heuristik:
+// begitu ketemu item yg NAMANYA udah muncul di grup aktif, mulai grup baru.
+// Ini stop-gap doang — kalau nanti backend nambahin kolom pembeda resep,
+// ganti fungsi ini biar baca kolom itu langsung.
+function groupRecipeResources(resources) {
+  if (!resources || !resources.length) return [];
+  const groups = [];
+  let current = [];
+  let seen = new Set();
+  resources.forEach(r => {
+    const key = r.item_id ?? r.name;
+    if (seen.has(key)) { groups.push(current); current = []; seen = new Set(); }
+    seen.add(key);
+    current.push(r);
+  });
+  if (current.length) groups.push(current);
+  return groups;
+}
+
+function getInvQty(itemId, name) {
+  const found = craftInv.find(i => (itemId ? i.itemId === itemId : i.name === name));
+  return found ? found.qty : 0;
+}
+
+function isGroupSatisfied(group) {
+  return group.every(r => getInvQty(r.item_id, r.name) >= r.count);
+}
+
+function selectCraftTarget(itemId) {
+  fetch('/api/crafting/item/' + itemId)
+    .then(r => r.json())
+    .then(item => {
+      craftTarget       = item;
+      craftRecipes      = groupRecipeResources(item.resources);
+      craftActiveRecipe = 0;
+      craftInv          = [];
+      lockItemTable(itemId);
+      renderCraftInventory();
+      renderCraftSlots();
+      updateCraftModal();
+      updateCraftButtonState();
+      document.getElementById('craftResultPanel').style.display = 'none';
+
+      // Harga jual default = harga item hasil craft (weapon/equipment-nya sendiri),
+      // dari cache dulu (instan) — kalau cache masih kosong, refreshCraftSellPrice()
+      // di bawah bakal coba ambil real-time dan ngisi begitu datang.
+      applyCraftSellPriceDefault(item.prices);
+      refreshCraftSellPrice(itemId);
+      fetchBahanDefaultPrices(craftRecipes);
+    })
+    .catch(() => showCraftToast('❌ Gagal memuat resep.'));
+}
+
+// ============================================================
+// HARGA DEFAULT BAHAN — begitu target dipilih, fetch harga cache
+// tiap bahan unik (item_id) dari semua resep sekaligus (Fine Cloth,
+// Runewood Plank, dll), biar popup "Tambah ke Inventory" gak kosong
+// kalau kamu klik Tambah tanpa ngetik harga dulu.
+// ============================================================
+function fetchBahanDefaultPrices(recipeGroups) {
+  const ids = new Set();
+  recipeGroups.forEach(group => group.forEach(r => { if (r.item_id) ids.add(r.item_id); }));
+  const toFetch = [...ids].filter(id => !(id in bahanPriceCache));
+  if (!toFetch.length) return;
+
+  Promise.all(toFetch.map(id =>
+    fetch('/api/crafting/item/' + id)
+      .then(r => r.json())
+      .then(item => {
+        const prices = Object.values(item.prices || {}).filter(p => p > 0);
+        bahanPriceCache[id] = prices.length ? Math.min(...prices) : 0; // harga termurah = biaya beli bahan
+      })
+      .catch(() => { bahanPriceCache[id] = 0; })
+  ));
+}
+
+function applyCraftSellPriceDefault(prices) {
+  const vals = Object.values(prices || {}).filter(p => p > 0);
+  document.getElementById('craftSellPrice').value = vals.length ? Math.max(...vals) : '';
+  craftSellPriceIsDefault = true; // tandai ini hasil auto-fill, boleh ditimpa refresh
+}
+
+// ============================================================
+// REFRESH HARGA JUAL (background) — sama kayak refreshPopupPrices,
+// coba ambil harga real-time ke Albion Online Data Project. Kalau
+// user udah edit manual (craftSellPriceIsDefault=false) atau udah
+// ganti ke item lain, jangan ditimpa.
+// ============================================================
+function refreshCraftSellPrice(itemId) {
+  fetch(`/api/crafting/item/${itemId}/refresh-prices`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRF-TOKEN': getCsrf() },
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (!craftTarget || craftTarget.id !== itemId) return; // udah pindah item
+      if (!craftSellPriceIsDefault) return;                  // udah diedit manual, biarkan
+      const vals = Object.values(data.prices || {}).filter(p => p > 0);
+      if (vals.length) document.getElementById('craftSellPrice').value = Math.max(...vals);
+    })
+    .catch(() => {}); // gagal → biarkan nilai cache yang udah tampil
+}
+
+function switchCraftRecipe(gi) {
+  if (gi === craftActiveRecipe) return;
+  craftActiveRecipe = gi;
+  craftInv = []; // ganti resep -> bahan yg udah dikumpulin buat resep lama gak relevan lagi
+  renderCraftInventory();
+  renderCraftSlots();
+  updateCraftModal();
+  updateCraftButtonState();
+  showCraftToast('🔄 Pindah ke Resep ' + (gi + 1));
+}
+
+function resetCraftTarget() {
+  craftTarget       = null;
+  craftRecipes      = [];
+  craftActiveRecipe = 0;
+  craftInv          = [];
+  unlockItemTable();
+  renderCraftInventory();
+  renderCraftSlots();
+  updateCraftModal();
+  updateCraftButtonState();
+  document.getElementById('craftSellPrice').value = '';
+  craftSellPriceIsDefault = false;
+  document.getElementById('craftResultPanel').style.display = 'none';
+}
+
+// ------------------------------------------------------------
+// KUNCI TABEL — item lain digelapin & gak bisa diklik/discroll,
+// cuma item yg dipilih yg tetap normal.
+// ------------------------------------------------------------
+function lockItemTable(selectedId) {
+  document.getElementById('itemTableWrap').classList.add('ct-locked');
+  document.querySelectorAll('#itemGrid .item-row').forEach(row => {
+    if (parseInt(row.dataset.itemId) === selectedId) {
+      row.classList.add('ct-selected');
+      row.classList.remove('ct-dim');
+    } else {
+      row.classList.add('ct-dim');
+      row.classList.remove('ct-selected');
+    }
+  });
+}
+
+function unlockItemTable() {
+  document.getElementById('itemTableWrap').classList.remove('ct-locked');
+  document.querySelectorAll('#itemGrid .item-row').forEach(row => {
+    row.classList.remove('ct-dim', 'ct-selected');
+  });
+}
+
+// ------------------------------------------------------------
+// SLOT RESEP — preview bahan (dari resep paling terpenuhi) + target
+// ------------------------------------------------------------
+function renderCraftSlots() {
+  const tabsWrap = document.getElementById('craftRecipeTabs');
+  const gridWrap = document.getElementById('craftSlotsGrid');
+  document.getElementById('craftResetRow').style.display = craftTarget ? '' : 'none';
+
+  if (!craftTarget) {
+    tabsWrap.innerHTML = '';
+    gridWrap.innerHTML = '<div class="craft-slots-empty">Pilih item dari daftar di atas untuk mulai crafting 🪄</div>';
+    return;
+  }
+
+  // Tab Resep 1 / Resep 2 — cuma ditampilin kalau emang ada >1 alternatif resep
+  tabsWrap.innerHTML = craftRecipes.length > 1
+    ? craftRecipes.map((_, gi) => `
+        <button class="craft-tab ${gi === craftActiveRecipe ? 'active' : ''}" onclick="switchCraftRecipe(${gi})">Resep ${gi + 1}</button>
+      `).join('')
+    : '';
+
+  const activeGroup = craftRecipes[craftActiveRecipe] || [];
+  const matSlots = activeGroup.slice(0, 4).map((r, ri) => {
+    const have = getInvQty(r.item_id, r.name);
+    const ok = have >= r.count;
+    return `<div class="craft-slot ${ok ? 'ok' : ''}" title="${r.name}" onclick="openResourceAdd(${craftActiveRecipe}, ${ri})">
+      <img src="${r.img_url || ''}" alt="${r.name}" onerror="this.style.opacity=.3">
+      <span class="cs-need">${have}/${r.count}</span>
+    </div>`;
+  });
+  while (matSlots.length < 4) matSlots.push('<div class="craft-slot"></div>');
+
+  gridWrap.innerHTML = `
+    ${matSlots.join('')}
+    <span class="craft-arrow">→</span>
+    <div class="craft-slot" title="${craftTarget.name}">
+      <img src="${craftTarget.img_url || ''}" alt="${craftTarget.name}" onerror="this.style.opacity=.3">
+    </div>`;
+}
+
+// ------------------------------------------------------------
+// POPUP TAMBAH / EDIT BAHAN
+// ------------------------------------------------------------
+function openResourceAdd(gi, ri) {
+  const r = craftRecipes[gi][ri];
+  craftPending = r;
+  craftEditIdx = null;
+  const existing = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
+
+  document.getElementById('caIcon').src = r.img_url || '';
+  document.getElementById('caName').textContent = r.name;
+  document.getElementById('caNeed').textContent = 'Dibutuhkan ' + r.count + ' / craft';
+  document.getElementById('caHarga').value = existing ? (existing.harga || '') : (bahanPriceCache[r.item_id] || '');
+  document.getElementById('caQty').value = r.count;
+  document.getElementById('caBtnRow').innerHTML = `<button class="wiz-btn-hitung" style="flex:1" onclick="doCraftAddResource()">➕ Tambah ke Inventory</button>`;
+  document.getElementById('craftAddOverlay').classList.add('show');
+}
+
+function openCraftInvEdit(idx) {
+  const inv = craftInv[idx];
+  if (!inv) return;
+  craftPending = null;
+  craftEditIdx = idx;
+
+  document.getElementById('caIcon').src = inv.imgUrl || '';
+  document.getElementById('caName').textContent = inv.name;
+  document.getElementById('caNeed').textContent = 'Ubah jumlah / harga, atau hapus';
+  document.getElementById('caHarga').value = inv.harga || bahanPriceCache[inv.itemId] || '';
+  document.getElementById('caQty').value = inv.qty;
+  document.getElementById('caBtnRow').innerHTML = `
+    <button class="wiz-btn-hitung" style="flex:1" onclick="doCraftEditResource()">💾 Simpan</button>
+    <button class="reset-btn" onclick="doCraftDeleteResource()">🗑</button>`;
+  document.getElementById('craftAddOverlay').classList.add('show');
+}
+
+function closeCraftAddOverlay() {
+  document.getElementById('craftAddOverlay').classList.remove('show');
+  craftPending = null;
+  craftEditIdx = null;
+}
+function closeCraftAddOnBg(e) { if (e.target === document.getElementById('craftAddOverlay')) closeCraftAddOverlay(); }
+
+function doCraftAddResource() {
+  if (!craftPending) return;
+  const r = craftPending;
+  const qty   = Math.max(1, parseInt(document.getElementById('caQty').value) || 1);
+  const harga = parseFloat(document.getElementById('caHarga').value) || 0;
+  const existing = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
+
+  if (existing) {
+    existing.qty += qty;
+    if (harga) existing.harga = harga;
+  } else {
+    craftInv.push({ itemId: r.item_id ?? null, name: r.name, imgUrl: r.img_url, qty, harga });
+  }
+
+  closeCraftAddOverlay();
+  renderCraftInventory();
+  renderCraftSlots();
+  updateCraftModal();
+  updateCraftButtonState();
+  showCraftToast(`📦 ${r.name} → ${qty}`);
+}
+
+function doCraftEditResource() {
+  if (craftEditIdx === null) return;
+  craftInv[craftEditIdx].qty   = Math.max(1, parseInt(document.getElementById('caQty').value) || 1);
+  craftInv[craftEditIdx].harga = parseFloat(document.getElementById('caHarga').value) || 0;
+  closeCraftAddOverlay();
+  renderCraftInventory(); renderCraftSlots(); updateCraftModal(); updateCraftButtonState();
+  showCraftToast('✏️ Diperbarui');
+}
+
+function doCraftDeleteResource() {
+  if (craftEditIdx === null) return;
+  craftInv.splice(craftEditIdx, 1);
+  closeCraftAddOverlay();
+  renderCraftInventory(); renderCraftSlots(); updateCraftModal(); updateCraftButtonState();
+  showCraftToast('🗑 Dihapus');
+}
+
+// ------------------------------------------------------------
+// INVENTORY GRID
+// ------------------------------------------------------------
+function renderCraftInventory() {
+  const grid = document.getElementById('craftInvGrid');
+  const slots = Math.max(craftInv.length, 10);
+  let html = '';
+  for (let s = 0; s < slots; s++) {
+    const inv = craftInv[s];
+    if (inv) {
+      html += `<div class="cinv-slot filled" title="${inv.name} × ${inv.qty}" onclick="openCraftInvEdit(${s})">
+        <img src="${inv.imgUrl || ''}" alt="${inv.name}" onerror="this.style.opacity=.3">
+        <span class="cinv-qty">${inv.qty}</span>
+      </div>`;
+    } else {
+      html += '<div class="cinv-slot"></div>';
+    }
+  }
+  grid.innerHTML = html;
+  document.getElementById('craftInvCount').textContent = craftInv.length;
+}
+
+// ------------------------------------------------------------
+// TOMBOL CRAFT
+// ------------------------------------------------------------
+function updateCraftButtonState() {
+  const group = craftRecipes[craftActiveRecipe];
+  document.getElementById('craftBtn').disabled = !(craftTarget && group && group.length && isGroupSatisfied(group));
+}
+
+function updateCraftModal() {
+  const group = craftRecipes[craftActiveRecipe] || [];
+  let total = 0;
+  group.forEach(r => {
+    const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
+    total += (inv?.harga || 0) * r.count;
+  });
+  document.getElementById('craftModalVal').textContent = formatSilver(total);
+}
+
+function doCraft() {
+  if (!craftTarget) return;
+  const group = craftRecipes[craftActiveRecipe];
+  if (!group || !group.length || !isGroupSatisfied(group)) return;
+  const retPct    = Math.min(100, Math.max(0, parseFloat(document.getElementById('craftReturn').value) || 0));
+  const sellPrice = parseFloat(document.getElementById('craftSellPrice').value) || 0;
+
+  let modal = 0; // total harga bahan yg beneran kepakai (gak balik lewat return%)
+  group.forEach(r => {
+    const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
+    if (!inv) return;
+    const returned = Math.round(r.count * retPct / 100);
+    const consumed = r.count - returned;
+    modal += consumed * (inv.harga || 0);
+    inv.qty -= consumed;
+    if (inv.qty <= 0) craftInv.splice(craftInv.indexOf(inv), 1);
+  });
+
+  const exOut = craftInv.find(i => i.itemId === craftTarget.id);
+  if (exOut) {
+    exOut.qty += 1;
+  } else {
+    craftInv.push({ itemId: craftTarget.id, name: craftTarget.name, imgUrl: craftTarget.img_url, qty: 1, harga: sellPrice || 0 });
+  }
+
+  renderCraftInventory();
+  renderCraftSlots();
+  updateCraftModal();
+  updateCraftButtonState();
+  showCraftResult(modal, sellPrice);
+  showCraftToast(`⚒️ Berhasil membuat ${craftTarget.name}!`);
+}
+
+// ============================================================
+// PANEL HASIL CRAFT — nampilin modal (bahan yg kepakai) vs harga
+// akhir (harga jual item hasil, dari input Harga Jual) + profit.
+// ============================================================
+function showCraftResult(modal, sellPrice) {
+  document.getElementById('crpModal').textContent = formatSilver(modal);
+  document.getElementById('crpSell').textContent   = sellPrice ? formatSilver(sellPrice) : '—';
+
+  const profitEl = document.getElementById('crpProfit');
+  profitEl.classList.remove('positive', 'negative');
+  if (sellPrice) {
+    const profit = sellPrice - modal;
+    profitEl.textContent = (profit >= 0 ? '+' : '-') + formatSilver(Math.abs(profit));
+    profitEl.classList.add(profit >= 0 ? 'positive' : 'negative');
+  } else {
+    profitEl.textContent = '—';
+  }
+
+  document.getElementById('craftResultPanel').style.display = '';
+}
+
+function showCraftToast(msg) {
+  const t = document.getElementById('craftToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ============================================================
 // INIT
 // ============================================================
-fetch('/api/crafting/categories')
+
+// ============================================================
+// INIT
+// ============================================================
+const STATION = '{{ $station ?? "mage-tower" }}';
+const CRAFT_API_BASE = STATION === 'mage-tower' ? '/api/crafting' : `/api/crafting/${STATION}`;
+
+fetch(`${CRAFT_API_BASE}/categories`)
   .then(r => r.json())
   .then(data => {
     CATEGORIES = data;
@@ -1122,6 +1692,9 @@ fetch('/api/crafting/categories')
     fetchItems(); // load semua item dari awal (Mode Advance), gak perlu pilih kategori dulu
     wizMtBuildCat1(); // siapkan step 1 wizard Mode Simple
   });
+renderCraftInventory();
+renderCraftSlots();
+updateCraftModal();
 setMTMode(localStorage.getItem('mt_mode') || 'simple');
 </script>
 <x-comments page="mages-tower" />

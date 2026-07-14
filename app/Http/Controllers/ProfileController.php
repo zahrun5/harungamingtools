@@ -8,7 +8,12 @@ class ProfileController extends Controller
 {
     public function show()
     {
-        return view('profile.show', ['user' => Auth::user()]);
+        $user = Auth::user();
+
+        return view('profile.show', [
+            'user' => $user,
+            'build' => $user->build,
+        ]);
     }
 
     public function edit()
@@ -33,3 +38,4 @@ class ProfileController extends Controller
         return redirect('/profile')->with('success', 'Profil berhasil diperbarui!');
     }
 }
+

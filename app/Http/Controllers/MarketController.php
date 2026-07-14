@@ -148,22 +148,40 @@ class MarketController extends Controller
 	    $page   = max(1, (int) $request->get('page', 1));
 	    $search = trim($request->get('search', ''));
 
-	    $baseQuery = function () {
-	        return DB::table('item_recipes')
-	            ->select('item_api_id')
-	            ->distinct()
-	            ->whereNotIn('item_api_id', function ($q) {
-	                $q->select('api_id')->from('items');
-	            })
-	            ->where('item_api_id', 'not like', 'QUESTITEM%')
-	            ->where('item_api_id', 'not like', 'UNIQUE%');
-	    };
+	    // Item yang belum di-DB itu bisa muncul dari 2 sisi:
+	    // - sebagai HASIL craft (item_api_id) -> equipment/consumable biasa
+	    // - sebagai BAHAN craft (resource_api_id) -> resource/token/artefact yang
+	    //   sendirinya gak pernah jadi output craft (misal T7_ARTEFACT_TOKEN_FAVOR_3),
+	    //   jadi kalau cuma scan item_api_id doang, dia gak akan pernah ketangkep.
+	    $missingOutputIds = DB::table('item_recipes')
+	        ->select('item_api_id as api_id')
+	        ->distinct()
+	        ->whereNotIn('item_api_id', function ($q) {
+	            $q->select('api_id')->from('items');
+	        })
+	        ->where('item_api_id', 'not like', 'QUESTITEM%')
+	        ->where('item_api_id', 'not like', 'UNIQUE%')
+	        ->pluck('api_id');
 
-	    // Ambil SEMUA api_id yang lolos filter dasar (belum di-DB, bukan quest/unique).
-	    // Wajib diambil semua (bukan per-halaman) karena grouping & pagination
-	    // sekarang dilakukan per BASE-ITEM, bukan per-row, supaya satu base item
-	    // (T1..T8 + enchant) selalu utuh dalam satu halaman yang sama.
-	    $allApiIds = $baseQuery()->orderBy('item_api_id')->pluck('item_api_id');
+	    $missingResourceIds = DB::table('item_recipes')
+	        ->select('resource_api_id as api_id')
+	        ->distinct()
+	        ->whereNotNull('resource_api_id')
+	        ->whereNotIn('resource_api_id', function ($q) {
+	            $q->select('api_id')->from('items');
+	        })
+	        ->where('resource_api_id', 'not like', 'QUESTITEM%')
+	        ->where('resource_api_id', 'not like', 'UNIQUE%')
+	        ->pluck('api_id');
+
+	    // Gabung dua sisi, dedup, lalu urut. Karena grouping di bawah tetap pakai
+	    // getBaseKey() yang sama, tier lain dari base item yang sama (T1..T8)
+	    // otomatis ikut kebawa bareng dalam satu grup - gak perlu dicari manual
+	    // satu-satu per tier lagi.
+	    $allApiIds = $missingOutputIds->merge($missingResourceIds)
+	        ->unique()
+	        ->sort()
+	        ->values();
 
 	    if ($search !== '') {
 	        // "nama item" itu hasil olahan parseApiId(), BUKAN kolom asli di DB,
@@ -201,14 +219,23 @@ class MarketController extends Controller
 	        }
 	    }
 
-	    // Ambil distinct enchantment_level per item_api_id dari item_recipes (1 query, hindari N+1)
-	    $encLevels = DB::table('item_recipes')
+	    // Ambil distinct enchantment_level per api_id dari item_recipes (1 query, hindari N+1).
+	    // Sekarang gabung dari 2 sisi: item_api_id (kalau dia output craft) DAN
+	    // resource_api_id (kalau dia bahan/resource) - soalnya sejak baseQuery
+	    // di atas ikut nyari resource yang belum di-DB, apiIds di halaman ini bisa
+	    // isinya campuran output & resource, dan levelnya kesimpen di kolom beda.
+	    $outputEnc = DB::table('item_recipes')
 	        ->whereIn('item_api_id', $apiIds)
-	        ->select('item_api_id', 'enchantment_level')
-	        ->distinct()
+	        ->select('item_api_id as api_id', 'enchantment_level as lvl');
+
+	    $resourceEnc = DB::table('item_recipes')
+	        ->whereIn('resource_api_id', $apiIds)
+	        ->select('resource_api_id as api_id', 'resource_enchantment_level as lvl');
+
+	    $encLevels = $outputEnc->unionAll($resourceEnc)
 	        ->get()
-	        ->groupBy('item_api_id')
-	        ->map(fn($rows) => $rows->pluck('enchantment_level')->sort()->values());
+	        ->groupBy('api_id')
+	        ->map(fn($rows) => $rows->pluck('lvl')->unique()->sort()->values());
 
 	    $items = $apiIds->map(function ($apiId) use ($encLevels) {
 	        $parsed = $this->parseApiId($apiId);
@@ -247,7 +274,6 @@ class MarketController extends Controller
 	public function categories()
 	{
 	    $roots = Category::whereNull('parent_id')
-	        ->where('group', 'market')
 	        ->orderBy('id')
 	        ->with(['children' => function ($q) {
 	            $q->orderBy('id')

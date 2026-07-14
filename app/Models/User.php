@@ -10,12 +10,23 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Build;
+
 
 #[Fillable(['telegram_id', 'telegram_username', 'name', 'custom_name', 'avatar_seed', 'avatar_style', 'email', 'password', 'photo_url', 'role', 'last_login_at', 'google_id', 'avatar'])]
 #[Hidden(['remember_token'])]
 
 class User extends Authenticatable
 {
+    
+// 1 user cuma bisa punya 1 build
+public function build(): HasOne
+{
+    return $this->hasOne(Build::class);
+}
+    
+    
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -49,3 +60,4 @@ public function calculatorUsages()
     return $this->hasMany(CalculatorUsage::class);
 }
 }
+
