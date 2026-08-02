@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+@vite(['resources/css/app.css', 'resources/js/app.js'])
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a1410">
+<link rel="apple-touch-icon" href="/images/icons/icon-192.png">
 <meta charset="UTF-8">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +17,12 @@
   gtag('js', new Date());
   gtag('config', 'G-TV166ZJSCL');
 </script>
-<title>@yield('title', 'HarunGamingTools — Hitung, Catat, Naik Peringkat')</title>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+<title>@yield('title', 'Albion Online Tools — Hitung, Catat, Naik Peringkat')</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,900&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -31,7 +40,7 @@
   header{position:sticky;top:0;z-index:50;background:rgba(20,17,15,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);}
   .nav-row{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1180px;margin:0 auto;}
   .logo{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:700;font-size:1.25rem;}
-  .logo-mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--bg);font-size:0.85rem;}
+  .logo-mark{width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0;}
 
   .btn-login{border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:6px;font-size:0.88rem;font-weight:500;transition:border-color 0.2s,color 0.2s;}
   .btn-login:hover{border-color:var(--gold);color:var(--gold);}
@@ -42,15 +51,46 @@
   .profile button{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.85rem;}
   .profile button:hover{color:var(--gold);}
 
+  /* ===== Topbar Dropdown (Server & Bahasa) ===== */
+  .topbar-actions{display:flex;align-items:center;gap:8px;}
+  .topbar-dropdown{position:relative;}
+  .topbar-btn{display:flex;align-items:center;gap:5px;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;transition:border-color .2s,color .2s;}
+  .topbar-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .topbar-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .15s;}
+  .topbar-dropdown.open .topbar-btn svg{transform:rotate(180deg);}
+  .topbar-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:150px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:60;}
+  .topbar-dropdown.open .topbar-menu{display:block;}
+  .topbar-menu a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:0.82rem;color:var(--text);}
+  .topbar-menu a:hover{background:var(--bg-card);color:var(--gold);}
+  .topbar-menu a.active{color:var(--gold);font-weight:600;}
+
   main{padding:48px 0;}
-  body{padding-bottom:82px;}
+  body{padding-bottom:82px;transition:padding-bottom .25s ease,padding-left .25s ease;}
+  body.nav-collapsed{padding-bottom:0;}
 
   /* ===== Bottom Navigation ===== */
-  .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:55;display:flex;justify-content:space-around;align-items:stretch;background:rgba(20,17,15,0.96);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
+  .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:55;display:flex;justify-content:space-around;align-items:stretch;background:rgba(20,17,15,0.96);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom));transition:transform .25s ease;}
+  .bottom-nav.is-hidden{transform:translateY(100%);}
   .bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;color:var(--text-muted);font-size:0.68rem;font-weight:500;transition:color .2s;}
   .bottom-nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .bottom-nav-item:hover{color:var(--gold);}
   .bottom-nav-item.active{color:var(--gold);}
+
+  /* ===== Bottom Nav Toggle Button (mobile only) ===== */
+  .nav-toggle-btn{position:fixed;right:14px;bottom:76px;z-index:56;width:40px;height:40px;border-radius:50%;background:var(--bg-panel);border:1px solid var(--gold-dim);color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:bottom .25s ease,background .2s,border-color .2s;}
+  .nav-toggle-btn:hover{border-color:var(--gold);}
+  .nav-toggle-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s ease;}
+  .nav-toggle-btn.is-collapsed{bottom:14px;}
+  .nav-toggle-btn.is-collapsed svg{transform:rotate(180deg);}
+
+  /* ===== Desktop: bottom nav becomes a left sidebar ===== */
+  @media (min-width:960px){
+    body{padding-bottom:0;padding-left:76px;}
+    body.nav-collapsed{padding-left:76px;}
+    .bottom-nav{left:0;right:auto;top:0;bottom:0;width:76px;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:6px;padding:24px 6px;border-top:none;border-right:1px solid var(--border);transform:none !important;}
+    .bottom-nav-item{flex:none;}
+    .nav-toggle-btn{display:none;}
+  }
 
   /* ===== Station cards (halaman utama) ===== */
   .section-title{font-family:'Fraunces',serif;color:var(--gold);font-size:1.15rem;margin:36px 0 16px;display:flex;align-items:center;gap:8px;}
@@ -84,21 +124,37 @@
 <body>
 <header>
   <div class="nav-row">
-    <a href="/" class="logo"><span class="logo-mark">HG</span> HarunGamingTools</a>
-    <div>
-      @auth
-        <div style="display:flex;align-items:center;gap:8px;">
-          <a href="/profile" style="display:flex;align-items:center;background:var(--bg-panel);border:1px solid var(--border);padding:6px;border-radius:30px;">
-            <img src="{{ auth()->user()->display_avatar }}" alt="foto" style="width:32px;height:32px;border-radius:50%;">
-          </a>
-          <form method="POST" action="/logout" style="display:inline;">
-            @csrf
-            <button type="submit" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.85rem;">Logout</button>
-          </form>
+    <a href="/" class="logo"><img src="{{ asset('images/icons/icon-192.png') }}" alt="Albion Online Tools" class="logo-mark"> Albion Online Tools</a>
+    <div class="topbar-actions">
+      {{-- Server Selector --}}
+      <div class="topbar-dropdown" id="server-dropdown">
+        <button class="topbar-btn" onclick="toggleTopbarDropdown('server-dropdown')" type="button">
+           {{ ['americas' => 'Americas', 'europe' => 'Europe', 'asia' => 'Asia'][session('server', 'americas')] }}
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="topbar-menu">
+          <a href="{{ route('server.switch', 'americas') }}" class="{{ session('server', 'americas') === 'americas' ? 'active' : '' }}">Americas</a>
+          <a href="{{ route('server.switch', 'europe') }}" class="{{ session('server') === 'europe' ? 'active' : '' }}">Europe</a>
+          <a href="{{ route('server.switch', 'asia') }}" class="{{ session('server') === 'asia' ? 'active' : '' }}">Asia</a>
         </div>
-      @else
-        <a href="/login" class="btn-login">Masuk</a>
-      @endauth
+      </div>
+
+      {{-- Language Selector (tampilan dulu, logic nyusul) --}}
+      <div class="topbar-dropdown" id="lang-dropdown">
+        <button class="topbar-btn" onclick="toggleTopbarDropdown('lang-dropdown')" type="button">
+          {{ strtoupper(app()->getLocale()) }}
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="topbar-menu">
+          <a href="{{ route('lang.switch', 'id') }}" class="{{ app()->getLocale() === 'id' ? 'active' : '' }}">🇮🇩 Indonesia</a>
+          <a href="{{ route('lang.switch', 'en') }}" class="{{ app()->getLocale() === 'en' ? 'active' : '' }}">🇬🇧 English</a>
+          <a href="{{ route('lang.switch', 'pt_BR') }}" class="{{ app()->getLocale() === 'pt_BR' ? 'active' : '' }}">🇧🇷 Português (BR)</a>
+          <a href="{{ route('lang.switch', 'ru') }}" class="{{ app()->getLocale() === 'ru' ? 'active' : '' }}">🇷🇺 Русский</a>
+          <a href="{{ route('lang.switch', 'de') }}" class="{{ app()->getLocale() === 'de' ? 'active' : '' }}">🇩🇪 Deutsch</a>
+          <a href="{{ route('lang.switch', 'pl') }}" class="{{ app()->getLocale() === 'pl' ? 'active' : '' }}">🇵🇱 Polski</a>
+        </div>
+      </div>
+
     </div>
   </div>
 </header>
@@ -112,24 +168,33 @@
 <footer>
   <div class="wrap">
     <div class="footer-links">
-      <a href="https://t.me/HarunGamingTools" target="_blank">Channel</a>
-      <a href="https://t.me/HGTCommunity" target="_blank">Grup Komunitas</a>
+      <a href="https://t.me/HarunGamingTools" target="_blank">{{ __("nav.footer_channel") }}</a>
+      <a href="https://t.me/HGTCommunity" target="_blank">{{ __("nav.footer_community") }}</a>
       <a href="https://saweria.co/Mamangharun" target="_blank">Saweria</a>
       <a href="https://trakteer.id/sahabat%20sambungng" target="_blank">Trakteer</a>
     </div>
-    <p class="footer-credit">Dibuat oleh Harun · HarunGamingTools © 2026</p>
+    <p class="footer-credit">{{ __("nav.footer_credit") }}</p>
   </div>
 </footer>
 
-<nav class="bottom-nav" aria-label="Navigasi utama">
+<button type="button" id="nav-toggle-btn" class="nav-toggle-btn" aria-label="Sembunyikan/tampilkan navigasi" aria-controls="bottom-nav">
+    <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+</button>
+
+<nav class="bottom-nav" id="bottom-nav" aria-label="Navigasi utama">
     <a href="/" class="bottom-nav-item {{ request()->is('/') ? 'active' : '' }}">
         <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-        <span>Home</span>
+        <span>{{ __("nav.home") }}</span>
+    </a>
+
+    <a href="/reels" class="bottom-nav-item {{ request()->is('reels*') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M10 8.5v7l5.5-3.5-5.5-3.5Z"/></svg>
+        <span>{{ __("reels") }}</span>
     </a>
 
     <a href="/social" class="bottom-nav-item {{ request()->routeIs('social.*') ? 'active' : '' }}">
         <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.3c2.9.4 5.5 2.5 5.5 5.7"/></svg>
-        <span>Social</span>
+        <span>{{ __("nav.social") }}</span>
     </a>
 
     @auth
@@ -138,7 +203,7 @@
         <a href="/login" class="bottom-nav-item">
     @endauth
         <svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0"/></svg>
-        <span>Notifikasi</span>
+        <span>{{ __("nav.notifications") }}</span>
     </a>
 
     @auth
@@ -147,9 +212,46 @@
         <a href="/login" class="bottom-nav-item">
     @endauth
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
-        <span>Profil</span>
+        <span>{{ __("nav.profile") }}</span>
     </a>
 </nav>
 
+<script>
+  function toggleTopbarDropdown(id) {
+    const target = document.getElementById(id);
+    document.querySelectorAll('.topbar-dropdown.open').forEach(el => {
+      if (el !== target) el.classList.remove('open');
+    });
+    target.classList.toggle('open');
+  }
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('.topbar-dropdown.open').forEach(el => {
+      if (!el.contains(e.target)) el.classList.remove('open');
+    });
+  });
+
+  // ===== Bottom Nav Toggle (mobile) =====
+  (function () {
+    const bottomNav = document.getElementById('bottom-nav');
+    const toggleBtn = document.getElementById('nav-toggle-btn');
+    if (!bottomNav || !toggleBtn) return;
+
+    const STORAGE_KEY = 'bottomNavCollapsed';
+    const setState = (collapsed) => {
+      bottomNav.classList.toggle('is-hidden', collapsed);
+      toggleBtn.classList.toggle('is-collapsed', collapsed);
+      document.body.classList.toggle('nav-collapsed', collapsed);
+    };
+
+    let collapsed = localStorage.getItem(STORAGE_KEY) === '1';
+    setState(collapsed);
+
+    toggleBtn.addEventListener('click', function () {
+      collapsed = !collapsed;
+      setState(collapsed);
+      localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+    });
+  })();
+</script>
 </body>
 </html>

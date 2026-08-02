@@ -13,7 +13,7 @@
         @include('builds._form')
 
         <div style="display:flex;gap:10px;margin-top:24px;">
-            <a href="{{ route('profile.show') }}"
+            <a href="{{ route('builds.index') }}"
                style="flex:1;text-align:center;padding:12px;border-radius:10px;border:1px solid var(--border);color:var(--text-muted);font-size:.9rem;font-weight:600;text-decoration:none;">
                 Batal
             </a>

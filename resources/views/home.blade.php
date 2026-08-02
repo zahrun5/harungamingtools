@@ -1,90 +1,78 @@
 @extends('layouts.app')
 
-@section('title', 'Beranda - HarunGamingTools')
+@section('title', __('home.title'))
 
 @section('content')
-    <h1>Selamat datang di HarunGamingTools 👋</h1>
-    <p>Tempat kumpulnya pemain Albion Online — kalkulator, leaderboard, dan komunitas.</p>
+    <h1>{{ __('home.welcome_title') }}</h1>
+    <p>{{ __('home.welcome_sub') }}</p>
 
     {{-- ===== STASIUN REFINE ===== --}}
-    <h2 class="section-title">⚒️ Stasiun Refine</h2>
-    <p class="section-sub">Pilih stasiun sesuai jenis resource yang mau kamu olah.</p>
+    <h2 class="section-title">{{ __('home.sections.refine.title') }}</h2>
+    <p class="section-sub">{{ __('home.sections.refine.sub') }}</p>
 
     <div class="station-grid">
         @php
             $stations = [
-                ['slug' => 'smelter',    'jenis' => 'logam', 'name' => 'Smelter',    'desc' => 'Olah bijih jadi batangan logam',   'badge' => null],
-                ['slug' => 'lumbermill', 'jenis' => 'kayu',  'name' => 'Lumbermill', 'desc' => 'Olah kayu jadi papan kayu',        'badge' => null],
-                ['slug' => 'stonemason', 'jenis' => 'batu',  'name' => 'Stonemason', 'desc' => 'Olah batu jadi batu bata',         'badge' => null],
-                ['slug' => 'tanner',     'jenis' => 'kulit', 'name' => 'Tannery',    'desc' => 'Olah kulit jadi kulit samak',      'badge' => null],
-                ['slug' => 'weaver',     'jenis' => 'serat', 'name' => 'Weaver',     'desc' => 'Olah serat jadi kain',             'badge' => null],
+                ['slug' => 'smelter',    'jenis' => 'logam'],
+                ['slug' => 'lumbermill', 'jenis' => 'kayu'],
+                ['slug' => 'stonemason', 'jenis' => 'batu'],
+                ['slug' => 'tanner',     'jenis' => 'kulit'],
+                ['slug' => 'weaver',     'jenis' => 'serat'],
             ];
         @endphp
 
         @foreach ($stations as $station)
             <a href="/kalkulator/refine?jenis={{ $station['jenis'] }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$station['slug'].'.jpg') }}');">
-                @if ($station['badge'])
-                    <span class="station-badge">{{ $station['badge'] }}</span>
-                @endif
                 <div class="station-body">
-                    <div class="station-name">{{ $station['name'] }}</div>
-                    <div class="station-desc">{{ $station['desc'] }}</div>
+                    <div class="station-name">{{ __('home.stations.'.$station['slug'].'.name') }}</div>
+                    <div class="station-desc">{{ __('home.stations.'.$station['slug'].'.desc') }}</div>
                 </div>
             </a>
         @endforeach
     </div>
 
-
-        {{-- ===== CRAFTING STATION ===== --}}
-    <h2 class="section-title">🛠️ Crafting Station</h2>
-    <p class="section-sub">Cari tahu berapa biaya craft equipment favoritmu.</p>
+    {{-- ===== CRAFTING STATION ===== --}}
+    <h2 class="section-title">{{ __('home.sections.crafting.title') }}</h2>
+    <p class="section-sub">{{ __('home.sections.crafting.sub') }}</p>
 
     <div class="station-grid">
         @php
             $craftingStations = [
-                ['slug' => 'mage-tower',    'name' => "Mage's Tower",    'desc' => 'Mage & caster',      'badge' => null],
-                ['slug' => 'hunters-lodge', 'name' => "Hunter's Lodge",  'desc' => 'Senjata & Pakaian Pembunuh', 'badge' => null],
-                ['slug' => 'warriors-forge','name' => "Warrior's Forge", 'desc' => 'Pedang & Zirah Warrior', 'badge' => null],
+                ['slug' => 'mage-tower'],
+                ['slug' => 'hunters-lodge'],
+                ['slug' => 'warriors-forge'],
             ];
         @endphp
 
         @foreach ($craftingStations as $cs)
             <a href="/crafting/{{ $cs['slug'] }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$cs['slug'].'.jpg') }}');">
-                @if ($cs['badge'])
-                    <span class="station-badge">{{ $cs['badge'] }}</span>
-                @endif
                 <div class="station-body">
-                    <div class="station-name">{{ $cs['name'] }}</div>
-                    <div class="station-desc">{{ $cs['desc'] }}</div>
+                    <div class="station-name">{{ __('home.crafting_stations.'.$cs['slug'].'.name') }}</div>
+                    <div class="station-desc">{{ __('home.crafting_stations.'.$cs['slug'].'.desc') }}</div>
                 </div>
             </a>
         @endforeach
     </div>
 
-
-    
     {{-- ===== TOOLS LAINNYA ===== --}}
-    <h2 class="section-title">🧰 Tools Lainnya</h2>
-    <p class="section-sub">Cek harga market real-time atau lihat siapa yang baru gugur di dunia Albion.</p>
+    <h2 class="section-title">{{ __('home.sections.tools.title') }}</h2>
+    <p class="section-sub">{{ __('home.sections.tools.sub') }}</p>
 
     <div class="station-grid">
         @php
             $tools = [
-                ['slug' => 'fishing',      'href' => '/kalkulator/fishing',  'name' => 'Kalkulator Mancing',  'desc' => 'Jual ikan atau dicincang, mana lebih untung?', 'badge' => null],
-                ['slug' => 'flip',         'href' => '/kalkulator/flip',     'name' => 'Kalkulator Flipping', 'desc' => 'Hitung batas harga jual/beli biar gak rugi pajak.', 'badge' => null],
-                ['slug' => 'market',       'href' => '/market',              'name' => 'Cek Harga Market',    'desc' => 'Pantau harga item terkini di seluruh kota.', 'badge' => null],
-                ['slug' => 'death-recap',  'href' => '/death-recap',         'name' => 'Rekap Kematian',      'desc' => 'Lihat detail kematian & equipment terakhir player.', 'badge' => null],
+                ['slug' => 'fishing',      'href' => '/kalkulator/fishing'],
+                ['slug' => 'flip',         'href' => '/kalkulator/flip'],
+                ['slug' => 'market',       'href' => '/market'],
+                ['slug' => 'death-recap',  'href' => '/death-recap'],
             ];
         @endphp
 
         @foreach ($tools as $tool)
             <a href="{{ $tool['href'] }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$tool['slug'].'.jpg') }}');">
-                @if ($tool['badge'])
-                    <span class="station-badge">{{ $tool['badge'] }}</span>
-                @endif
                 <div class="station-body">
-                    <div class="station-name">{{ $tool['name'] }}</div>
-                    <div class="station-desc">{{ $tool['desc'] }}</div>
+                    <div class="station-name">{{ __('home.tools_list.'.$tool['slug'].'.name') }}</div>
+                    <div class="station-desc">{{ __('home.tools_list.'.$tool['slug'].'.desc') }}</div>
                 </div>
             </a>
         @endforeach
@@ -98,14 +86,14 @@
         .support-btn.saweria:hover{border-color:var(--teal);color:var(--teal);}
     </style>
 
-    <h2 class="section-title">💛 Dukung HGT</h2>
-    <p class="section-sub">Suka sama tools ini? Traktir kopi atau gabung komunitas kita.</p>
+    <h2 class="section-title">{{ __('home.sections.support.title') }}</h2>
+    <p class="section-sub">{{ __('home.sections.support.sub') }}</p>
 
     <div class="support-row">
-        <a href="https://saweria.co/Mamangharun" target="_blank" class="support-btn saweria">☕ Saweria</a>
-        <a href="https://trakteer.id/sahabat%20sambungng" target="_blank" class="support-btn">🎁 Trakteer</a>
-        <a href="https://t.me/HarunGamingTools" target="_blank" class="support-btn">📢 Channel</a>
-        <a href="https://t.me/HGTCommunity" target="_blank" class="support-btn">👥 Grup</a>
+        <a href="https://saweria.co/Mamangharun" target="_blank" class="support-btn saweria">{{ __('home.support.saweria') }}</a>
+        <a href="https://trakteer.id/sahabat%20sambungng" target="_blank" class="support-btn">{{ __('home.support.trakteer') }}</a>
+        <a href="https://t.me/HarunGamingTools" target="_blank" class="support-btn">{{ __('home.support.channel') }}</a>
+        <a href="https://t.me/HGTCommunity" target="_blank" class="support-btn">{{ __('home.support.group') }}</a>
     </div>
 
 @endsection

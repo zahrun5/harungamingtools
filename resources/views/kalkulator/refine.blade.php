@@ -1,194 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Kalkulator Refine - HarunGamingTools')
+@section('title', 'Kalkulator Refine - Albion Online Tools')
 
 @section('content')
+
+@vite(['resources/css/kalkulator/refine.css'])
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<style>
-
-
-.rw {
-  --bd:      #6b4f1a;
-  --gold:    #f0c040;
-  --gold-dk: #b8860b;
-  --lt:      #dcc08a;
-  --dim:     #a08040;
-  --sbg:     #1a1208;
-  --sbd:     #4a3510;
-  background: #0d0a05;
-  color: var(--lt);
-  font-family: 'Crimson Text', Georgia, serif;
-  margin: -48px -24px;
-  padding: 20px 0 60px;
-}
-.rw * { box-sizing: border-box; }
-.rw .app { max-width: 900px; margin: 0 auto; padding: 0 12px; display: flex; flex-direction: column; gap: 10px; }
-
-/* PANEL */
-.rw .panel { background: linear-gradient(180deg,#2e2210,#1e1608); border: 2px solid var(--bd); border-radius: 4px; box-shadow: 0 4px 24px rgba(0,0,0,.7); overflow: hidden; }
-.rw .ph { background: linear-gradient(180deg,#3d2e15,#2a1f0e); border-bottom: 1px solid var(--bd); padding: 9px 14px; display: flex; align-items: center; gap: 8px; }
-.rw .ph-title { font-family:'Cinzel',serif; font-size:13px; color:var(--gold); letter-spacing:1px; text-transform:uppercase; flex:1; }
-.rw .api-status { font-size:10px; font-family:'Cinzel',serif; color:var(--dim); }
-.rw .api-status.loading { color:var(--gold); }
-.rw .api-status.ok { color:#6b8; }
-.rw .api-status.err { color:#f86; }
-
-/* HEADER SEARCH (ala Market) */
-.rw .header-search { margin-left:auto; background:linear-gradient(180deg,#1a1208,#110e05); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-family:'Crimson Text',serif; font-size:13px; padding:6px 10px; outline:none; transition:border-color .15s; width:170px; }
-.rw .header-search:focus { border-color:var(--gold-dk); }
-.rw .header-search::placeholder { color:var(--dim); }
-
-/* FILTER BAR (ala Market — tombol + dropdown popover) */
-.rw .flt-bar { background: linear-gradient(180deg,#251a08,#1a1005); border-bottom:1px solid var(--bd); padding:10px 12px; display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:visible; position:relative; }
-.rw .flt-wrap { position:relative; }
-.rw .flt-btn { display:flex; align-items:center; gap:6px; background:linear-gradient(180deg,#c8a84a,#a07828); border:1px solid #8b6820; border-radius:3px; color:#2a1800; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:.5px; padding:7px 12px; cursor:pointer; user-select:none; white-space:nowrap; transition:all .1s; justify-content:space-between; }
-.rw .flt-btn:hover { background:linear-gradient(180deg,#dabb5a,#b88838); border-color:var(--gold); }
-.rw .flt-btn.open { background:linear-gradient(180deg,#b89030,#907020); border-color:var(--gold); box-shadow:0 0 8px rgba(240,192,64,.3); }
-.rw .flt-btn .flt-label { flex:1; text-align:left; }
-.rw .flt-btn .flt-val { font-size:10px; opacity:.75; max-width:90px; overflow:hidden; text-overflow:ellipsis; }
-.rw .flt-btn .flt-arrow { font-size:8px; opacity:.7; margin-left:2px; transition:transform .15s; }
-.rw .flt-btn.open .flt-arrow { transform:rotate(180deg); }
-
-.rw .drop-wrap { position:fixed; z-index:9999; display:none; gap:2px; filter:drop-shadow(0 6px 20px rgba(0,0,0,.85)); }
-.rw .drop-wrap.show { display:flex; }
-.rw .drop-col { min-width:175px; max-height:370px; overflow-y:auto; background:linear-gradient(180deg,#e8cf88,#d4b468); border:1px solid #8b6820; border-radius:3px; padding:4px; display:flex; flex-direction:column; gap:2px; }
-.rw .drop-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:2px; background:transparent; border:1px solid transparent; cursor:pointer; font-family:'Crimson Text',serif; font-size:14px; font-weight:600; color:#2a1800; transition:all .08s; white-space:nowrap; }
-.rw .drop-item:hover { background:linear-gradient(180deg,#f2dc9a,#e2c878); border-color:#a07828; }
-.rw .drop-item.active { background:linear-gradient(180deg,#b88a28,#906818); border-color:#7a5010; color:#fff8e0; }
-.rw .drop-item .di-arrow { font-size:9px; color:#6b4f1a; margin-left:8px; flex-shrink:0; }
-.rw .drop-item.active .di-arrow { color:#ffe090; }
-
-/* ITEM LIST (ala Market — icon 48px, cuma nama, harga di kanan) */
-.rw .item-list { max-height:420px; overflow-y:auto; }
-.rw .item-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid rgba(107,79,26,.3); cursor:pointer; transition:background .1s; }
-.rw .item-row:hover { background:rgba(61,46,21,.5); }
-.rw .item-icon { width:48px; height:48px; border:1px solid var(--sbd); border-radius:3px; background:var(--sbg); display:block; object-fit:contain; flex-shrink:0; }
-.rw .item-name { font-family:'Crimson Text',serif; font-size:15px; color:var(--lt); font-weight:600; flex:1; }
-.rw .item-price { font-size:12px; color:var(--gold); font-family:'Cinzel',serif; min-width:55px; text-align:right; }
-
-/* BOTTOM BAR */
-.rw .bot-bar { display:flex; gap:6px; align-items:center; padding:8px 12px; border-top:1px solid var(--bd); background:linear-gradient(180deg,#251a08,#1a1005); flex-wrap:wrap; }
-.rw .ret-wrap { display:flex; align-items:center; gap:5px; background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; padding:5px 9px; }
-.rw .ret-wrap label { font-size:11px; color:var(--dim); white-space:nowrap; }
-.rw .ret-inp { width:48px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
-.rw .prem-wrap { display:flex; align-items:center; gap:5px; background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; padding:5px 9px; cursor:pointer; }
-.rw .prem-wrap span { font-size:11px; color:var(--dim); white-space:nowrap; }
-.rw .prem-wrap input { width:14px; height:14px; accent-color:var(--gold); cursor:pointer; }
-.rw .inv-btn { background:linear-gradient(180deg,#4a3818,#2e2210); border:1px solid var(--bd); border-radius:3px; color:var(--lt); font-size:12px; padding:7px 12px; cursor:pointer; white-space:nowrap; transition:all .15s; flex:1; }
-.rw .inv-btn:hover, .rw .inv-btn.active { border-color:var(--gold); color:var(--gold); }
-.rw .reset-btn { background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-size:12px; padding:7px 12px; cursor:pointer; white-space:nowrap; }
-.rw .reset-btn:hover { border-color:#c04040; }
-
-/* INVENTORY */
-.rw .inv-section { padding:10px 12px; display:none; border-top:1px solid var(--bd); }
-.rw .inv-section.show { display:block; }
-.rw .inv-lbl { font-family:'Cinzel',serif; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-.rw .inv-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; }
-.rw .slot { aspect-ratio:1; background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; position:relative; cursor:pointer; overflow:hidden; }
-.rw .slot.filled:hover { border-color:var(--gold); }
-.rw .slot img { width:100%; height:100%; object-fit:contain; display:block; }
-.rw .slot .st { position:absolute; top:1px; left:1px; font-family:'Cinzel',serif; font-size:7px; font-weight:700; color:#fff; background:rgba(0,0,0,.7); padding:0 2px; border-radius:1px; }
-.rw .slot .sq { position:absolute; bottom:1px; right:2px; font-size:9px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; }
-.rw .slot .se { position:absolute; bottom:1px; left:2px; font-size:7px; font-weight:700; text-shadow:0 1px 2px #000; }
-.rw .slot .sh { position:absolute; top:1px; right:2px; font-size:7px; color:var(--gold); font-family:'Cinzel',serif; text-shadow:0 1px 2px #000; }
-
-/* TOMBOL REFINE */
-.rw .refine-btns { padding:10px 12px; display:none; border-top:1px solid var(--bd); background:rgba(0,0,0,.2); }
-.rw .refine-btns.show { display:block; }
-.rw .refine-btns-lbl { font-family:'Cinzel',serif; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
-.rw .refine-btns-grid { display:flex; flex-wrap:wrap; gap:6px; }
-.rw .rbtn { display:flex; flex-direction:column; align-items:center; gap:3px; background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--bd); border-radius:4px; padding:8px; cursor:pointer; transition:all .15s; min-width:68px; }
-.rw .rbtn:hover { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); }
-.rw .rbtn img { width:40px; height:40px; object-fit:contain; }
-.rw .rbtn .rb-name { font-size:9px; color:var(--lt); font-family:'Cinzel',serif; text-align:center; line-height:1.2; }
-.rw .rbtn .rb-qty { font-size:10px; color:var(--gold); font-family:'Cinzel',serif; font-weight:700; }
-
-/* COIN FOOTER */
-.rw .coin-footer { display:none; flex-direction:column; padding:10px 12px; background:rgba(0,0,0,.3); border-top:1px solid var(--bd); gap:8px; }
-.rw .coin-footer.show { display:flex; }
-.rw .coin-row { display:flex; justify-content:space-between; align-items:center; }
-.rw .coin-side { display:flex; align-items:center; gap:8px; }
-.rw .coin-icon { width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 35% 35%,#888,#333); display:flex; align-items:center; justify-content:center; font-size:13px; border:2px solid #555; flex-shrink:0; }
-.rw .coin-lbl { font-size:10px; color:var(--dim); display:block; }
-.rw .coin-val { font-family:'Cinzel',serif; font-size:15px; font-weight:700; color:var(--gold); }
-.rw .tax-row { display:flex; justify-content:space-between; padding-top:6px; border-top:1px solid rgba(107,79,26,.4); }
-.rw .tax-item { display:flex; flex-direction:column; }
-.rw .tax-item.right { align-items:flex-end; }
-.rw .tax-lbl { font-size:10px; color:var(--dim); }
-.rw .tax-val { font-family:'Cinzel',serif; font-size:13px; color:var(--lt); }
-.rw .profit-val { font-family:'Cinzel',serif; font-size:15px; font-weight:700; }
-.rw .profit-val.pos { color:#6f8; }
-.rw .profit-val.neg { color:#f86; }
-
-/* POPUP */
-.rw .overlay { position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:100; display:none; align-items:center; justify-content:center; }
-.rw .overlay.show { display:flex; }
-.rw .popup { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:2px solid var(--bd); border-radius:4px; box-shadow:0 8px 40px rgba(0,0,0,.9); width:310px; max-width:95vw; overflow:hidden; }
-.rw .pop-head { display:flex; gap:10px; padding:12px; background:linear-gradient(180deg,#4a3818,#2e2210); border-bottom:1px solid var(--bd); align-items:flex-start; }
-.rw .pop-icon { width:52px; height:52px; border:1px solid var(--sbd); border-radius:3px; background:var(--sbg); flex-shrink:0; object-fit:contain; }
-.rw .pop-name { font-family:'Cinzel',serif; font-size:14px; color:var(--gold); margin-bottom:3px; }
-.rw .pop-desc { font-size:11px; color:var(--dim); font-style:italic; }
-.rw .pop-close { margin-left:auto; background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:50%; color:#f0c0c0; width:24px; height:24px; font-size:13px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-.rw .pop-body { padding:12px; display:flex; flex-direction:column; gap:10px; }
-.rw .pop-field label { display:block; font-family:'Cinzel',serif; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
-.rw .pop-field input[type=number] { width:100%; background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-size:14px; padding:6px 9px; outline:none; }
-.rw .pop-field input[type=number]:focus { border-color:var(--gold); }
-.rw .slider-wrap { display:flex; align-items:center; gap:7px; }
-.rw .slider-wrap input[type=range] { flex:1; accent-color:var(--gold); }
-.rw .slider-val { background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; width:52px; text-align:center; padding:4px 5px; outline:none; }
-.rw .check-row { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--dim); cursor:pointer; }
-.rw .check-row input { width:15px; height:15px; accent-color:var(--gold); cursor:pointer; }
-.rw .pop-btn-row { display:flex; gap:7px; }
-.rw .btn-add { flex:1; background:linear-gradient(180deg,#4a6b1a,#2e4210); border:1px solid #6b8b30; border-radius:3px; color:#d0f0a0; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; text-transform:uppercase; }
-.rw .btn-add:hover { border-color:#8bc040; color:#fff; }
-.rw .btn-refine { flex:1; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; text-transform:uppercase; }
-.rw .btn-refine:hover { background:linear-gradient(180deg,#a05800,#703800); }
-.rw .btn-del { background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-family:'Cinzel',serif; font-size:12px; font-weight:700; padding:10px 13px; cursor:pointer; }
-.rw .btn-del:hover { border-color:#c04040; }
-.rw .pop-info { font-size:11px; color:var(--dim); background:rgba(0,0,0,.3); border-radius:3px; padding:6px 9px; line-height:1.6; }
-.rw .pop-info span { color:var(--lt); font-weight:600; }
-.rw .bahan-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
-.rw .bahan-slot { display:flex; flex-direction:column; align-items:center; gap:3px; }
-.rw .bahan-slot img { width:44px; height:44px; border:1px solid var(--sbd); border-radius:3px; background:var(--sbg); object-fit:contain; }
-.rw .bahan-qty { font-family:'Cinzel',serif; font-size:11px; font-weight:700; text-align:center; }
-.rw .bahan-qty .punya { color:#6f8; }
-.rw .bahan-qty .slash { color:var(--dim); }
-.rw .bahan-qty .butuh { color:var(--dim); }
-.rw .bahan-qty .kurang { color:#f86; }
-.rw .bahan-name { font-size:9px; color:var(--dim); text-align:center; max-width:52px; line-height:1.2; }
-.rw .bahan-arrow { font-size:16px; color:var(--dim); align-self:center; padding-bottom:18px; }
-.rw .fallback-tag { font-size:9px; color:var(--dim); font-style:italic; }
-
-.rw .empty-inv { text-align:center; padding:18px; color:var(--dim); font-style:italic; font-size:13px; }
-.rw .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:200; white-space:nowrap; }
-.rw .toast.show { transform:translateX(-50%) translateY(0); }
-
-/* MODE TOGGLE */
-.rw .mode-toggle { display:flex; gap:0; background:var(--sbg); border:1px solid var(--sbd); border-radius:4px; padding:3px; margin-bottom: 4px; }
-.rw .mode-btn { flex:1; background:transparent; border:none; color:var(--dim); font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; border-radius:3px; text-transform:uppercase; transition:all .15s; }
-.rw .mode-btn.active { background:linear-gradient(180deg,#4a3818,#2e2210); color:var(--gold); border:1px solid var(--bd); }
-
-/* WIZARD (MODE SIMPLE) */
-.rw .wiz-step { padding:14px 0; border-bottom:1px solid rgba(107,79,26,.3); }
-.rw .wiz-step:last-child { border-bottom:none; }
-.rw .wiz-label { font-family:'Cinzel',serif; font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
-.rw .wiz-options { display:flex; flex-wrap:wrap; gap:7px; }
-.rw .wiz-opt { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--bd); border-radius:4px; color:var(--lt); font-family:'Crimson Text',serif; font-size:14px; padding:9px 15px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px; }
-.rw .wiz-opt:hover { border-color:var(--gold); }
-.rw .wiz-opt.sel { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
-.rw .wiz-opt img { width:28px; height:28px; object-fit:contain; }
-.rw .wiz-input-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.rw .wiz-input-row label { font-size:12px; color:var(--dim); min-width:130px; }
-.rw .wiz-input-row input[type=number] { background:var(--sbg); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-size:14px; padding:8px 10px; outline:none; width:120px; }
-.rw .wiz-input-row input:focus { border-color:var(--gold); }
-.rw .wiz-btn-hitung { width:100%; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:12px; cursor:pointer; text-transform:uppercase; margin-top:4px; }
-.rw .wiz-btn-hitung:hover { background:linear-gradient(180deg,#a05800,#703800); }
-.rw .wiz-result { margin:14px 0; background:linear-gradient(180deg,#2e2210,#1e1608); border:2px solid var(--bd); border-radius:4px; padding:16px; }
-.rw .wiz-result-text { font-size:15px; line-height:1.7; color:var(--lt); }
-.rw .wiz-result-text b { color:var(--gold); }
-
-  
-</style>
 
 <div class="rw">
   <div class="app">
@@ -272,105 +90,111 @@
         <span class="api-status" id="apiStatus"></span>
       </div>
 
-      <div class="flt-bar" id="fltBarRefine">
-        <!-- MATERIAL (2 level: Jenis -> Mentah/Hasil) -->
-        <div class="flt-wrap">
-          <div class="flt-btn" id="btnMat" onclick="toggleDrop('mat')">
-            <span class="flt-label" id="lblMat">Material</span>
-            <span class="flt-val" id="valMat" style="display:none"></span>
-            <span class="flt-arrow">▼</span>
-          </div>
-          <div class="drop-wrap" id="dropMat">
-            <div class="drop-col" id="colMat1"></div>
-            <div class="drop-col" id="colMat2" style="display:none"></div>
-          </div>
-        </div>
-        <!-- TIER -->
-        <div class="flt-wrap">
-          <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
-            <span class="flt-label" id="lblTier">Tier</span>
-            <span class="flt-val" id="valTier" style="display:none"></span>
-            <span class="flt-arrow">▼</span>
-          </div>
-          <div class="drop-wrap" id="dropTier">
-            <div class="drop-col" id="colTier"></div>
-          </div>
-        </div>
-        <!-- ENCHANT -->
-        <div class="flt-wrap">
-          <div class="flt-btn" id="btnEnc" onclick="toggleDrop('enc')">
-            <span class="flt-label" id="lblEnc">Enchant</span>
-            <span class="flt-val" id="valEnc" style="display:none"></span>
-            <span class="flt-arrow">▼</span>
-          </div>
-          <div class="drop-wrap" id="dropEnc">
-            <div class="drop-col" id="colEnc"></div>
-          </div>
-        </div>
-        <!-- KOTA -->
-        <div class="flt-wrap">
-          <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
-            <span class="flt-label" id="lblKota" style="display:none">Kota</span>
-            <span class="flt-val" id="valKota">Caerleon</span>
-            <span class="flt-arrow">▼</span>
-          </div>
-          <div class="drop-wrap" id="dropKota">
-            <div class="drop-col" id="colKota"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="item-list" id="itemList"></div>
-
-      <div class="bot-bar">
-        <div class="ret-wrap">
-          <label>♻️ Return</label>
-          <input class="ret-inp" type="number" id="returnRate" value="36.7" min="0" max="100" step="0.1">
-          <span style="color:var(--dim);font-size:12px">%</span>
-        </div>
-        <div class="prem-wrap" onclick="document.getElementById('cbPrem').click()">
-          <input type="checkbox" id="cbPrem" onclick="event.stopPropagation()" onchange="updateFooter()">
-          <span>👑 Premium</span>
-        </div>
-        <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
-        <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
-      </div>
-
-      <div class="inv-section" id="invSection">
-        <div class="inv-lbl">📦 Inventory</div>
-        <div class="inv-grid" id="invGrid"></div>
-      </div>
-
-      <div class="refine-btns" id="refineBtns">
-        <div class="refine-btns-lbl">⚔️ Refine Tersedia</div>
-        <div class="refine-btns-grid" id="refineBtnsGrid"></div>
-      </div>
-
-      <div class="coin-footer" id="coinFooter">
-        <div class="coin-row">
-          <div class="coin-side">
-            <div class="coin-icon">🪙</div>
-            <div>
-              <span class="coin-lbl">Modal Awal</span>
-              <span class="coin-val" id="coinModal">0</span>
+      <div class="rw-main">
+        <div class="rw-col-left">
+          <div class="flt-bar" id="fltBarRefine">
+            <!-- MATERIAL (2 level: Jenis -> Mentah/Hasil) -->
+            <div class="flt-wrap">
+              <div class="flt-btn" id="btnMat" onclick="toggleDrop('mat')">
+                <span class="flt-label" id="lblMat">Material</span>
+                <span class="flt-val" id="valMat" style="display:none"></span>
+                <span class="flt-arrow">▼</span>
+              </div>
+              <div class="drop-wrap" id="dropMat">
+                <div class="drop-col" id="colMat1"></div>
+                <div class="drop-col" id="colMat2" style="display:none"></div>
+              </div>
+            </div>
+            <!-- TIER -->
+            <div class="flt-wrap">
+              <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
+                <span class="flt-label" id="lblTier">Tier</span>
+                <span class="flt-val" id="valTier" style="display:none"></span>
+                <span class="flt-arrow">▼</span>
+              </div>
+              <div class="drop-wrap" id="dropTier">
+                <div class="drop-col" id="colTier"></div>
+              </div>
+            </div>
+            <!-- ENCHANT -->
+            <div class="flt-wrap">
+              <div class="flt-btn" id="btnEnc" onclick="toggleDrop('enc')">
+                <span class="flt-label" id="lblEnc">Enchant</span>
+                <span class="flt-val" id="valEnc" style="display:none"></span>
+                <span class="flt-arrow">▼</span>
+              </div>
+              <div class="drop-wrap" id="dropEnc">
+                <div class="drop-col" id="colEnc"></div>
+              </div>
+            </div>
+            <!-- KOTA -->
+            <div class="flt-wrap">
+              <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
+                <span class="flt-label" id="lblKota" style="display:none">Kota</span>
+                <span class="flt-val" id="valKota">Caerleon</span>
+                <span class="flt-arrow">▼</span>
+              </div>
+              <div class="drop-wrap" id="dropKota">
+                <div class="drop-col" id="colKota"></div>
+              </div>
             </div>
           </div>
-          <div class="coin-side">
-            <div>
-              <span class="coin-lbl" style="text-align:right;display:block">Nilai Sekarang</span>
-              <span class="coin-val" id="coinNilai">0</span>
+
+          <div class="item-list" id="itemList"></div>
+
+          <div class="bot-bar">
+            <div class="ret-wrap">
+              <label>♻️ Return</label>
+              <input class="ret-inp" type="number" id="returnRate" value="36.7" min="0" max="100" step="0.1">
+              <span style="color:var(--dim);font-size:12px">%</span>
             </div>
-            <div class="coin-icon">🪙</div>
+            <div class="prem-wrap" onclick="document.getElementById('cbPrem').click()">
+              <input type="checkbox" id="cbPrem" onclick="event.stopPropagation()" onchange="updateFooter()">
+              <span>👑 Premium</span>
+            </div>
+            <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
+            <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
           </div>
         </div>
-        <div class="tax-row">
-          <div class="tax-item">
-            <span class="tax-lbl" id="taxLbl">Pajak (8%)</span>
-            <span class="tax-val" id="taxVal">0</span>
+
+        <div class="rw-col-right">
+          <div class="inv-section" id="invSection">
+            <div class="inv-lbl">📦 Inventory</div>
+            <div class="inv-grid" id="invGrid"></div>
           </div>
-          <div class="tax-item right">
-            <span class="tax-lbl">Profit Bersih</span>
-            <span class="profit-val" id="profitVal">0</span>
+
+          <div class="refine-btns" id="refineBtns">
+            <div class="refine-btns-lbl">⚔️ Refine Tersedia</div>
+            <div class="refine-btns-grid" id="refineBtnsGrid"></div>
+          </div>
+
+          <div class="coin-footer" id="coinFooter">
+            <div class="coin-row">
+              <div class="coin-side">
+                <div class="coin-icon">🪙</div>
+                <div>
+                  <span class="coin-lbl">Modal Awal</span>
+                  <span class="coin-val" id="coinModal">0</span>
+                </div>
+              </div>
+              <div class="coin-side">
+                <div>
+                  <span class="coin-lbl" style="text-align:right;display:block">Nilai Sekarang</span>
+                  <span class="coin-val" id="coinNilai">0</span>
+                </div>
+                <div class="coin-icon">🪙</div>
+              </div>
+            </div>
+            <div class="tax-row">
+              <div class="tax-item">
+                <span class="tax-lbl" id="taxLbl">Pajak (8%)</span>
+                <span class="tax-val" id="taxVal">0</span>
+              </div>
+              <div class="tax-item right">
+                <span class="tax-lbl">Profit Bersih</span>
+                <span class="profit-val" id="profitVal">0</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -703,6 +527,37 @@ let popupItem  = null;
 let popupInvIdx = null;
 let refineTarget = null; // item hasil yang akan di-refine
 let sudahCatat = false;
+let habisPref = true; // preferensi terakhir user buat checkbox "Habis" — persist antar popup, gak dipaksa reset
+
+// ------------------------------------------------------------
+// PERSISTENCE — simpan inventory ke localStorage biar gak hilang
+// pas reload. Item disimpan by `api` (key unik) trus dicocokin
+// lagi ke ITEMS pas restore, bukan nyimpen object item mentah-mentah.
+// ------------------------------------------------------------
+const REFINE_STORAGE_KEY = 'ct_refine_inventory';
+
+function saveRefineInventory() {
+  try {
+    localStorage.setItem(REFINE_STORAGE_KEY, JSON.stringify(
+      inventory.map(inv => ({ api: inv.item.api, qty: inv.qty, harga: inv.harga }))
+    ));
+  } catch (e) {}
+}
+
+function loadRefineInventory() {
+  try {
+    const raw = localStorage.getItem(REFINE_STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!Array.isArray(saved)) return;
+    inventory = saved
+      .map(s => {
+        const item = ITEMS.find(it => it.api === s.api);
+        return item ? { item, qty: s.qty, harga: s.harga } : null;
+      })
+      .filter(Boolean);
+  } catch (e) {}
+}
 
 function iconUrl(api) {
   const base = api.includes('@') ? api.split('@')[0] : api;
@@ -1010,6 +865,7 @@ function doAdd() {
   if (!invShown) toggleInv();
   closeOverlay('overlayItem');
   renderInventory(); renderRefineBtns(); updateFooter();
+  saveRefineInventory();
 }
 
 function doEdit() {
@@ -1018,6 +874,7 @@ function doEdit() {
   inventory[popupInvIdx].harga = parseFloat(document.getElementById('popHarga').value)||0;
   closeOverlay('overlayItem');
   renderInventory(); renderRefineBtns(); updateFooter();
+  saveRefineInventory();
   showToast('✏️ Diperbarui');
 }
 
@@ -1026,6 +883,7 @@ function doEditHarga() {
   inventory[popupInvIdx].harga = parseFloat(document.getElementById('popHarga').value)||0;
   closeOverlay('overlayItem');
   updateFooter();
+  saveRefineInventory();
   showToast('💰 Harga diperbarui');
 }
 
@@ -1035,6 +893,7 @@ function doHapus() {
   inventory.splice(popupInvIdx,1);
   closeOverlay('overlayItem');
   renderInventory(); renderRefineBtns(); updateFooter();
+  saveRefineInventory();
   showToast(`🗑 ${nama} dihapus`);
 }
 
@@ -1196,9 +1055,10 @@ function openRefinePopup(i) {
   // Slider
   const sl=document.getElementById('rSlider'), rv=document.getElementById('rQty');
   sl.max=b.maxOutput; sl.value=b.maxOutput; rv.max=b.maxOutput; rv.value=b.maxOutput;
-  document.getElementById('rHabis').checked=true;
-  document.getElementById('rQtyField').style.opacity='0.4';
-  sl.disabled=true; rv.disabled=true;
+  document.getElementById('rHabis').checked = habisPref;
+  document.getElementById('rQtyField').style.opacity = habisPref ? '0.4' : '1';
+  sl.disabled = habisPref; rv.disabled = habisPref;
+  if (!habisPref) { sl.value = b.maxOutput; rv.value = b.maxOutput; } // titik awal masuk akal, tetep bisa diubah manual
 
   openOverlay('overlayRefine');
 }
@@ -1212,6 +1072,7 @@ function syncRQty(src) {
 
 function onRHabisChange() {
   const checked=document.getElementById('rHabis').checked;
+  habisPref = checked; // ingat pilihan user, jangan direset lagi pas popup dibuka ulang
   const sl=document.getElementById('rSlider'), rv=document.getElementById('rQty');
   document.getElementById('rQtyField').style.opacity=checked?'0.4':'1';
   sl.disabled=checked; rv.disabled=checked;
@@ -1295,6 +1156,7 @@ function doRefine() {
   renderInventory();
   renderRefineBtns();
   updateFooter();
+  saveRefineInventory();
   showToast(`⚔️ Refine → ${outQty} ${b.hasilItem.name}`);
 
   if (!sudahCatat) { sudahCatat=true; catatAktivitas(); }
@@ -1374,7 +1236,9 @@ buildTierDropRefine();
 buildEncDropRefine();
 buildKotaDropRefine();
 filterItems();
+loadRefineInventory(); // pulihkan inventory dari sesi sebelumnya (kalau ada)
 renderInventory();
+renderRefineBtns();
 onKotaChange();
 initWizard();
 applyUrlJenisAdvance();

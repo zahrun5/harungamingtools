@@ -38,6 +38,14 @@ class RefreshCategoryPricesJob implements ShouldQueue
 
     private const CITIES = ['Caerleon', 'Bridgewatch', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
 
+    // Base URL AODP per server — samain persis sama MarketController::aodpBaseUrl(),
+    // biar job ini fetch dari region yang bener, bukan selalu hardcode Americas.
+    private const AODP_BASE_URL = [
+        'americas' => 'https://west.albion-online-data.com',
+        'europe'   => 'https://europe.albion-online-data.com',
+        'asia'     => 'https://east.albion-online-data.com',
+    ];
+
     // Kalau gagal (misal API luar down), jangan retry berkali-kali percuma.
     public int $tries = 1;
 
@@ -45,7 +53,9 @@ class RefreshCategoryPricesJob implements ShouldQueue
     // kalau API luar hang. Sesuaikan kalau kategorinya besar & butuh lebih lama.
     public int $timeout = 180;
 
-    public function __construct(private readonly int $categoryId)
+    // $server diisi controller pas dispatch (dari session('server')), biar job
+    // tau harus fetch & cache buat region mana. Default 'americas' kalau kosong.
+    public function __construct(private readonly int $categoryId, private readonly string $server = 'americas')
     {
     }
 
@@ -76,9 +86,11 @@ class RefreshCategoryPricesJob implements ShouldQueue
             $idsCsv = $chunk->map(fn ($i) => ($i->enc > 0 ? "{$i->api_id}@{$i->enc}" : $i->api_id))
                 ->implode(',');
 
+            $baseUrl = self::AODP_BASE_URL[$this->server] ?? self::AODP_BASE_URL['americas'];
+
             try {
                 $response = Http::timeout(15)->get(
-                    "https://west.albion-online-data.com/api/v2/stats/prices/{$idsCsv}",
+                    "{$baseUrl}/api/v2/stats/prices/{$idsCsv}",
                     ['locations' => $citiesParam, 'qualities' => 1]
                 );
 
@@ -95,7 +107,7 @@ class RefreshCategoryPricesJob implements ShouldQueue
                             : [$row['item_id'], '0'];
 
                         ItemPrice::updateOrCreate(
-                            ['item_api_id' => $apiId, 'enc' => (int) $enc, 'city' => $row['city']],
+                            ['item_api_id' => $apiId, 'enc' => (int) $enc, 'city' => $row['city'], 'server' => $this->server],
                             ['sell_price_min' => $price, 'fetched_at' => $now]
                         );
                     }
@@ -122,3 +134,4 @@ class RefreshCategoryPricesJob implements ShouldQueue
         return $ids;
     }
 }
+

@@ -65,4 +65,11 @@ class ItemLocalization extends Model
 
         return $result;
     }
+    
+    public function localizations()
+{
+    return $this->hasMany(ItemLocalization::class, 'api_id', 'api_id');
+}
+
+  
 }

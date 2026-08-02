@@ -16,6 +16,22 @@ class MarketController extends Controller
     // Daftar kota yang dipakai buat cache harga (samain urutannya sama CITIES di frontend)
     private const CITIES = ['Caerleon', 'Bridgewatch', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
 
+    // Base URL AODP per server — tiap region Albion punya market/ekonomi terpisah,
+    // jadi endpoint API-nya juga beda per server.
+    private const AODP_BASE_URL = [
+        'americas' => 'https://west.albion-online-data.com',
+        'europe'   => 'https://europe.albion-online-data.com',
+        'asia'     => 'https://east.albion-online-data.com',
+    ];
+
+    // Ambil base URL AODP sesuai server yang lagi dipilih user (session), fallback ke Americas.
+    private function aodpBaseUrl(): string
+    {
+        $server = session('server', 'americas');
+        \Log::info('aodpBaseUrl dipanggil', ['session_server' => $server, 'session_id' => session()->getId()]);
+        return self::AODP_BASE_URL[$server] ?? self::AODP_BASE_URL['americas'];
+    }
+
 /**
 	 * ===========================================================
 	 * PATCH v2 - MarketController.php
@@ -62,8 +78,8 @@ class MarketController extends Controller
 	private function parseApiId(string $apiId): array
 	{
     // 0) Cek dulu ke ItemLocalization - sumber resmi & paling akurat
-    $locName = \App\Models\ItemLocalization::nameFor($apiId, 'EN-US');
-    if ($locName) {
+$locName = \App\Models\ItemLocalization::nameFor($apiId, \App\Models\Item::currentApiLocale());
+if ($locName) {
         $enc = 0;
         if (preg_match('/_LEVEL(\d)$/', $apiId, $m)) {
             $enc = (int) $m[1];
@@ -142,17 +158,23 @@ class MarketController extends Controller
 
 	// --- GANTI recipeItems() DENGAN INI (versi grouping per-base-item) ---
 
+	// ─── GANTI bagian recipeItems() ini (cuma sampai $allApiIds), sisanya SAMA persis ───
+	
 	public function recipeItems(Request $request)
 	{
 	    $perPageGroups = 20; // jumlah GROUP (base item) per halaman, bukan jumlah row
 	    $page   = max(1, (int) $request->get('page', 1));
 	    $search = trim($request->get('search', ''));
-
-	    // Item yang belum di-DB itu bisa muncul dari 2 sisi:
+	
+	    // Item yang belum di-DB itu bisa muncul dari 3 sisi:
 	    // - sebagai HASIL craft (item_api_id) -> equipment/consumable biasa
 	    // - sebagai BAHAN craft (resource_api_id) -> resource/token/artefact yang
-	    //   sendirinya gak pernah jadi output craft (misal T7_ARTEFACT_TOKEN_FAVOR_3),
-	    //   jadi kalau cuma scan item_api_id doang, dia gak akan pernah ketangkep.
+	    //   sendirinya gak pernah jadi output craft (misal T7_ARTEFACT_TOKEN_FAVOR_3)
+	    // - ada di items.xml TAPI gak pernah nyantol ke item_recipes sama sekali
+	    //   (misal food & potion — mereka di-craft lewat cooking/alchemy, bukan
+	    //   dari data yang masuk ke item_recipes, jadi 2 query di atas gak akan
+	    //   pernah nangkep mereka. Makanya perlu sumber ke-3: catalog.json hasil
+	    //   parse langsung dari items.xml, lewat `php artisan albion:build-catalog`)
 	    $missingOutputIds = DB::table('item_recipes')
 	        ->select('item_api_id as api_id')
 	        ->distinct()
@@ -162,7 +184,7 @@ class MarketController extends Controller
 	        ->where('item_api_id', 'not like', 'QUESTITEM%')
 	        ->where('item_api_id', 'not like', 'UNIQUE%')
 	        ->pluck('api_id');
-
+	
 	    $missingResourceIds = DB::table('item_recipes')
 	        ->select('resource_api_id as api_id')
 	        ->distinct()
@@ -173,15 +195,32 @@ class MarketController extends Controller
 	        ->where('resource_api_id', 'not like', 'QUESTITEM%')
 	        ->where('resource_api_id', 'not like', 'UNIQUE%')
 	        ->pluck('api_id');
-
-	    // Gabung dua sisi, dedup, lalu urut. Karena grouping di bawah tetap pakai
+	
+	    // Sumber ke-3: catalog.json (semua uniquename dari items.xml)
+	    $missingCatalogIds = collect();
+	    $catalogPath = storage_path('app/private/albion/catalog.json');
+	    if (file_exists($catalogPath)) {
+	        $catalogIds = collect(json_decode(file_get_contents($catalogPath), true) ?? []);
+	        $existingApiIds = DB::table('items')->pluck('api_id')->flip(); // O(1) lookup
+	
+	        $missingCatalogIds = $catalogIds
+	            ->reject(fn($id) => $existingApiIds->has($id))
+	            ->reject(fn($id) => str_starts_with($id, 'QUESTITEM'))
+	            ->reject(fn($id) => str_starts_with($id, 'UNIQUE'))
+	            ->values();
+	    }
+	
+	    // Gabung tiga sisi, dedup, lalu urut. Karena grouping di bawah tetap pakai
 	    // getBaseKey() yang sama, tier lain dari base item yang sama (T1..T8)
 	    // otomatis ikut kebawa bareng dalam satu grup - gak perlu dicari manual
 	    // satu-satu per tier lagi.
 	    $allApiIds = $missingOutputIds->merge($missingResourceIds)
+	        ->merge($missingCatalogIds)
 	        ->unique()
 	        ->sort()
 	        ->values();
+
+
 
 	    if ($search !== '') {
 	        // "nama item" itu hasil olahan parseApiId(), BUKAN kolom asli di DB,
@@ -304,6 +343,7 @@ class MarketController extends Controller
             'category_id' => 'nullable|integer|exists:categories,id',
             'tier'        => 'nullable|integer|min:1|max:8',
             'enc'         => 'nullable|integer|min:0|max:4',
+            'quality'     => 'nullable|string|in:Normal,Good,Outstanding,Excellent,Masterpiece',
         ]);
 
         $query = Item::with('category');
@@ -327,28 +367,41 @@ class MarketController extends Controller
             $query->where('enc', $request->enc);
         }
 
+        if ($request->filled('quality')) {
+            $query->where('quality', $request->quality);
+        }
+
         $items = $query->orderBy('tier')->orderBy('name')->get();
 
         // List sengaja TIDAK ikut ambil harga sama sekali (dulu sempat join ke
         // item_prices di sini, tapi bikin berat kalau list-nya panjang). Harga
         // cuma di-fetch pas user buka popup item (real-time-first, lihat
         // refreshPrices() / itemDetail()).
-        $items = $items->map(function ($item) {
+        $apiLocale = \App\Models\Item::currentApiLocale();
+        $localizedNames = \App\Models\ItemLocalization::namesFor(
+            $items->pluck('api_id')->filter()->unique()->values()->all(),
+            $apiLocale
+        );
+
+        $items = $items->map(function ($item) use ($localizedNames) {
             $enc = (int) ($item->enc ?? 0);
             $apiIdWithEnc = $item->api_id
                 ? ($enc > 0 ? "{$item->api_id}@{$enc}" : $item->api_id)
                 : null;
 
+            $qualityInt = Item::QUALITY_MAP[$item->quality] ?? null;
+            $qualitySuffix = $qualityInt ? "?quality={$qualityInt}" : '';
+
             return [
                 'id'       => $item->id,
-                'name'     => $item->name,
+                'name'     => $localizedNames[$item->api_id] ?? $item->name,
                 'api_id'   => $item->api_id,
                 'tier'     => $item->tier,
                 'enc'      => $item->enc,
                 'quality'  => $item->quality,
                 'category' => $item->category->name ?? '-',
                 'img_url'  => $apiIdWithEnc
-                    ? "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png"
+                    ? "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png{$qualitySuffix}"
                     : null,
             ];
         });
@@ -391,7 +444,7 @@ public function itemDetail($id)
                 'resource_api_id'            => $r->resource_api_id,
                 'resource_enchantment_level' => $r->resource_enchantment_level,
                 'count'   => $r->count,
-                'name'    => $resItem?->name ?? $this->prettifyApiId($r->resource_api_id),
+                'name'    => $resItem?->localized_name ?? $this->prettifyApiId($r->resource_api_id),
                 'item_id' => $resItem?->id,
                 'img_url' => "https://render.albiononline.com/v1/item/{$r->resource_api_id}{$encSuffix}.png",
             ];
@@ -401,6 +454,7 @@ public function itemDetail($id)
         // pas popup dibuka, bukan fetch langsung dari sini.
         $cachedPrices = ItemPrice::where('item_api_id', $item->api_id)
             ->where('enc', $encLevel)
+            ->where('server', session('server', 'americas'))
             ->get()
             ->keyBy('city');
 
@@ -410,7 +464,7 @@ public function itemDetail($id)
 
         return response()->json([
             'id'        => $item->id,
-            'name'      => $item->name,
+            'name'      => $item->localized_name,
             'api_id'    => $item->api_id,
             'tier'      => $item->tier,
             'enc'       => $encLevel,
@@ -432,15 +486,32 @@ public function itemDetail($id)
         $data = null;
         try {
             $response = Http::timeout(8)->get(
-                "https://west.albion-online-data.com/api/v2/stats/prices/{$apiIdWithEnc}",
+                $this->aodpBaseUrl() . "/api/v2/stats/prices/{$apiIdWithEnc}",
                 ['locations' => $citiesParam, 'qualities' => 1]
             );
             if ($response->successful()) {
                 $data = $response->json();
+                \Log::info('AODP response diterima', [
+                    'url'          => $this->aodpBaseUrl() . "/api/v2/stats/prices/{$apiIdWithEnc}",
+                    'jumlah_entry' => is_array($data) ? count($data) : 'bukan array',
+                    'data'         => $data,
+                ]);
+            } else {
+                \Log::warning('AODP fetch gagal (non-2xx)', [
+                    'url'    => $this->aodpBaseUrl() . "/api/v2/stats/prices/{$apiIdWithEnc}",
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
             }
         } catch (\Throwable $e) {
+            \Log::warning('AODP fetch exception', [
+                'url'   => $this->aodpBaseUrl() . "/api/v2/stats/prices/{$apiIdWithEnc}",
+                'error' => $e->getMessage(),
+            ]);
             $data = null; // API gagal/timeout -> di bawah kita fallback ke cache lama
         }
+
+        $server = session('server', 'americas');
 
         if (is_array($data)) {
             $now = now();
@@ -452,16 +523,22 @@ public function itemDetail($id)
                 // Kalau API kosong/0 untuk kota itu, BIARKAN data cache lama tetap
                 // (jangan ditimpa 0), biar gak kehilangan harga terakhir yang valid.
                 if ($price > 0) {
-                    ItemPrice::updateOrCreate(
-                        ['item_api_id' => $item->api_id, 'enc' => $enc, 'city' => $city],
-                        ['sell_price_min' => $price, 'fetched_at' => $now]
-                    );
+                    try {
+                        ItemPrice::updateOrCreate(
+                            ['item_api_id' => $item->api_id, 'enc' => $enc, 'city' => $city, 'server' => $server],
+                            ['sell_price_min' => $price, 'fetched_at' => $now]
+                        );
+                    } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                        // Race condition: request lain barusan nulis baris yang sama duluan.
+                        // Aman diabaikan — datanya udah ke-update oleh request lain itu.
+                    }
                 }
             }
         }
 
         $cachedPrices = ItemPrice::where('item_api_id', $item->api_id)
             ->where('enc', $enc)
+            ->where('server', $server)
             ->get()
             ->keyBy('city');
 
@@ -579,16 +656,21 @@ public function saveItems(Request $request)
         'items.*.category_id' => 'required|integer|exists:categories,id',
     ]);
 
-    $inserted = 0;
-    foreach ($request->items as $row) {
-        $enc = $row['enc'] ?? 0;
-
-        // Skip jika kombinasi api_id + enc sudah ada
-        $exists = DB::table('items')
-            ->where('api_id', $row['api_id'])
-            ->where('enc', $enc)
-            ->exists();
-        if ($exists) continue;
+	$inserted = 0;
+	$seenInBatch = []; // cegah item sama ke-insert berkali-kali dalam satu request
+	foreach ($request->items as $row) {
+	    $enc = $row['enc'] ?? 0;
+	    $batchKey = $row['api_id'] . '|' . $enc;
+	
+	    if (isset($seenInBatch[$batchKey])) continue;
+	    $seenInBatch[$batchKey] = true;
+	
+	    // Skip jika kombinasi api_id + enc sudah ada
+	    $exists = DB::table('items')
+	        ->where('api_id', $row['api_id'])
+	        ->where('enc', $enc)
+	        ->exists();
+	    if ($exists) continue;
 
         DB::table('items')->insert([
             'api_id'      => $row['api_id'],
@@ -605,4 +687,70 @@ public function saveItems(Request $request)
 
     return response()->json(['saved' => $inserted]);
 }
+
+
+public function priceHistory(Request $request, string $id)
+{
+    $city     = $request->query('city');
+    $enc      = (int) $request->query('enc', 0);
+    $days     = (int) $request->query('days', 30);
+    $quality  = (int) $request->query('quality', 1);
+    $server   = $request->query('server', session('server', 'americas'));
+
+    if (!$city) {
+        return response()->json(['message' => 'city wajib diisi'], 422);
+    }
+
+    // Samain persis pola aodpBaseUrl() yang udah ada di controller ini.
+    $baseUrl = $this->aodpBaseUrl($server);
+
+    $itemId = $enc > 0 ? "{$id}@{$enc}" : $id;
+
+    $startDate = now()->subDays($days)->format('Y-m-d');
+    $endDate   = now()->format('Y-m-d');
+
+    try {
+        $response = Http::timeout(15)->get(
+            "{$baseUrl}/api/v2/stats/charts/{$itemId}.json",
+            [
+                'locations'  => $city,
+                'qualities'  => $quality,
+                'time-scale' => 24, // 24 = per hari; AODP juga support 1 = per jam
+                'date'       => $startDate,
+                'end_date'   => $endDate,
+            ]
+        );
+    } catch (\Throwable $e) {
+        return response()->json(['message' => 'Gagal menghubungi AODP', 'data' => []], 200);
+    }
+
+    if (!$response->successful()) {
+        return response()->json(['message' => 'AODP gak merespon', 'data' => []], 200);
+    }
+
+    $json = $response->json();
+
+    // AODP balikin array of object per city; kita cuma minta 1 city jadi ambil index 0.
+    $entry = $json[0] ?? null;
+
+    if (!$entry || empty($entry['data'] ?? [])) {
+        return response()->json(['message' => 'Data historis tidak cukup', 'data' => []], 200);
+    }
+
+    $timestamps = $entry['data']['timestamps'] ?? [];
+    $prices     = $entry['data']['prices_avg'] ?? [];
+
+    $cutoff = now()->subDays($days);
+
+    $result = collect($timestamps)
+        ->map(fn ($ts, $i) => [
+            'date'  => $ts,
+            'price' => (int) ($prices[$i] ?? 0),
+        ])
+        ->filter(fn ($row) => \Carbon\Carbon::parse($row['date'])->gte($cutoff) && $row['price'] > 0)
+        ->values();
+
+    return response()->json(['message' => 'ok', 'data' => $result]);
+}
+
 }

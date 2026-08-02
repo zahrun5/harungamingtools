@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kalkulator Mancing - HarunGamingTools')
+@section('title', 'Kalkulator Mancing - Albion Online Tools')
 
 @section('content')
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -144,6 +144,21 @@
 
 .fish-wrap .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:200; white-space:nowrap; }
 .fish-wrap .toast.show{ transform:translateX(-50%) translateY(0); }
+
+/* DESKTOP TWO-COLUMN LAYOUT (item list kiri, inventory+hasil kanan) */
+.fish-wrap .rw-main{ display:flex; flex-direction:column; }
+.fish-wrap .rw-col-left, .fish-wrap .rw-col-right{ display:flex; flex-direction:column; min-width:0; }
+
+@media (min-width:960px){
+  .fish-wrap .app{ max-width:1180px; }
+  .fish-wrap .rw-main{ flex-direction:row; align-items:flex-start; }
+  .fish-wrap .rw-col-left{ flex:1 1 auto; border-right:1px solid var(--bd); }
+  .fish-wrap .rw-col-right{ flex:0 0 340px; }
+  .fish-wrap .item-list{ max-height:600px; }
+  /* Inventory selalu tampil di sidebar kanan, lepas dari state toggle .show */
+  .fish-wrap .inv-section{ display:block !important; border-top:none; }
+  .fish-wrap #invBtn{ display:none; }
+}
 </style>
 
 <div class="fish-wrap">
@@ -157,77 +172,83 @@
         <span class="api-status" id="apiStatus"></span>
       </div>
 
-      <div class="flt-bar" id="fltBarFish">
-        <!-- TIER -->
-        <div class="flt-wrap">
-          <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
-            <span class="flt-label" id="lblTier">Tier</span>
-            <span class="flt-val" id="valTier" style="display:none"></span>
-            <span class="flt-arrow">▼</span>
-          </div>
-          <div class="drop-wrap" id="dropTier">
-            <div class="drop-col" id="colTier"></div>
-          </div>
-        </div>
-        <!-- KOTA -->
-        <div class="flt-wrap">
-          <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
-            <span class="flt-label" id="lblKota" style="display:none">Kota</span>
-            <span class="flt-val" id="valKota">Thetford</span>
-            <span class="flt-arrow">▼</span>
-          </div>
-          <div class="drop-wrap" id="dropKota">
-            <div class="drop-col" id="colKota"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="item-list" id="itemList"></div>
-
-      <div class="bot-bar">
-        <div class="ret-wrap">
-          <label>🥩 Cincang (T1)</label>
-          <input class="ret-inp" type="number" id="hargaCincang" value="336" min="1" onchange="renderInventory()">
-        </div>
-        <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
-        <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
-      </div>
-
-      <div class="inv-section" id="invSection">
-        <div class="inv-lbl">📦 Inventory</div>
-        <div class="inv-grid" id="invGrid"></div>
-      </div>
-
-      <div class="preview-section" id="previewSection">
-        <div class="inv-lbl">📊 Perbandingan (kalau diproses sekarang)</div>
-        <div class="summary-grid" id="summaryGrid"></div>
-      </div>
-
-      <div class="hitung-wrap">
-        <button class="btn-hitung" onclick="prosesCincang()">🔪 Proses Cincang</button>
-      </div>
-
-      <div class="coin-footer" id="coinFooter">
-        <div class="coin-row">
-          <div class="coin-side">
-            <div class="coin-icon">🪙</div>
-            <div>
-              <span class="coin-lbl">Modal (Ikan Sebelum Diproses)</span>
-              <span class="coin-val" id="coinModal">0</span>
+      <div class="rw-main">
+        <div class="rw-col-left">
+          <div class="flt-bar" id="fltBarFish">
+            <!-- TIER -->
+            <div class="flt-wrap">
+              <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
+                <span class="flt-label" id="lblTier">Tier</span>
+                <span class="flt-val" id="valTier" style="display:none"></span>
+                <span class="flt-arrow">▼</span>
+              </div>
+              <div class="drop-wrap" id="dropTier">
+                <div class="drop-col" id="colTier"></div>
+              </div>
+            </div>
+            <!-- KOTA -->
+            <div class="flt-wrap">
+              <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
+                <span class="flt-label" id="lblKota" style="display:none">Kota</span>
+                <span class="flt-val" id="valKota">Thetford</span>
+                <span class="flt-arrow">▼</span>
+              </div>
+              <div class="drop-wrap" id="dropKota">
+                <div class="drop-col" id="colKota"></div>
+              </div>
             </div>
           </div>
-          <div class="coin-side">
-            <div>
-              <span class="coin-lbl" style="text-align:right;display:block">Nilai Sekarang</span>
-              <span class="coin-val" id="coinNilai">0</span>
+
+          <div class="item-list" id="itemList"></div>
+
+          <div class="bot-bar">
+            <div class="ret-wrap">
+              <label>🥩 Cincang (T1)</label>
+              <input class="ret-inp" type="number" id="hargaCincang" value="336" min="1" onchange="renderInventory()">
             </div>
-            <div class="coin-icon">🪙</div>
+            <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
+            <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
           </div>
         </div>
-        <div class="profit-row">
-          <div class="profit-item">
-            <span class="profit-lbl">Profit</span>
-            <span class="profit-val" id="profitVal">0</span>
+
+        <div class="rw-col-right">
+          <div class="inv-section" id="invSection">
+            <div class="inv-lbl">📦 Inventory</div>
+            <div class="inv-grid" id="invGrid"></div>
+          </div>
+
+          <div class="preview-section" id="previewSection">
+            <div class="inv-lbl">📊 Perbandingan (kalau diproses sekarang)</div>
+            <div class="summary-grid" id="summaryGrid"></div>
+          </div>
+
+          <div class="hitung-wrap">
+            <button class="btn-hitung" onclick="prosesCincang()">🔪 Proses Cincang</button>
+          </div>
+
+          <div class="coin-footer" id="coinFooter">
+            <div class="coin-row">
+              <div class="coin-side">
+                <div class="coin-icon">🪙</div>
+                <div>
+                  <span class="coin-lbl">Modal (Ikan Sebelum Diproses)</span>
+                  <span class="coin-val" id="coinModal">0</span>
+                </div>
+              </div>
+              <div class="coin-side">
+                <div>
+                  <span class="coin-lbl" style="text-align:right;display:block">Nilai Sekarang</span>
+                  <span class="coin-val" id="coinNilai">0</span>
+                </div>
+                <div class="coin-icon">🪙</div>
+              </div>
+            </div>
+            <div class="profit-row">
+              <div class="profit-item">
+                <span class="profit-lbl">Profit</span>
+                <span class="profit-val" id="profitVal">0</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

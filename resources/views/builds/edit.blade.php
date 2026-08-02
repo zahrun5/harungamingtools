@@ -7,14 +7,14 @@
         Edit Build: {{ $build->name }}
     </h1>
 
-    <form method="POST" action="{{ route('builds.update') }}">
+    <form method="POST" action="{{ route('builds.update', $build) }}">
         @csrf
         @method('PUT')
 
         @include('builds._form', ['build' => $build])
 
         <div style="display:flex;gap:10px;margin-top:24px;">
-            <a href="{{ route('profile.show') }}"
+            <a href="{{ route('builds.index') }}"
                style="flex:1;text-align:center;padding:12px;border-radius:10px;border:1px solid var(--border);color:var(--text-muted);font-size:.9rem;font-weight:600;text-decoration:none;">
                 Batal
             </a>
@@ -25,7 +25,7 @@
         </div>
     </form>
 
-    <form method="POST" action="{{ route('builds.destroy') }}"
+    <form method="POST" action="{{ route('builds.destroy', $build) }}"
           onsubmit="return confirm('Yakin mau hapus build ini? Gak bisa dibalikin.');"
           style="margin-top:12px;">
         @csrf

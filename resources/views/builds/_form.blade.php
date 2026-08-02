@@ -4,9 +4,10 @@
     Variabel yang harus dikirim dari view pemanggil:
     - $build : instance Build kalau mode edit, biarin gak dikirim / null kalau mode create
 
-    CATATAN: $itemsBySlot udah GAK DIPAKAI LAGI. Item sekarang dicari on-demand
-    lewat endpoint AJAX route('builds.items.search'), bukan di-load semua di awal.
-    Ini yang bikin form create/edit jauh lebih ringan dibanding versi select lama.
+    CATATAN (diperbaiki): sebelumnya popup ini pakai search box teks (?q=...), tapi
+    BuildController@searchItems cuma pernah dukung filter Tier+Enchant — jadi kotak
+    pencarian gak pernah ngefek. Sekarang diseragamkan pakai dropdown Tier+Enchant,
+    sama persis kayak builds/_paperdoll.blade.php yang sudah terbukti jalan.
 --}}
 
 @php
@@ -26,6 +27,13 @@
         'MainHand' => 'Senjata Utama', 'Armor' => 'Armor', 'OffHand' => 'Senjata Kedua / Shield',
         'Potion' => 'Potion', 'Shoes' => 'Sepatu', 'Food' => 'Makanan', 'Mount' => 'Mount',
     ];
+
+    // gambar placeholder buat slot kosong, sama kayak builds/show.blade.php (death-recap)
+    // & builds/_paperdoll.blade.php: asset('images/equipment/{slot}.png'), nama file huruf kecil
+    function formPlaceholderUrl($slot) {
+        if (!$slot) return null;
+        return asset('images/equipment/' . strtolower($slot) . '.png');
+    }
 @endphp
 
 {{-- Nama & catatan build --}}
@@ -50,7 +58,7 @@
     @enderror
 </div>
 
-{{-- GRID EQUIPMENT — klik kotak buat buka popup search --}}
+{{-- GRID EQUIPMENT — klik kotak buat buka popup Tier+Enchant --}}
 <div style="color:var(--text-muted);font-size:.78rem;margin-bottom:10px;">Equipment (klik buat pilih item)</div>
 
 <div id="build-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:rgba(0,0,0,.25);padding:14px;border-radius:12px;margin-bottom:8px;">
@@ -64,7 +72,15 @@
             $current = $build?->slot($slot);
             $selectedId = old($field, $current?->id);
             $selectedApiId = $current?->api_id;
-            $selectedName = $current?->name;
+            $selectedEnc = (int) ($current?->enc ?? 0);
+            $selectedQuality = (int) old("quality.$field", $current ? $build?->qualityFor($field) : 1) ?: 1;
+            // Sama kayak MarketController@items: enc > 0 wajib nambah suffix @{enc},
+            // kalau nggak icon yang dirender selalu versi enchant 0 (T8.0) walaupun
+            // item yang tersimpan di build itu enchant 4. Quality juga sama pola-nya:
+            // item di DB selalu Normal, jadi suffix ?quality=N dari kolom qualities.
+            $selectedImgUrl = $selectedApiId
+                ? 'https://render.albiononline.com/v1/item/' . ($selectedEnc > 0 ? "{$selectedApiId}@{$selectedEnc}" : $selectedApiId) . '.png' . ($selectedQuality > 1 ? "?quality={$selectedQuality}" : '')
+                : '';
         @endphp
         <div class="build-slot-cell" data-slot="{{ $slot }}" data-field="{{ $field }}"
              onclick="openItemPicker('{{ $slot }}', '{{ $field }}')"
@@ -72,15 +88,13 @@
              style="aspect-ratio:1;position:relative;cursor:pointer;background:rgba(0,0,0,.4);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:border-color .15s;"
              onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
             <img id="icon-{{ $field }}" alt="" style="width:92%;height:92%;object-fit:contain;{{ !$selectedApiId ? 'display:none;' : '' }}"
-                 src="{{ $selectedApiId ? 'https://render.albiononline.com/v1/item/'.$selectedApiId.'.png' : '' }}">
-            <span id="placeholder-{{ $field }}" style="color:var(--text-muted);font-size:.58rem;text-align:center;padding:2px;{{ $selectedApiId ? 'display:none;' : '' }}">
-                {{ $slotLabels[$slot] }}
-            </span>
+                 src="{{ $selectedImgUrl }}">
+            <img id="placeholder-{{ $field }}" src="{{ formPlaceholderUrl($slot) }}" alt=""
+                 style="width:60%;height:60%;object-fit:contain;opacity:.3;{{ $selectedApiId ? 'display:none;' : '' }}">
         </div>
+        <input type="hidden" name="quality[{{ $field }}]" id="quality-{{ $field }}" value="{{ $selectedQuality }}">
+
         <input type="hidden" name="{{ $field }}" id="input-{{ $field }}" value="{{ $selectedId }}">
-        @error($field)
-            {{-- errornya ditampilin di bawah grid biar gak ganggu layout kotak --}}
-        @enderror
     @endforeach
 </div>
 
@@ -95,7 +109,7 @@
     </div>
 @endif
 
-{{-- MODAL: search & pilih item --}}
+{{-- MODAL: filter Tier + Enchant & pilih item --}}
 <div id="item-picker-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:flex-end;justify-content:center;" onclick="if(event.target===this) closeItemPicker()">
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;padding:18px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -103,42 +117,64 @@
             <button type="button" onclick="closeItemPicker()" style="background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;line-height:1;">&times;</button>
         </div>
 
-        <input type="text" id="picker-search" placeholder="Ketik nama item..." autocomplete="off"
-               style="width:100%;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:.88rem;margin-bottom:12px;">
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <select id="picker-tier" style="flex:1;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 8px;font-size:.82rem;">
+                <option value="">Semua Tier</option>
+                @for($t = 4; $t <= 8; $t++)
+                    <option value="{{ $t }}">Tier {{ $t }}</option>
+                @endfor
+            </select>
+            <select id="picker-enchant" style="flex:1;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 8px;font-size:.82rem;">
+                <option value="">Semua Enchant</option>
+                @for($e = 0; $e <= 4; $e++)
+                    <option value="{{ $e }}">Enchant {{ $e }}</option>
+                @endfor
+            </select>
+        </div>
+
+        {{-- Quality: value di DB kamu baru "Normal" (lihat catatan di BuildController@searchItems).
+             Opsi lain disiapkan sekarang biar gak perlu ubah blade lagi begitu data quality
+             lain (Good/Outstanding/dst) udah di-normalize & lengkap. --}}
+        <div style="margin-bottom:10px;">
+            <select id="picker-quality" style="width:100%;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 8px;font-size:.82rem;">
+                <option value="">Semua Quality</option>
+                <option value="Normal">Normal</option>
+                <option value="Good">Good</option>
+                <option value="Outstanding">Outstanding</option>
+                <option value="Excellent">Excellent</option>
+                <option value="Masterpiece">Masterpiece</option>
+            </select>
+        </div>
 
         <button type="button" onclick="clearItemSlot()" style="text-align:left;color:var(--text-muted);font-size:.8rem;background:none;border:none;padding:6px 0;cursor:pointer;border-bottom:1px solid var(--border);margin-bottom:8px;">
             ✕ Kosongkan slot ini
         </button>
 
-        <div id="picker-results" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px;">
-            {{-- hasil search di-inject via JS --}}
-        </div>
+        <div id="picker-results" style="overflow-y:auto;flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-content:start;"></div>
 
-        <div id="picker-loading" style="display:none;text-align:center;color:var(--text-muted);font-size:.82rem;padding:16px 0;">
-            Mencari...
-        </div>
-        <div id="picker-empty" style="display:none;text-align:center;color:var(--text-muted);font-size:.82rem;padding:16px 0;">
-            Nggak ketemu. Coba kata kunci lain.
-        </div>
+        <div id="picker-loading" style="display:none;text-align:center;color:var(--text-muted);font-size:.82rem;padding:16px 0;">Mencari...</div>
+        <div id="picker-empty" style="display:none;text-align:center;color:var(--text-muted);font-size:.82rem;padding:16px 0;">Nggak ada item. Coba ubah filter Tier / Enchant.</div>
     </div>
 </div>
 
 <script>
 (function () {
     const SEARCH_URL = @json(route('builds.items.search'));
+    // samain sama Item::QUALITY_MAP di backend (string label -> integer 1-5)
+    const QUALITY_MAP = { '': 1, 'Normal': 1, 'Good': 2, 'Outstanding': 3, 'Excellent': 4, 'Masterpiece': 5 };
     let currentSlot = null;
     let currentField = null;
-    let debounceTimer = null;
 
     window.openItemPicker = function (slot, field) {
         currentSlot = slot;
         currentField = field;
         document.getElementById('picker-title').textContent = 'Pilih ' + (document.querySelector(`[data-field="${field}"]`)?.title || 'Item');
-        document.getElementById('picker-search').value = '';
+        document.getElementById('picker-tier').value = '';
+        document.getElementById('picker-enchant').value = '';
+        document.getElementById('picker-quality').value = '';
         document.getElementById('picker-results').innerHTML = '';
         document.getElementById('item-picker-overlay').style.display = 'flex';
-        document.getElementById('picker-search').focus();
-        fetchItems('');
+        fetchItems();
     };
 
     window.closeItemPicker = function () {
@@ -155,11 +191,14 @@
 
     function setSlotValue(field, id, item) {
         document.getElementById('input-' + field).value = id ?? '';
+        const qualityInput = document.getElementById('quality-' + field);
+        if (qualityInput) qualityInput.value = item ? (item.quality ?? 1) : 1;
+
         const icon = document.getElementById('icon-' + field);
         const placeholder = document.getElementById('placeholder-' + field);
 
         if (item) {
-            icon.src = `https://render.albiononline.com/v1/item/${item.api_id}.png`;
+            icon.src = item.img_url;
             icon.style.display = 'block';
             placeholder.style.display = 'none';
         } else {
@@ -184,19 +223,30 @@
         }
     }
 
-    window.selectItem = function (id, name, apiId) {
+    window.selectItem = function (id, name, apiId, imgUrl) {
         if (!currentField) return;
-        setSlotValue(currentField, id, { name, api_id: apiId });
+        // quality diambil dari dropdown yang lagi aktif pas item ini di-klik, karena
+        // hasil grid (imgUrl) memang di-render server pakai quality dropdown tsb
+        const quality = QUALITY_MAP[document.getElementById('picker-quality').value] || 1;
+        setSlotValue(currentField, id, { name, api_id: apiId, img_url: imgUrl, quality });
         closeItemPicker();
     };
 
-    function fetchItems(query) {
+    function fetchItems() {
         if (!currentSlot) return;
         document.getElementById('picker-loading').style.display = 'block';
         document.getElementById('picker-empty').style.display = 'none';
         document.getElementById('picker-results').innerHTML = '';
 
-        fetch(`${SEARCH_URL}?slot=${encodeURIComponent(currentSlot)}&q=${encodeURIComponent(query)}`)
+        const tier = document.getElementById('picker-tier').value;
+        const enchant = document.getElementById('picker-enchant').value;
+        const quality = document.getElementById('picker-quality').value;
+        const params = new URLSearchParams({ slot: currentSlot });
+        if (tier !== '') params.set('tier', tier);
+        if (enchant !== '') params.set('enchant', enchant);
+        if (quality !== '') params.set('quality', quality);
+
+        fetch(`${SEARCH_URL}?${params.toString()}`)
             .then(r => r.json())
             .then(items => {
                 document.getElementById('picker-loading').style.display = 'none';
@@ -204,18 +254,25 @@
                     document.getElementById('picker-empty').style.display = 'block';
                     return;
                 }
-                const html = items.map(item => `
-                    <div onclick="selectItem(${item.id}, ${JSON.stringify(item.name)}, ${JSON.stringify(item.api_id)})"
-                         style="display:flex;align-items:center;gap:10px;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;">
-                        <img src="https://render.albiononline.com/v1/item/${item.api_id}.png" alt=""
-                             style="width:36px;height:36px;object-fit:contain;background:rgba(0,0,0,.3);border-radius:6px;flex-shrink:0;">
-                        <div style="min-width:0;flex:1;">
-                            <div style="color:var(--text);font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</div>
-                            <div style="color:var(--text-muted);font-size:.72rem;">T${item.tier}${item.quality && item.quality !== 'Normal' ? ', ' + item.quality : ''}</div>
-                        </div>
-                    </div>
-                `).join('');
-                document.getElementById('picker-results').innerHTML = html;
+                const resultsEl = document.getElementById('picker-results');
+                resultsEl.innerHTML = '';
+                items.forEach(item => {
+                    const cell = document.createElement('div');
+                    cell.title = item.name;
+                    cell.style.cssText = 'aspect-ratio:1;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;transition:border-color .15s;';
+                    cell.addEventListener('mouseover', () => cell.style.borderColor = 'var(--gold)');
+                    cell.addEventListener('mouseout', () => cell.style.borderColor = 'var(--border)');
+                    cell.addEventListener('click', () => selectItem(item.id, item.name, item.api_id, item.img_url));
+
+                    const img = document.createElement('img');
+                    img.src = item.img_url;
+                    img.alt = item.name;
+                    img.loading = 'lazy';
+                    img.style.cssText = 'width:88%;height:88%;object-fit:contain;';
+
+                    cell.appendChild(img);
+                    resultsEl.appendChild(cell);
+                });
             })
             .catch(() => {
                 document.getElementById('picker-loading').style.display = 'none';
@@ -223,11 +280,9 @@
             });
     }
 
-    document.getElementById('picker-search').addEventListener('input', function (e) {
-        clearTimeout(debounceTimer);
-        const query = e.target.value;
-        debounceTimer = setTimeout(() => fetchItems(query), 300);
-    });
+    document.getElementById('picker-tier').addEventListener('change', fetchItems);
+    document.getElementById('picker-enchant').addEventListener('change', fetchItems);
+    document.getElementById('picker-quality').addEventListener('change', fetchItems);
 
     // jalanin sekali pas load, buat kasus edit yang udah ada 2H weapon dari awal
     const mainHandField = document.getElementById('input-main_hand_id');

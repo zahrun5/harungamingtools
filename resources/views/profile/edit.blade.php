@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Edit Profil - HarunGamingTools')
+@section('title', 'Edit Profil - Albion Online Tools')
 @section('content')
 <div style="max-width:480px;margin:0 auto;">
 
@@ -63,6 +63,21 @@
             <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:10px;">Preview</p>
             <img id="avatar-preview" src="{{ $user->display_avatar }}" alt="preview"
                  style="width:80px;height:80px;border-radius:50%;border:3px solid var(--gold);background:var(--bg-panel);">
+        </div>
+
+        {{-- Privasi Profil --}}
+        <div style="margin-bottom:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+                <span>
+                    <span style="display:block;color:var(--text);font-size:.9rem;font-weight:600;">Profil Publik</span>
+                    <span style="display:block;color:var(--text-muted);font-size:.78rem;margin-top:2px;">
+                        Kalau dimatikan, halaman <code>/u/{{ $user->custom_name ?? $user->id }}</code> cuma bisa dilihat kamu sendiri
+                    </span>
+                </span>
+                <input type="checkbox" name="is_public" value="1"
+                       {{ old('is_public', $user->is_public) ? 'checked' : '' }}
+                       style="width:20px;height:20px;flex-shrink:0;accent-color:var(--gold);cursor:pointer;">
+            </label>
         </div>
 
         <button type="submit"

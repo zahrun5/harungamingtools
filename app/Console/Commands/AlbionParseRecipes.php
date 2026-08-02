@@ -24,15 +24,18 @@ class AlbionParseRecipes extends Command
         'mount',        // Mount
         'bag',          // Bag
         'cape',         // Cape
-        'consumable',   // Consumable (food, potion)
+		'consumableitem', // Consumable (food, potion)
         'simpleitem',   // Item sederhana (resource, material)
         'equipmentitem',// Equipment lain
         'journalitem',  // Laborer journal
         'furnitureitem',// Furniture
         'mountskin',    // Mount skin
-        'laborer',      // Laborer
+        'labourercontract',      // Laborer
         'farmableitem', // Item farming
         'crystalleagueitem', // Crystal league item
+        'consumablefrominventoryitem', // Skillbook, quest item exchange, dll
+        'hideoutitem',      // baru
+        'siegebanner',
     ];
 
     public function handle(): int

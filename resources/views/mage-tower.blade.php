@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $stationName . ' — HGT')
+@section('title', $stationName . ' — Albion Online Tools')
 @section('content')
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -351,12 +351,40 @@
 .craft-sell-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
 .craft-sell-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
 .craft-sell-inp { width:74px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.craft-qty-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-qty-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-qty-inp { width:44px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.craft-qty-inp:disabled { opacity:.45; }
+.craft-max-chk { display:flex; align-items:center; gap:4px; cursor:pointer; font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-max-chk input { cursor:pointer; }
+
+/* ====== JOURNAL PICKER ====== */
+.craft-journal-section { padding: 0 16px 14px; }
+.craft-journal-toggle { display:flex; align-items:center; gap:7px; cursor:pointer; font-family:'Crimson Text',serif; font-size:14px; color:var(--text-lt); user-select:none; }
+.craft-journal-toggle input { cursor:pointer; }
+.craft-journal-picker { display:flex; align-items:center; gap:10px; margin-top:10px; background:rgba(0,0,0,.25); border:1px solid var(--slot-bd); border-radius:4px; padding:8px 10px; }
+.craft-journal-picker img { width:40px; height:40px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); flex-shrink:0; }
+.craft-journal-picker select { background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-lt); font-family:'Crimson Text',serif; font-size:13px; padding:6px 8px; outline:none; cursor:pointer; }
+.craft-journal-picker select:focus { border-color:var(--gold-dk); }
 .craft-result-panel { margin:0 16px 14px; background:linear-gradient(180deg,#2e2210 0%,#1e1608 100%); border:2px solid var(--panel-bd); border-radius:4px; padding:12px 14px; display:flex; flex-direction:column; gap:7px; }
 .crp-row { display:flex; justify-content:space-between; align-items:center; }
 .crp-label { font-family:'Cinzel',serif; font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
 .crp-val { font-family:'Cinzel',serif; font-size:15px; font-weight:700; color:var(--gold); }
 .crp-val.positive { color:#8fe0a0; }
 .crp-val.negative { color:#f08080; }
+.crp-group-lbl { font-family:'Cinzel',serif; font-size:11px; color:var(--gold-dk); text-transform:uppercase; letter-spacing:1px; margin-top:4px; padding-bottom:3px; border-bottom:1px solid rgba(107,79,26,.4); }
+.crp-group-lbl:first-child { margin-top:0; }
+.crp-subtotal { margin-top:2px; padding-top:5px; border-top:1px dashed rgba(107,79,26,.5); }
+.crp-subtotal .crp-label { color:var(--text-lt); }
+.crp-total { margin-top:4px; padding-top:7px; border-top:1px solid var(--panel-bd); }
+.crp-total .crp-label { color:var(--text-lt); font-size:11px; }
+.crp-total .crp-val { font-size:17px; }
+
+/* ====== STATUS JURNAL DI INVENTORY (full + partial jadi slot ikon, bukan teks) ====== */
+.cinv-slot.journal-full,
+.cinv-slot.journal-partial { border-color:var(--gold-dk); background:rgba(240,192,64,.08); }
+.cinv-slot.journal-partial { opacity:.85; }
+.cinv-slot .cinv-qty-frac { position:absolute; bottom:1px; left:2px; right:2px; font-size:8px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; text-align:center; line-height:1.1; }
 .craft-btn { flex:1; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; text-transform:uppercase; }
 .craft-btn:hover:not(:disabled) { background:linear-gradient(180deg,#a05800,#703800); }
 .craft-btn:disabled { opacity:.35; cursor:not-allowed; }
@@ -385,6 +413,18 @@
 /* ====== TOAST ====== */
 .craft-toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:10001; white-space:nowrap; }
 .craft-toast.show { transform:translateX(-50%) translateY(0); }
+
+/* DESKTOP TWO-COLUMN LAYOUT — Mode Advance saja (item list kiri, slot resep+inventory+craft kanan) */
+#mtAdvanceWrap .rw-main { display:flex; flex-direction:column; }
+#mtAdvanceWrap .rw-col-left, #mtAdvanceWrap .rw-col-right { display:flex; flex-direction:column; min-width:0; }
+
+@media (min-width:960px) {
+  #mtAdvanceWrap { max-width:1180px; margin:0 auto; }
+  #mtAdvanceWrap .rw-main { flex-direction:row; align-items:flex-start; }
+  #mtAdvanceWrap .rw-col-left { flex:1 1 auto; border-right:1px solid var(--panel-bd); }
+  #mtAdvanceWrap .rw-col-right { flex:0 0 360px; }
+  #mtAdvanceWrap .item-list { max-height:600px; overflow-y:auto; }
+}
 </style>
 
 <div class="mode-toggle">
@@ -507,54 +547,93 @@
     </div>
 
 
-    <!-- Item List -->
-    <div class="item-list" id="itemList">
-      <div class="item-list-empty" id="emptyMsg">Pilih kategori untuk melihat senjata & armor 🪄</div>
-      <div class="item-table-wrap" id="itemTableWrap" style="display:none">
-        <div id="itemGrid"></div>
+    <div class="rw-main">
+      <div class="rw-col-left">
+        <!-- Item List -->
+        <div class="item-list" id="itemList">
+          <div class="item-list-empty" id="emptyMsg">Pilih kategori untuk melihat senjata & armor 🪄</div>
+          <div class="item-table-wrap" id="itemTableWrap" style="display:none">
+            <div id="itemGrid"></div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- SLOT RESEP — tab Resep 1/Resep 2 + slot bahan dari resep aktif -->
-    <div class="craft-slots-row" id="craftSlotsRow">
-      <div class="craft-recipe-tabs" id="craftRecipeTabs"></div>
-      <div class="craft-slots-grid" id="craftSlotsGrid">
-        <div class="craft-slots-empty">Pilih item dari daftar di atas untuk mulai crafting 🪄</div>
-      </div>
-    </div>
-    <div class="craft-reset-row" id="craftResetRow" style="display:none">
-      <button class="reset-btn" onclick="resetCraftTarget()">🔄 Ganti Item</button>
-    </div>
+      <div class="rw-col-right">
+        <!-- SLOT RESEP — tab Resep 1/Resep 2 + slot bahan dari resep aktif -->
+        <div class="craft-slots-row" id="craftSlotsRow">
+          <div class="craft-recipe-tabs" id="craftRecipeTabs"></div>
+          <div class="craft-slots-grid" id="craftSlotsGrid">
+            <div class="craft-slots-empty">Pilih item dari daftar di atas untuk mulai crafting 🪄</div>
+          </div>
+        </div>
+        <div class="craft-reset-row" id="craftResetRow" style="display:none">
+          <button class="reset-btn" onclick="resetCraftTarget()">🔄 Ganti Item</button>
+        </div>
 
-    <!-- INVENTORY -->
-    <div class="craft-inv-section">
-      <div class="craft-inv-lbl">📦 Inventory (<span id="craftInvCount">0</span>)</div>
-      <div class="cinv-grid" id="craftInvGrid"></div>
-    </div>
+        <!-- JURNAL -->
+        <div class="craft-journal-section" id="craftJournalSection" style="display:none">
+          <label class="craft-journal-toggle">
+            <input type="checkbox" id="useJournalChk" onchange="onUseJournalChange()"> 📔 Gunakan Jurnal
+          </label>
+          <div class="craft-journal-picker" id="journalPickerRow" style="display:none">
+            <img id="journalIcon" src="" alt="Jurnal" onerror="this.style.opacity=.3">
+            <select id="journalTypeSelect" onchange="onJournalOptionChange()"></select>
+            <select id="journalTierSelect" onchange="onJournalOptionChange()"></select>
+          </div>
+          <!-- Status jurnal (penuh + progress terisi sebagian) sekarang tampil
+               sebagai ikon langsung di grid Inventory di bawah, bukan teks lagi. -->
+        </div>
 
-    <!-- BOTTOM BAR: Return % + Harga Jual + Modal + Tombol Craft -->
-    <div class="craft-bottom-bar">
-      <div class="craft-ret-wrap">
-        <label>♻️ Return</label>
-        <input class="craft-ret-inp" type="number" id="craftReturn" value="21.5" min="0" max="100" step="0.1">
-        <span style="color:var(--text-dim);font-size:12px">%</span>
-      </div>
-      <div class="craft-sell-wrap">
-        <label>💵 Harga Jual</label>
-        <input class="craft-sell-inp" type="number" id="craftSellPrice" placeholder="0" min="0" oninput="craftSellPriceIsDefault=false">
-      </div>
-      <div class="craft-modal-wrap">
-        <label>💰 Modal</label>
-        <span id="craftModalVal">0</span>
-      </div>
-      <button class="craft-btn" id="craftBtn" disabled onclick="doCraft()">⚒️ Craft</button>
-    </div>
+        <!-- INVENTORY -->
+        <div class="craft-inv-section">
+          <div class="craft-inv-lbl">📦 Inventory (<span id="craftInvCount">0</span>)</div>
+          <div class="cinv-grid" id="craftInvGrid"></div>
+        </div>
 
-    <!-- HASIL CRAFT — muncul begitu tombol Craft berhasil ditekan -->
-    <div class="craft-result-panel" id="craftResultPanel" style="display:none">
-      <div class="crp-row"><span class="crp-label">💰 Modal Dipakai</span><span class="crp-val" id="crpModal">0</span></div>
-      <div class="crp-row"><span class="crp-label">💵 Harga Akhir</span><span class="crp-val" id="crpSell">0</span></div>
-      <div class="crp-row"><span class="crp-label">📈 Profit</span><span class="crp-val" id="crpProfit">0</span></div>
+        <!-- BOTTOM BAR: Return % + Harga Jual + Modal + Tombol Craft -->
+        <div class="craft-bottom-bar">
+          <div class="craft-ret-wrap">
+            <label>♻️ Return</label>
+            <input class="craft-ret-inp" type="number" id="craftReturn" value="21.5" min="0" max="100" step="0.1">
+            <span style="color:var(--text-dim);font-size:12px">%</span>
+          </div>
+          <div class="craft-qty-wrap">
+            <label>🔢 Jumlah</label>
+            <input class="craft-qty-inp" type="number" id="craftQty" value="1" min="1" disabled oninput="onCraftQtyInput()">
+            <label class="craft-max-chk"><input type="checkbox" id="craftHabis" checked onchange="onCraftHabisChange()"> Max</label>
+            <label class="craft-max-chk"><input type="checkbox" id="craftHabiskanBahan" onchange="onCraftHabiskanBahanChange()"> Habiskan Bahan</label>
+          </div>
+          <div class="craft-sell-wrap">
+            <label>💵 Harga Jual</label>
+            <input class="craft-sell-inp" type="number" id="craftSellPrice" placeholder="0" min="0" oninput="craftSellPriceIsDefault=false">
+          </div>
+          <div class="craft-modal-wrap">
+            <label>💰 Modal</label>
+            <span id="craftModalVal">0</span>
+          </div>
+          <button class="craft-btn" id="craftBtn" disabled onclick="doCraft()">⚒️ Craft</button>
+        </div>
+
+        <!-- HASIL CRAFT — muncul begitu tombol Craft berhasil ditekan.
+             MODAL: bahan crafting (SNAPSHOT sekali di craft pertama sesi ini)
+                    + jurnal dibutuhkan (DINAMIS, dari totalFameAccumulated).
+             PROFIT: item hasil craft (real-time) + sisa bahan (real-time)
+                    + jurnal penuh (dinamis) + total profit. -->
+        <div class="craft-result-panel" id="craftResultPanel" style="display:none">
+          <div class="crp-group-lbl">💰 Modal</div>
+          <div class="crp-row"><span class="crp-label">Bahan Crafting</span><span class="crp-val" id="crpModalBahan">0</span></div>
+          <div class="crp-row" id="crpModalJurnalRow" style="display:none"><span class="crp-label">Jurnal Dibutuhkan</span><span class="crp-val" id="crpModalJurnal">0</span></div>
+          <div class="crp-row crp-subtotal"><span class="crp-label">Total Modal</span><span class="crp-val" id="crpTotalModal">0</span></div>
+
+          <div class="crp-group-lbl">📈 Profit</div>
+          <div class="crp-row"><span class="crp-label">Item Hasil Craft</span><span class="crp-val" id="crpProfitItem">0</span></div>
+          <div class="crp-row"><span class="crp-label">Sisa Bahan</span><span class="crp-val" id="crpProfitSisa">0</span></div>
+          <div class="crp-row" id="crpProfitJurnalRow" style="display:none"><span class="crp-label">Jurnal Penuh</span><span class="crp-val" id="crpProfitJurnal">0</span></div>
+          <div class="crp-row crp-subtotal"><span class="crp-label">Hasil Akhir</span><span class="crp-val" id="crpHasilAkhir">0</span></div>
+
+          <div class="crp-row crp-total"><span class="crp-label">Total Profit</span><span class="crp-val" id="crpTotalProfit">0</span></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -582,6 +661,33 @@
       </div>
       <div class="pop-btn-row" id="caBtnRow" style="display:flex;gap:7px;">
         <button class="wiz-btn-hitung" style="flex:1" onclick="doCraftAddResource()">➕ Tambah ke Inventory</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== POPUP JURNAL (klik slot Jurnal Penuh / Jurnal Terisi Sebagian di Inventory) ====== -->
+<div class="popup-overlay" id="journalPopupOverlay" onclick="closeJournalPopupOnBg(event)">
+  <div class="popup-box" id="journalPopupBox" style="max-width:340px;">
+    <button class="popup-close" onclick="closeJournalPopup()">✕</button>
+    <div class="popup-head">
+      <img id="jpIcon" src="" alt="" onerror="this.style.opacity=.3">
+      <div>
+        <div class="popup-item-name" id="jpName">—</div>
+        <div class="popup-item-sub" id="jpSub">—</div>
+      </div>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+      <!-- Jurnal PENUH — harga otomatis terisi (dari resource_value_by_tier), tetap bisa diedit manual -->
+      <div id="jpFullFields">
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Harga per Jurnal Penuh</label>
+        <input type="number" id="jpHarga" placeholder="0" min="0" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;" oninput="onJournalPriceOverrideInput()">
+      </div>
+      <!-- Jurnal TERISI SEBAGIAN — cuma info progress fame, read-only, gak ikut Profit -->
+      <div id="jpPartialFields" style="display:none;">
+        <div style="font-family:'Crimson Text',serif;font-size:14px;color:var(--text-lt);text-align:center;padding:6px 0;">
+          Progress: <span id="jpFameProgress" style="color:var(--gold);font-weight:700;">0 / 0</span> fame
+        </div>
       </div>
     </div>
   </div>
@@ -806,6 +912,40 @@ function onSearch() {
 }
 
 // ============================================================
+// FILTER STATE PERSISTENCE (Bug D) — Category/Tier/Enc ke-reset tiap
+// kali halaman di-refresh. Fix: persist ke localStorage, pola sama
+// kayak craftInv (saveCraftState). saveFilterState() dipanggil tiap
+// fetchItems() (satu titik, dipanggil abis semua handler filter ganti
+// value), restoreFilterState() dipanggil sekali di init SEBELUM
+// buildCol1/buildTierDrop/buildEncDrop biar dropdown-nya kebangun
+// dengan state yg benar dari awal.
+// ============================================================
+function filterStorageKey() { return 'ct_craft_filter_' + STATION; }
+
+function saveFilterState() {
+  try {
+    localStorage.setItem(filterStorageKey(), JSON.stringify({
+      selKat1, selKat2, selKat3, selCatId, selTier, selEnc, searchQ,
+    }));
+  } catch (e) {}
+}
+
+function restoreFilterState() {
+  try {
+    const raw = localStorage.getItem(filterStorageKey());
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    selKat1  = s.selKat1  ?? null;
+    selKat2  = s.selKat2  ?? null;
+    selKat3  = s.selKat3  ?? null;
+    selCatId = s.selCatId ?? null;
+    selTier  = s.selTier  ?? null;
+    selEnc   = (s.selEnc === undefined) ? null : s.selEnc;
+    searchQ  = s.searchQ  ?? '';
+  } catch (e) {}
+}
+
+// ============================================================
 // FETCH ITEMS
 // ============================================================
 function showEmpty(msg) {
@@ -815,6 +955,7 @@ function showEmpty(msg) {
 }
 
 function fetchItems() {
+  saveFilterState();
   showEmpty('Memuat item...');
   const params = new URLSearchParams();
   if (selCatId) params.set('category_id', selCatId);
@@ -1178,7 +1319,11 @@ function wizMtSelectItem(itemId) {
     .then(item => {
       wizMt.itemId = itemId;
       wizMt.item = item;
-      wizMt.recipes = groupRecipeResources(item.resources); // pisah per resep (sama kayak Mode Advance)
+      // Backend sekarang kirim recipe_groups yang udah dipisah rapi per alternatif
+      // resep. Fallback ke heuristik JS lama kalau API belum update / field kosong.
+      wizMt.recipes = (item.recipe_groups && item.recipe_groups.length)
+        ? item.recipe_groups
+        : groupRecipeResources(item.resources);
       wizMt.activeRecipe = 0;
       document.getElementById('wizMtItemStep').style.display = 'none';
       document.getElementById('wizMtQtyStep').style.display  = '';
@@ -1295,6 +1440,85 @@ let craftSellPriceIsDefault = false; // true kalau nilai di input Harga Jual mas
 let bahanPriceCache = {}; // cache {item_id: harga_termurah_dari_api}, buat pre-fill popup "Tambah ke Inventory"
 let craftEditIdx       = null; // index craftInv yg lagi diedit (null = mode tambah baru)
 
+// ------------------------------------------------------------
+// FAME / JOURNAL PROFIT — akumulasi per sesi crafting (target sama).
+// totalFameAccumulated numpuk terus SELAMA "Gunakan Jurnal" aktif pas
+// craft itu terjadi (pakai fame.F_B, BUKAN F_C — journal gak kena bonus
+// item_type). craftModalLock = nilai bahan crafting DIKUNCI sekali di
+// craft pertama sesi ini, gak berubah lagi meski craft berkali-kali.
+// Dua-duanya di-reset tiap kali ganti item target.
+// ------------------------------------------------------------
+let totalFameAccumulated = 0;
+let craftModalLock       = null;
+
+// Konstanta dari config/albion.php, dipakai buat hitung kebutuhan &
+// nilai jurnal (frontend, biar gak bolak-balik ke server tiap render).
+const ALBION_JOURNAL_REQUIREMENT = @json(config('albion.fame.journal_requirement'));
+const ALBION_JOURNAL_PRICE       = @json(config('albion.journal.price'));
+const ALBION_JOURNAL_BASE_AMOUNT = @json(config('albion.journal.base_amount'));
+const ALBION_LABORER_RATIO       = @json(config('albion.journal.laborer_ratio'));
+
+// Mapping nama journal -> tipe laborer, buat ambil proporsi resource dari
+// ALBION_LABORER_RATIO. Generalist's Journal SENGAJA tidak ada di sini —
+// proporsi resource-nya belum diketahui (lihat FITUR-FAME-JOURNAL-CRAFTING.md).
+const JOURNAL_LABORER_TYPE = {
+  "Imbuer's Journal":     'Imbuer',
+  "Fletcher's Journal":   'Fletcher',
+  "Blacksmith's Journal": 'Blacksmith',
+  "Tinker's Journal":     'Tinker',
+};
+
+// ------------------------------------------------------------
+// JOURNAL PICKER — checkbox "Gunakan Jurnal" + pilihan jenis & tier.
+// Data journal_options/default_journal/default_journal_tier datang
+// dari response itemDetail (perlu query ?station= biar backend tau
+// journal apa yg relevan buat station ini).
+// ------------------------------------------------------------
+let craftJournalOptions = []; // [{name, tiers:[...]}]
+let craftUseJournal     = false;
+let craftJournalType    = null;
+let craftJournalTier    = null;
+
+// Mapping nama journal -> uniquename buat generate URL render icon.
+// CATATAN: JOURNAL_MAGE & JOURNAL_TOOLMAKER sudah dikonfirmasi valid.
+// JOURNAL_WARRIOR / JOURNAL_HUNTER / JOURNAL_GENERAL masih dugaan pola
+// penamaan — kalau ternyata gambar 404 di salah satu, ganti value di sini.
+const JOURNAL_UNIQUE_NAME = {
+  "Imbuer's Journal":     'JOURNAL_MAGE',
+  "Fletcher's Journal":   'JOURNAL_HUNTER',
+  "Blacksmith's Journal": 'JOURNAL_WARRIOR',
+  "Tinker's Journal":     'JOURNAL_TOOLMAKER',
+  "Generalist's Journal": 'JOURNAL_GENERAL',
+};
+
+function journalIconUrl(name, tier) {
+  const code = JOURNAL_UNIQUE_NAME[name];
+  if (!code) return '';
+  // Suffix _EMPTY = state journal kosong (belum mulai keisi) — ini yang
+  // relevan buat picker, soalnya user baru MILIH mau bawa jurnal apa,
+  // belum craft apa-apa. State lain (tanpa suffix = Partially Full,
+  // _FULL = penuh) dipakai laborer/inventory in-game, gak relevan di sini.
+  return `https://render.albiononline.com/v1/item/T${tier}_${code}_EMPTY.png`;
+}
+
+// Dipakai buat slot Inventory: jurnal PENUH (_FULL) dan jurnal yang lagi
+// terisi sebagian (tanpa suffix = state "Partially Full" bawaan game).
+function journalFullIconUrl(name, tier) {
+  const code = JOURNAL_UNIQUE_NAME[name];
+  if (!code) return '';
+  return `https://render.albiononline.com/v1/item/T${tier}_${code}_FULL.png`;
+}
+function journalPartialIconUrl(name, tier) {
+  const code = JOURNAL_UNIQUE_NAME[name];
+  if (!code) return '';
+  return `https://render.albiononline.com/v1/item/T${tier}_${code}.png`;
+}
+
+// Harga manual per jurnal PENUH — kalau user edit lewat popup slot
+// Inventory, nilai ini dipakai ganti hitungan otomatis di panel Profit.
+// null = belum diedit, masih pakai getJournalResourceValue() otomatis.
+let journalPriceOverride = null;
+
 // CATATAN: belum ada penanda resep di data (lihat diskusi soal Adept's Cultist
 // Robe yg py 2 resep tercampur 1 array). Sementara dipisah pakai heuristik:
 // begitu ketemu item yg NAMANYA udah muncul di grup aktif, mulai grup baru.
@@ -1315,28 +1539,317 @@ function groupRecipeResources(resources) {
   return groups;
 }
 
+// Nilai silver dari resource balik SATU journal PENUH, di yield% yang
+// lagi dipilih user. Datanya dibaca dari field 'resource_value_by_tier'
+// yang HARUSNYA dikirim backend di tiap journal_options entry (lihat
+// FITUR-FAME-JOURNAL-CRAFTING.md — journalResourceValue() di PHP).
+// PENTING: kalau backend BELUM ngirim field ini (mis. endpoint itemDetail
+// belum diupdate, atau Generalist's Journal yang memang sengaja gak ada
+// datanya), fungsi ini return null dan UI nampilin '—' alih-alih dihitung
+// ke Profit — BUKAN dianggap 0.
+function getJournalResourceValue() {
+  if (!craftTarget || !craftJournalType || !craftJournalTier) return null;
+  const opt = craftJournalOptions.find(o => o.name === craftJournalType);
+  const valByTier = opt && opt.resource_value_by_tier;
+  const val = valByTier ? valByTier[craftJournalTier] : null;
+  if (val === undefined || val === null) return null;
+  return val; // asumsi yield 100% — field Yield% sudah dihapus dari UI
+}
+
+// Nilai silver "sisa bahan" resep aktif, real-time dari craftInv sekarang
+// (bukan snapshot) — dipakai buat panel Profit.
+function calcGroupValue(group) {
+  let total = 0;
+  (group || []).forEach(r => {
+    const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
+    if (inv) total += inv.qty * (inv.harga || 0);
+  });
+  return total;
+}
+
+// ------------------------------------------------------------
+// PERSISTENCE — simpan target + inventory bahan yg lagi dikumpulin
+// ke localStorage, biar gak hilang kalau halaman di-reload.
+// ------------------------------------------------------------
+function craftStorageKey() {
+  return 'ct_craft_state_' + STATION;
+}
+
+function saveCraftState() {
+  try {
+    localStorage.setItem(craftStorageKey(), JSON.stringify({
+      targetId: craftTarget ? craftTarget.id : null,
+      activeRecipe: craftActiveRecipe,
+      inv: craftInv,
+      journal: {
+        use: craftUseJournal, type: craftJournalType, tier: craftJournalTier,
+      },
+      journalPriceOverride,
+      totalFameAccumulated,
+      craftModalLock,
+    }));
+  } catch (e) {}
+}
+
+function clearCraftState() {
+  try { localStorage.removeItem(craftStorageKey()); } catch (e) {}
+}
+
+function loadCraftState() {
+  let state;
+  try {
+    const raw = localStorage.getItem(craftStorageKey());
+    if (!raw) return;
+    state = JSON.parse(raw);
+  } catch (e) { return; }
+  if (!state || !state.targetId) return;
+
+  fetch(`/api/crafting/item/${state.targetId}?station=${STATION}`)
+    .then(r => r.json())
+    .then(item => {
+      craftTarget       = item;
+      craftRecipes      = (item.recipe_groups && item.recipe_groups.length)
+        ? item.recipe_groups
+        : groupRecipeResources(item.resources);
+      craftActiveRecipe = state.activeRecipe || 0;
+      craftInv          = state.inv || [];
+      totalFameAccumulated = state.totalFameAccumulated || 0;
+      craftModalLock        = (state.craftModalLock != null) ? state.craftModalLock : null;
+      journalPriceOverride  = (state.journalPriceOverride != null) ? state.journalPriceOverride : null;
+      lockItemTable(item.id);
+      renderCraftInventory();
+      renderCraftSlots();
+      renderJournalPicker(item, state.journal); // pulihkan pilihan journal sebelumnya kalau ada
+      updateCraftQtyField();
+      updateCraftModal();
+      updateCraftButtonState();
+      renderCraftResultPanel();
+      applyCraftSellPriceDefault(item.prices);
+      refreshCraftSellPrice(item.id);
+      fetchBahanDefaultPrices(craftRecipes);
+    })
+    .catch(() => clearCraftState()); // item udah gak valid -> buang state lama
+}
+
 function getInvQty(itemId, name) {
   const found = craftInv.find(i => (itemId ? i.itemId === itemId : i.name === name));
   return found ? found.qty : 0;
 }
 
-function isGroupSatisfied(group) {
-  return group.every(r => getInvQty(r.item_id, r.name) >= r.count);
+function isGroupSatisfied(group, jumlah = 1) {
+  return group.every(r => getInvQty(r.item_id, r.name) >= r.count * jumlah);
 }
 
+// Berapa banyak item hasil yang bisa dibuat sekaligus dari bahan yang ada
+// di inventory saat ini — sama konsepnya kayak maxOutput di refine.
+function getMaxCraftable(group) {
+  if (!group || !group.length) return 0;
+  return Math.min(...group.map(r => Math.floor(getInvQty(r.item_id, r.name) / r.count)));
+}
+
+// Sinkronkan field Jumlah dengan bahan yang tersedia. Kalau checkbox
+// "Max" dicentang, field dikunci dan otomatis ikut max craftable.
+function updateCraftQtyField() {
+  const group = craftRecipes[craftActiveRecipe] || [];
+  const max   = getMaxCraftable(group);
+  const habis = document.getElementById('craftHabis').checked;
+  const qtyInp = document.getElementById('craftQty');
+  qtyInp.max = Math.max(max, 1);
+  if (habis) {
+    qtyInp.value = max > 0 ? max : 1;
+    qtyInp.disabled = true;
+  } else {
+    qtyInp.disabled = false;
+    if ((parseInt(qtyInp.value) || 1) > max) qtyInp.value = Math.max(max, 1);
+  }
+}
+
+function onCraftHabisChange() {
+  const maxChecked   = document.getElementById('craftHabis').checked;
+  const habisBahanEl = document.getElementById('craftHabiskanBahan');
+  habisBahanEl.disabled = maxChecked; // saling eksklusif dgn Habiskan Bahan
+  if (maxChecked) habisBahanEl.checked = false;
+  updateCraftQtyField();
+  updateCraftModal();
+  updateCraftButtonState();
+}
+
+// Checkbox "Habiskan Bahan" — mode loop simulasi (simulateLoopN), saling
+// eksklusif sama checkbox "Max". Field Jumlah gak relevan di mode ini
+// (jumlah hasil ditentukan otomatis dari simulasi), jadi dikunci disabled.
+function onCraftHabiskanBahanChange() {
+  const habisBahan = document.getElementById('craftHabiskanBahan').checked;
+  const maxEl      = document.getElementById('craftHabis');
+  const qtyInp     = document.getElementById('craftQty');
+  maxEl.disabled = habisBahan;
+  if (habisBahan) {
+    maxEl.checked = false;
+    qtyInp.disabled = true;
+  } else {
+    updateCraftQtyField(); // balikin ke behaviour normal (ikut checkbox Max)
+  }
+  updateCraftModal();
+  updateCraftButtonState();
+}
+
+function onCraftQtyInput() {
+  updateCraftModal();
+  updateCraftButtonState();
+}
+
+function isHabiskanBahanMode() {
+  const el = document.getElementById('craftHabiskanBahan');
+  return el ? el.checked : false;
+}
+
+// Isi ulang dropdown tier sesuai jenis journal yg lagi dipilih
+// (tiap jenis journal punya range tier yang sama, tapi disusun generik
+// biar tetap benar kalau nanti journal_options per jenis punya range beda).
+function buildJournalTierOptions() {
+  const opt = craftJournalOptions.find(o => o.name === craftJournalType);
+  const tiers = opt ? opt.tiers : [];
+  const tierSelect = document.getElementById('journalTierSelect');
+  tierSelect.innerHTML = tiers.map(t => `<option value="${t}">Tier ${t}</option>`).join('');
+}
+
+function updateJournalIcon() {
+  document.getElementById('journalIcon').src = journalIconUrl(craftJournalType, craftJournalTier);
+}
+
+function onJournalOptionChange() {
+  craftJournalType = document.getElementById('journalTypeSelect').value;
+  buildJournalTierOptions();
+  const tierSelect = document.getElementById('journalTierSelect');
+  const stillValid = [...tierSelect.options].some(o => o.value == craftJournalTier);
+  if (!stillValid) craftJournalTier = parseInt(tierSelect.options[tierSelect.options.length - 1]?.value) || craftJournalTier;
+  tierSelect.value = craftJournalTier;
+  updateJournalIcon();
+  renderCraftInventory();
+  renderCraftResultPanel();
+  saveCraftState();
+}
+
+function onUseJournalChange() {
+  craftUseJournal = document.getElementById('useJournalChk').checked;
+  document.getElementById('journalPickerRow').style.display = craftUseJournal ? '' : 'none';
+  renderCraftInventory();
+  renderCraftResultPanel();
+  saveCraftState();
+}
+
+// Dipanggil tiap kali item target berhasil dimuat (dari selectCraftTarget
+// maupun loadCraftState). savedJournal (opsional) = state journal yg
+// dipulihkan dari localStorage, biar pilihan gak reset pas reload halaman.
+function renderJournalPicker(item, savedJournal) {
+  craftJournalOptions = item.journal_options || [];
+  const section = document.getElementById('craftJournalSection');
+
+  if (!craftJournalOptions.length) {
+    section.style.display = 'none';
+    craftUseJournal = false;
+    return;
+  }
+  section.style.display = '';
+
+  const typeSelect = document.getElementById('journalTypeSelect');
+  typeSelect.innerHTML = craftJournalOptions.map(o => `<option value="${o.name}">${o.name}</option>`).join('');
+
+  craftJournalType = (savedJournal && savedJournal.type) || item.default_journal || craftJournalOptions[0].name;
+  typeSelect.value = craftJournalType;
+  buildJournalTierOptions();
+
+  craftJournalTier = (savedJournal && savedJournal.tier) || item.default_journal_tier;
+  document.getElementById('journalTierSelect').value = craftJournalTier;
+
+  craftUseJournal = savedJournal ? !!savedJournal.use : false;
+  document.getElementById('useJournalChk').checked = craftUseJournal;
+  document.getElementById('journalPickerRow').style.display = craftUseJournal ? '' : 'none';
+
+  updateJournalIcon();
+  renderCraftInventory();
+}
+
+// ------------------------------------------------------------
+// POPUP SLOT JURNAL — dibuka dari klik slot "Jurnal Penuh" / "Jurnal
+// Terisi Sebagian" di grid Inventory (lihat renderCraftInventory).
+// FULL  : harga auto-terisi dari getJournalResourceValue(), tetap bisa
+//         diedit manual (journalPriceOverride, ikut ke panel Profit).
+// PARTIAL: cuma info progress fame, read-only, TIDAK ikut Profit.
+// ------------------------------------------------------------
+let journalPopupMode = null; // 'full' | 'partial'
+
+function openJournalFullPopup() {
+  if (!craftJournalTier || !ALBION_JOURNAL_REQUIREMENT[craftJournalTier]) return;
+  journalPopupMode = 'full';
+  const req  = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+  const full = Math.floor(totalFameAccumulated / req);
+  const autoVal = getJournalResourceValue();
+
+  document.getElementById('jpIcon').src = journalFullIconUrl(craftJournalType, craftJournalTier);
+  document.getElementById('jpName').textContent = 'Jurnal Penuh';
+  document.getElementById('jpSub').textContent = `× ${full}`;
+  document.getElementById('jpFullFields').style.display = '';
+  document.getElementById('jpPartialFields').style.display = 'none';
+  document.getElementById('jpHarga').value = journalPriceOverride !== null
+    ? journalPriceOverride
+    : (autoVal !== null ? Math.round(autoVal) : '');
+  document.getElementById('journalPopupOverlay').classList.add('show');
+}
+
+function openJournalPartialPopup() {
+  if (!craftJournalTier || !ALBION_JOURNAL_REQUIREMENT[craftJournalTier]) return;
+  journalPopupMode = 'partial';
+  const req      = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+  const full     = Math.floor(totalFameAccumulated / req);
+  const sisaFame = totalFameAccumulated - (full * req);
+
+  document.getElementById('jpIcon').src = journalPartialIconUrl(craftJournalType, craftJournalTier);
+  document.getElementById('jpName').textContent = 'Jurnal Terisi Sebagian';
+  document.getElementById('jpSub').textContent = 'Progress ke jurnal berikutnya';
+  document.getElementById('jpFullFields').style.display = 'none';
+  document.getElementById('jpPartialFields').style.display = '';
+  document.getElementById('jpFameProgress').textContent = `${Math.round(sisaFame)} / ${req}`;
+  document.getElementById('journalPopupOverlay').classList.add('show');
+}
+
+function closeJournalPopup() {
+  document.getElementById('journalPopupOverlay').classList.remove('show');
+  journalPopupMode = null;
+}
+function closeJournalPopupOnBg(e) { if (e.target === document.getElementById('journalPopupOverlay')) closeJournalPopup(); }
+
+function onJournalPriceOverrideInput() {
+  const val = parseFloat(document.getElementById('jpHarga').value);
+  journalPriceOverride = isNaN(val) ? null : val;
+  renderCraftResultPanel();
+  saveCraftState();
+}
+
+// Status jurnal (penuh + progress terisi sebagian) sekarang dirender
+// langsung sebagai slot ikon di grid Inventory — lihat renderCraftInventory()
+// dan popup openJournalFullPopup()/openJournalPartialPopup() di atas.
+
 function selectCraftTarget(itemId) {
-  fetch('/api/crafting/item/' + itemId)
+  fetch(`/api/crafting/item/${itemId}?station=${STATION}`)
     .then(r => r.json())
     .then(item => {
       craftTarget       = item;
-      craftRecipes      = groupRecipeResources(item.resources);
+      craftRecipes      = (item.recipe_groups && item.recipe_groups.length)
+        ? item.recipe_groups
+        : groupRecipeResources(item.resources);
       craftActiveRecipe = 0;
       craftInv          = [];
+      totalFameAccumulated = 0; // sesi baru = akumulasi fame & modal-lock direset
+      craftModalLock        = null;
+      journalPriceOverride  = null;
       lockItemTable(itemId);
       renderCraftInventory();
       renderCraftSlots();
+      renderJournalPicker(item); // reset ke default journal station ini (item baru = gak ada saved state)
+      updateCraftQtyField();
       updateCraftModal();
       updateCraftButtonState();
+      saveCraftState();
       document.getElementById('craftResultPanel').style.display = 'none';
 
       // Harga jual default = harga item hasil craft (weapon/equipment-nya sendiri),
@@ -1406,8 +1919,10 @@ function switchCraftRecipe(gi) {
   craftInv = []; // ganti resep -> bahan yg udah dikumpulin buat resep lama gak relevan lagi
   renderCraftInventory();
   renderCraftSlots();
+  updateCraftQtyField();
   updateCraftModal();
   updateCraftButtonState();
+  saveCraftState();
   showCraftToast('🔄 Pindah ke Resep ' + (gi + 1));
 }
 
@@ -1416,11 +1931,20 @@ function resetCraftTarget() {
   craftRecipes      = [];
   craftActiveRecipe = 0;
   craftInv          = [];
+  craftUseJournal   = false;
+  craftJournalOptions = [];
+  totalFameAccumulated = 0;
+  craftModalLock        = null;
+  journalPriceOverride  = null;
+  document.getElementById('craftJournalSection').style.display = 'none';
+  document.getElementById('journalPickerRow').style.display = 'none';
   unlockItemTable();
   renderCraftInventory();
   renderCraftSlots();
+  updateCraftQtyField();
   updateCraftModal();
   updateCraftButtonState();
+  clearCraftState();
   document.getElementById('craftSellPrice').value = '';
   craftSellPriceIsDefault = false;
   document.getElementById('craftResultPanel').style.display = 'none';
@@ -1482,11 +2006,13 @@ function renderCraftSlots() {
   });
   while (matSlots.length < 4) matSlots.push('<div class="craft-slot"></div>');
 
+  const maxCraftable = getMaxCraftable(activeGroup);
   gridWrap.innerHTML = `
     ${matSlots.join('')}
     <span class="craft-arrow">→</span>
-    <div class="craft-slot" title="${craftTarget.name}">
+    <div class="craft-slot ${maxCraftable > 0 ? 'ok' : ''}" title="${craftTarget.name}">
       <img src="${craftTarget.img_url || ''}" alt="${craftTarget.name}" onerror="this.style.opacity=.3">
+      <span class="cs-need">max ${maxCraftable}</span>
     </div>`;
 }
 
@@ -1549,8 +2075,10 @@ function doCraftAddResource() {
   closeCraftAddOverlay();
   renderCraftInventory();
   renderCraftSlots();
+  updateCraftQtyField();
   updateCraftModal();
   updateCraftButtonState();
+  saveCraftState();
   showCraftToast(`📦 ${r.name} → ${qty}`);
 }
 
@@ -1559,7 +2087,8 @@ function doCraftEditResource() {
   craftInv[craftEditIdx].qty   = Math.max(1, parseInt(document.getElementById('caQty').value) || 1);
   craftInv[craftEditIdx].harga = parseFloat(document.getElementById('caHarga').value) || 0;
   closeCraftAddOverlay();
-  renderCraftInventory(); renderCraftSlots(); updateCraftModal(); updateCraftButtonState();
+  renderCraftInventory(); renderCraftSlots(); updateCraftQtyField(); updateCraftModal(); updateCraftButtonState();
+  saveCraftState();
   showCraftToast('✏️ Diperbarui');
 }
 
@@ -1567,7 +2096,8 @@ function doCraftDeleteResource() {
   if (craftEditIdx === null) return;
   craftInv.splice(craftEditIdx, 1);
   closeCraftAddOverlay();
-  renderCraftInventory(); renderCraftSlots(); updateCraftModal(); updateCraftButtonState();
+  renderCraftInventory(); renderCraftSlots(); updateCraftQtyField(); updateCraftModal(); updateCraftButtonState();
+  saveCraftState();
   showCraftToast('🗑 Dihapus');
 }
 
@@ -1576,8 +2106,28 @@ function doCraftDeleteResource() {
 // ------------------------------------------------------------
 function renderCraftInventory() {
   const grid = document.getElementById('craftInvGrid');
-  const slots = Math.max(craftInv.length, 10);
   let html = '';
+
+  // Slot jurnal (PENUH + TERISI SEBAGIAN) — cuma muncul kalau "Gunakan
+  // Jurnal" aktif dan tier-nya sudah dipilih. Dihitung dari
+  // totalFameAccumulated, real-time tiap kali grid ini di-render ulang.
+  if (craftUseJournal && craftJournalTier && ALBION_JOURNAL_REQUIREMENT[craftJournalTier]) {
+    const req      = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+    const full     = Math.floor(totalFameAccumulated / req);
+    const sisaFame = totalFameAccumulated - (full * req);
+
+    html += `<div class="cinv-slot journal-full" title="Jurnal Penuh × ${full} — klik buat atur harga" onclick="openJournalFullPopup()">
+      <img src="${journalFullIconUrl(craftJournalType, craftJournalTier)}" alt="Jurnal Penuh" onerror="this.style.opacity=.3">
+      <span class="cinv-qty">${full}</span>
+    </div>`;
+
+    html += `<div class="cinv-slot journal-partial" title="Progress ${Math.round(sisaFame)}/${req} fame" onclick="openJournalPartialPopup()">
+      <img src="${journalPartialIconUrl(craftJournalType, craftJournalTier)}" alt="Jurnal Terisi Sebagian" onerror="this.style.opacity=.3">
+      <span class="cinv-qty-frac">${Math.round(sisaFame)}/${req}</span>
+    </div>`;
+  }
+
+  const slots = Math.max(craftInv.length, 10);
   for (let s = 0; s < slots; s++) {
     const inv = craftInv[s];
     if (inv) {
@@ -1596,73 +2146,207 @@ function renderCraftInventory() {
 // ------------------------------------------------------------
 // TOMBOL CRAFT
 // ------------------------------------------------------------
+function getCraftQty() {
+  return Math.max(1, parseInt(document.getElementById('craftQty').value) || 1);
+}
+
 function updateCraftButtonState() {
   const group = craftRecipes[craftActiveRecipe];
-  document.getElementById('craftBtn').disabled = !(craftTarget && group && group.length && isGroupSatisfied(group));
+  let canCraft = false;
+  if (craftTarget && group && group.length) {
+    if (isHabiskanBahanMode()) {
+      const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('craftReturn').value) || 0));
+      canCraft = simulateLoopN(group, retPct).total >= 1;
+    } else {
+      canCraft = isGroupSatisfied(group, getCraftQty());
+    }
+  }
+  document.getElementById('craftBtn').disabled = !canCraft;
 }
 
 function updateCraftModal() {
   const group = craftRecipes[craftActiveRecipe] || [];
   let total = 0;
-  group.forEach(r => {
-    const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
-    total += (inv?.harga || 0) * r.count;
-  });
+  if (isHabiskanBahanMode()) {
+    const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('craftReturn').value) || 0));
+    const { stock, invs } = simulateLoopN(group, retPct);
+    group.forEach((r, i) => {
+      const inv = invs[i];
+      if (!inv) return;
+      total += Math.max(0, inv.qty - stock[i]) * (inv.harga || 0);
+    });
+  } else {
+    const jumlah = getCraftQty();
+    group.forEach(r => {
+      const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
+      total += (inv?.harga || 0) * r.count * jumlah;
+    });
+  }
   document.getElementById('craftModalVal').textContent = formatSilver(total);
+}
+
+// Simulasi loop craft berulang sampai bahan mentok — generalisasi dari
+// simulateLoop() di refine.blade.php (yang hardcode 2 bahan raw+prev)
+// ke N bahan sesuai isi 'group' (resep aktif, 2-4 jenis bahan berbeda).
+// Tiap putaran: floor(stok/kebutuhan) per bahan -> ambil yang paling
+// kecil (bottleneck) -> kurangin stok -> hasil return% masuk balik ke
+// stok -> ulangi sampai dapat=0.
+function simulateLoopN(group, retPct) {
+  const ret  = retPct / 100;
+  const invs = group.map(r => craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name)));
+  let stock  = invs.map(inv => inv ? inv.qty : 0);
+  const req  = group.map(r => r.count);
+  let total  = 0;
+
+  while (true) {
+    let dapat = Infinity;
+    for (let i = 0; i < req.length; i++) {
+      if (req[i] > 0) dapat = Math.min(dapat, Math.floor(stock[i] / req[i]));
+    }
+    if (dapat === 0 || dapat === Infinity) break;
+
+    for (let i = 0; i < req.length; i++) stock[i] -= dapat * req[i];
+    total += dapat;
+    for (let i = 0; i < req.length; i++) stock[i] += Math.round(dapat * req[i] * ret);
+  }
+
+  return { total, stock, invs }; // stock = sisa tiap bahan sesuai urutan 'group'/'invs'
 }
 
 function doCraft() {
   if (!craftTarget) return;
   const group = craftRecipes[craftActiveRecipe];
-  if (!group || !group.length || !isGroupSatisfied(group)) return;
+  if (!group || !group.length) return;
   const retPct    = Math.min(100, Math.max(0, parseFloat(document.getElementById('craftReturn').value) || 0));
   const sellPrice = parseFloat(document.getElementById('craftSellPrice').value) || 0;
 
-  let modal = 0; // total harga bahan yg beneran kepakai (gak balik lewat return%)
-  group.forEach(r => {
-    const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
-    if (!inv) return;
-    const returned = Math.round(r.count * retPct / 100);
-    const consumed = r.count - returned;
-    modal += consumed * (inv.harga || 0);
-    inv.qty -= consumed;
-    if (inv.qty <= 0) craftInv.splice(craftInv.indexOf(inv), 1);
-  });
+  // Checkbox 'craftHabiskanBahan' sudah dipasang di bottom bar (mutual
+  // exclusive dengan 'Max' — lihat onCraftHabisChange/onCraftHabiskanBahanChange).
+  const habisEl = document.getElementById('craftHabiskanBahan');
+  const habis   = habisEl ? habisEl.checked : false;
+
+  let jumlah, modal = 0; // modal = total harga bahan yg beneran kepakai (gak balik lewat return%)
+
+  if (habis) {
+    const { total, stock, invs } = simulateLoopN(group, retPct);
+    if (total < 1) return;
+    jumlah = total;
+    group.forEach((r, i) => {
+      const inv = invs[i];
+      if (!inv) return;
+      const consumed = Math.max(0, inv.qty - stock[i]);
+      modal += consumed * (inv.harga || 0);
+      inv.qty = stock[i];
+      if (inv.qty <= 0) craftInv.splice(craftInv.indexOf(inv), 1);
+    });
+  } else {
+    jumlah = Math.min(getCraftQty(), getMaxCraftable(group));
+    if (jumlah < 1 || !isGroupSatisfied(group, jumlah)) return;
+    group.forEach(r => {
+      const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
+      if (!inv) return;
+      const totalCount = r.count * jumlah;
+      const returned = Math.round(totalCount * retPct / 100);
+      const consumed = totalCount - returned;
+      modal += consumed * (inv.harga || 0);
+      inv.qty -= consumed;
+      if (inv.qty <= 0) craftInv.splice(craftInv.indexOf(inv), 1);
+    });
+  }
 
   const exOut = craftInv.find(i => i.itemId === craftTarget.id);
   if (exOut) {
-    exOut.qty += 1;
+    exOut.qty += jumlah;
   } else {
-    craftInv.push({ itemId: craftTarget.id, name: craftTarget.name, imgUrl: craftTarget.img_url, qty: 1, harga: sellPrice || 0 });
+    craftInv.push({ itemId: craftTarget.id, name: craftTarget.name, imgUrl: craftTarget.img_url, qty: jumlah, harga: sellPrice || 0 });
+  }
+
+  // Modal Bahan Crafting — SNAPSHOT sekali di craft PERTAMA sesi ini,
+  // gak berubah lagi meski craft berkali-kali sesudahnya.
+  if (craftModalLock === null) craftModalLock = modal;
+
+  // Fame numpuk ke totalFameAccumulated CUMA kalau "Gunakan Jurnal" aktif
+  // pas craft ini terjadi, pakai fame.F_B (bukan F_C — journal gak kena
+  // bonus item_type). Butuh field 'fame' dari itemDetail API (Bagian A).
+  if (craftUseJournal && craftTarget.fame && craftTarget.fame.F_B != null) {
+    totalFameAccumulated += craftTarget.fame.F_B * jumlah;
   }
 
   renderCraftInventory();
   renderCraftSlots();
+  updateCraftQtyField();
   updateCraftModal();
   updateCraftButtonState();
-  showCraftResult(modal, sellPrice);
-  showCraftToast(`⚒️ Berhasil membuat ${craftTarget.name}!`);
+  renderCraftResultPanel();
+  saveCraftState();
+  showCraftToast(`⚒️ Berhasil membuat ${jumlah}× ${craftTarget.name}!`);
 }
 
 // ============================================================
-// PANEL HASIL CRAFT — nampilin modal (bahan yg kepakai) vs harga
-// akhir (harga jual item hasil, dari input Harga Jual) + profit.
+// PANEL HASIL CRAFT — dipanggil ulang tiap kali: abis Craft,
+// checkbox/dropdown journal berubah, atau field Yield% diubah, biar
+// angka selalu sinkron.
+//
+// MODAL: Bahan Crafting (snapshot craftModalLock, FIXED sepanjang sesi)
+//        + Jurnal Dibutuhkan (DINAMIS, dari totalFameAccumulated: total
+//        journal kosong TERPAKAI dari awal sesi × harga journal kosong).
+// PROFIT: Item Hasil Craft (real-time, qty × harga di craftInv) + Sisa
+//        Bahan (real-time, calcGroupValue) + Jurnal Penuh (DINAMIS:
+//        floor(fame/requirement) × nilai resource balik journal × yield%)
+//        + Total Profit (jumlah Profit − jumlah Modal).
 // ============================================================
-function showCraftResult(modal, sellPrice) {
-  document.getElementById('crpModal').textContent = formatSilver(modal);
-  document.getElementById('crpSell').textContent   = sellPrice ? formatSilver(sellPrice) : '—';
-
-  const profitEl = document.getElementById('crpProfit');
-  profitEl.classList.remove('positive', 'negative');
-  if (sellPrice) {
-    const profit = sellPrice - modal;
-    profitEl.textContent = (profit >= 0 ? '+' : '-') + formatSilver(Math.abs(profit));
-    profitEl.classList.add(profit >= 0 ? 'positive' : 'negative');
-  } else {
-    profitEl.textContent = '—';
-  }
+function renderCraftResultPanel() {
+  if (craftModalLock === null) return; // belum pernah craft di sesi ini
 
   document.getElementById('craftResultPanel').style.display = '';
+  const group = craftRecipes[craftActiveRecipe] || [];
+
+  // --- MODAL ---
+  document.getElementById('crpModalBahan').textContent = formatSilver(craftModalLock);
+
+  const showJurnal = craftUseJournal && craftJournalTier && ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+  document.getElementById('crpModalJurnalRow').style.display  = showJurnal ? '' : 'none';
+  document.getElementById('crpProfitJurnalRow').style.display = showJurnal ? '' : 'none';
+
+  let jurnalModalVal = 0, jurnalProfitVal = 0;
+  if (showJurnal) {
+    const req   = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+    const harga = ALBION_JOURNAL_PRICE[craftJournalTier] || 0;
+    const needed = Math.ceil(totalFameAccumulated / req); // total journal kosong TERPAKAI sejak awal sesi
+    const full   = Math.floor(totalFameAccumulated / req);
+    jurnalModalVal = needed * harga;
+    document.getElementById('crpModalJurnal').textContent = formatSilver(jurnalModalVal);
+
+    // Jurnal Penuh (Profit): kalau user pernah edit harga lewat popup slot
+    // Inventory (journalPriceOverride), pakai itu. Kalau belum, pakai
+    // hitungan otomatis dari resource_value_by_tier (getJournalResourceValue).
+    const unitValue = journalPriceOverride !== null ? journalPriceOverride : getJournalResourceValue();
+    document.getElementById('crpProfitJurnal').textContent = unitValue === null ? '—' : formatSilver(full * unitValue);
+    if (unitValue !== null) jurnalProfitVal = full * unitValue;
+  }
+
+  // --- TOTAL MODAL ---
+  const totalModal = craftModalLock + jurnalModalVal;
+  document.getElementById('crpTotalModal').textContent = formatSilver(totalModal);
+
+  // --- PROFIT ---
+  const exOut = craftTarget ? craftInv.find(i => i.itemId === craftTarget.id) : null;
+  const itemHasilVal = exOut ? exOut.qty * (exOut.harga || 0) : 0;
+  document.getElementById('crpProfitItem').textContent = formatSilver(itemHasilVal);
+
+  const sisaBahanVal = calcGroupValue(group);
+  document.getElementById('crpProfitSisa').textContent = formatSilver(sisaBahanVal);
+
+  // --- HASIL AKHIR (subtotal Profit, sebelum dikurangi Modal) ---
+  const hasilAkhir = itemHasilVal + sisaBahanVal + jurnalProfitVal;
+  document.getElementById('crpHasilAkhir').textContent = formatSilver(hasilAkhir);
+
+  // --- TOTAL PROFIT ---
+  const totalProfit = hasilAkhir - totalModal;
+  const totalEl = document.getElementById('crpTotalProfit');
+  totalEl.classList.remove('positive', 'negative');
+  totalEl.textContent = (totalProfit >= 0 ? '+' : '-') + formatSilver(Math.abs(totalProfit));
+  totalEl.classList.add(totalProfit >= 0 ? 'positive' : 'negative');
 }
 
 function showCraftToast(msg) {
@@ -1686,14 +2370,22 @@ fetch(`${CRAFT_API_BASE}/categories`)
   .then(r => r.json())
   .then(data => {
     CATEGORIES = data;
-    buildCol1();
+    restoreFilterState(); // Bug D fix: pulihkan filter kategori/tier/enc/search sebelum build dropdown
+    refreshCols();        // buildCol1() + buildCol2() (yg otomatis manggil buildCol3()) — biar dropdown
+                           // sub-kategori kolom 2/3 ikut kebangun sesuai state restore, bukan cuma kolom 1
     buildTierDrop();
     buildEncDrop();
+    updateCatLabel();
+    if (selTier)          setFilterVal('lblTier', 'valTier', TIER_LABEL[selTier]);
+    if (selEnc !== null)  setFilterVal('lblEnc', 'valEnc', 'Enc ' + selEnc);
+    if (searchQ)          document.getElementById('searchInput').value = searchQ;
     fetchItems(); // load semua item dari awal (Mode Advance), gak perlu pilih kategori dulu
     wizMtBuildCat1(); // siapkan step 1 wizard Mode Simple
+    loadCraftState(); // pulihkan target + inventory bahan dari sesi sebelumnya (kalau ada)
   });
 renderCraftInventory();
 renderCraftSlots();
+updateCraftQtyField();
 updateCraftModal();
 setMTMode(localStorage.getItem('mt_mode') || 'simple');
 </script>

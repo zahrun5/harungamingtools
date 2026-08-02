@@ -139,6 +139,8 @@
 /* Info kanan: nama + badge harga */
 .item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .item-name { font-family: 'Crimson Text', serif; font-size: 15px; color: var(--parch-lt); font-weight: 600; }
+.item-price { font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold); }
+.item-price.loading { color: var(--text-dim); font-style: italic; }
 
 /* ====== SEARCH ====== */
 .search-bar { padding: 10px 12px 0; }
@@ -225,6 +227,24 @@
 .city-price-box .cpb-val { font-size: 11px; font-weight: 700; }
 .city-price-box.loading  { opacity: 0.5; }
 .city-price-box.no-data  { opacity: 0.3; }
+.city-price-box { cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
+.city-price-box.active   { box-shadow: 0 0 0 2px #f0c060; transform: translateY(-1px); }
+.city-price-box.no-data  { cursor: default; }
+
+.popup-history { margin-top: 14px; }
+.popup-history-label {
+  font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text-dim, #a89878); margin-bottom: 8px;
+}
+.popup-history-canvas-wrap { position: relative; height: 160px; }
+.popup-history-empty {
+  color: var(--text-dim, #a89878); font-style: italic; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; height: 160px;
+}
+.popup-history-loading {
+  color: var(--text-dim, #a89878); font-size: 13px;
+  display: flex; align-items: center; justify-content: center; height: 160px;
+}
 
 /* Warna kota Albion */
 .city-Caerleon      { background: #7b1a1a; color: #ffd0d0; border-color: #c0392b; }
@@ -316,6 +336,17 @@
           <div class="drop-col" id="colEnc"></div>
         </div>
       </div>
+      <!-- QUALITY -->
+      <div class="flt-wrap">
+        <div class="flt-btn" id="btnQuality" onclick="toggleDrop('quality')">
+          <span class="flt-label" id="lblQuality">Quality</span>
+          <span class="flt-val"   id="valQuality" style="display:none"></span>
+          <span class="flt-arrow">▼</span>
+        </div>
+        <div class="drop-wrap" id="dropQuality">
+          <div class="drop-col" id="colQuality"></div>
+        </div>
+      </div>
     </div>
 
 
@@ -339,6 +370,7 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 <script>
 // ============================================================
 // KOTA & WARNA
@@ -354,20 +386,164 @@ const CITIES = [
 ];
 
 // ============================================================
+// SERVER / REGION AODP — samain dengan region yang dipakai backend
+// (session('server')) biar harga di list & harga di popup konsisten,
+// bukan selalu Americas kayak refine.
+// ============================================================
+const CURRENT_SERVER = @json(session('server', 'americas'));
+const AODP_BASE_URL = {
+  americas: 'https://west.albion-online-data.com',
+  europe:   'https://europe.albion-online-data.com',
+  asia:     'https://east.albion-online-data.com',
+};
+const AODP_BASE = AODP_BASE_URL[CURRENT_SERVER] || AODP_BASE_URL.americas;
+
+// ============================================================
+// HISTORI HARGA — state + fungsi switcher kota
+// ============================================================
+let currentPopupItem  = null; // { api_id, enc } item yang lagi dibuka popup-nya
+let currentHistoryCity = null;
+let historyChart = null; // instance Chart.js aktif, biar bisa di-destroy pas ganti kota/item
+
+function destroyHistoryChart() {
+  if (historyChart) {
+    historyChart.destroy();
+    historyChart = null;
+  }
+}
+
+function selectHistoryCity(city, el) {
+  if (el.classList.contains('no-data')) return; // kota tanpa harga, gak ada histori juga
+  currentHistoryCity = city;
+
+  // Highlight box yang lagi aktif
+  document.querySelectorAll('.city-price-box.active').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  document.getElementById('historyCityLabel').textContent = city;
+  loadPriceHistory(city);
+}
+
+function loadPriceHistory(city) {
+  if (!currentPopupItem?.api_id) return;
+
+  const wrap = document.getElementById('historyCanvasWrap');
+  wrap.innerHTML = '<div class="popup-history-loading">Memuat tren harga...</div>';
+  destroyHistoryChart();
+
+  const params = new URLSearchParams({
+    city,
+    enc: currentPopupItem.enc || 0,
+    days: 30,
+    quality: selQuality,
+    server: CURRENT_SERVER,
+  });
+
+  fetch(`/api/market/item/${currentPopupItem.api_id}/price-history?${params}`)
+    .then(r => r.json())
+    .then(res => {
+      // Kalau popup udah ditutup / ganti item / ganti kota lagi sebelum ini selesai
+      if (currentHistoryCity !== city) return;
+
+      const data = res.data ?? [];
+      if (!data.length) {
+        wrap.innerHTML = '<div class="popup-history-empty">Data historis tidak cukup buat kota ini</div>';
+        return;
+      }
+
+      wrap.innerHTML = '<canvas id="historyCanvas"></canvas>';
+      const ctx = document.getElementById('historyCanvas').getContext('2d');
+
+      historyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.date),
+          datasets: [{
+            data: data.map(d => d.price),
+            borderColor: '#f0c060',
+            backgroundColor: 'rgba(240, 192, 96, 0.15)',
+            fill: true,
+            tension: 0.25,
+            pointRadius: 2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { maxTicksLimit: 6, color: '#a89878' }, grid: { display: false } },
+            y: { ticks: { color: '#a89878', callback: v => formatSilver(v) }, grid: { color: 'rgba(168,152,120,0.1)' } },
+          },
+        },
+      });
+    })
+    .catch(() => {
+      if (currentHistoryCity !== city) return;
+      wrap.innerHTML = '<div class="popup-history-empty">Gagal memuat data histori</div>';
+    });
+}
+
+// ============================================================
 // STATE
 // ============================================================
 let CATEGORIES = [];
+let priceCache = {}; // item.id -> harga terendah antar kota (client-side fetch ke AODP)
 // PENTING: value-nya angka (1-8) biar nyambung sama kolom 'tier' di DB yang isinya
 // angka juga, bukan string "T1".."T8". TIER_LABEL cuma buat tampilan aja.
 const TIERS      = [1,2,3,4,5,6,7,8];
 const TIER_LABEL = {1:'Tier 1',2:'Tier 2',3:'Tier 3',4:'Tier 4',5:'Tier 5',6:'Tier 6',7:'Tier 7',8:'Tier 8'};
 const ENCS       = [0,1,2,3,4];
+// Sinkron sama Item::QUALITY_MAP di backend (Normal=1 s.d. Masterpiece=5).
+// Ini murni buat pilih VARIAN gambar & harga yang di-cek (qualities= param ke AODP),
+// BUKAN filter tabel items() di backend (soalnya kolom quality di DB item selalu 'Normal').
+const QUALITIES       = [1,2,3,4,5];
+const QUALITY_LABEL   = {1:'Normal', 2:'Good', 3:'Outstanding', 4:'Excellent', 5:'Masterpiece'};
 
 let openDrop = null;
 let selCatId = null;
 let selTier  = null;
 let selEnc   = null;
+let selQuality = 1; // default Normal
 let searchQ  = '';
+let lastRenderedItems = []; // simpen list terakhir biar quality bisa ganti gambar tanpa refetch backend
+
+// ============================================================
+// PERSISTENCE — simpan filter kategori/tier/enchant ke localStorage
+// biar gak reset pas reload atau pindah server (Asia <-> Eropa),
+// yang keduanya sama-sama full page reload.
+// ============================================================
+const MARKET_FILTER_KEY = 'ct_market_filters';
+
+function saveMarketFilters() {
+  try {
+    localStorage.setItem(MARKET_FILTER_KEY, JSON.stringify({
+      selKat1, selKat2, selKat3, selCatId, selTier, selEnc, selQuality,
+    }));
+  } catch (e) {}
+}
+
+// Dipanggil sekali begitu CATEGORIES udah kefetch. Validasi tiap id
+// kategori masih ada di tree sekarang sebelum dipulihkan — kalau
+// kategori itu udah gak ada/berubah, biarkan null daripada state rusak.
+function loadMarketFilters() {
+  let saved;
+  try {
+    const raw = localStorage.getItem(MARKET_FILTER_KEY);
+    if (!raw) return;
+    saved = JSON.parse(raw);
+  } catch (e) { return; }
+  if (!saved) return;
+
+  if (saved.selKat1 !== null && getCatName(saved.selKat1, CATEGORIES)) selKat1 = saved.selKat1;
+  if (selKat1 !== null && saved.selKat2 !== null && getCatName(saved.selKat2, CATEGORIES)) selKat2 = saved.selKat2;
+  if (selKat2 !== null && saved.selKat3 !== null && getCatName(saved.selKat3, CATEGORIES)) selKat3 = saved.selKat3;
+  selCatId = selKat3 || selKat2 || selKat1 || null;
+
+  if (saved.selTier !== null && TIERS.includes(saved.selTier)) selTier = saved.selTier;
+  if (saved.selEnc  !== null && ENCS.includes(saved.selEnc))   selEnc  = saved.selEnc;
+  if (saved.selQuality !== undefined && QUALITIES.includes(saved.selQuality)) selQuality = saved.selQuality;
+}
 
 // ============================================================
 // DROPDOWN
@@ -426,13 +602,13 @@ function buildCol1() {
   col.innerHTML = '';
   col.appendChild(makeItem('All', false, !selKat1, () => {
     selKat1 = null; selKat2 = null; selKat3 = null; selCatId = null;
-    refreshCols(); updateCatLabel(); fetchItems();
+    refreshCols(); updateCatLabel(); saveMarketFilters(); fetchItems();
   }));
   CATEGORIES.forEach(cat => {
     const hasSub = cat.children && cat.children.length > 0;
     col.appendChild(makeItem(cat.name, hasSub, selKat1 === cat.id, () => {
       selKat1 = cat.id; selKat2 = null; selKat3 = null; selCatId = cat.id;
-      refreshCols(); updateCatLabel();
+      refreshCols(); updateCatLabel(); saveMarketFilters();
       if (!hasSub) closeDrop();
       fetchItems(); // langsung tampilin item kategori ini (+descendant-nya), gak perlu drill sampai leaf
       // Pre-fetch harga kategori ini di background (non-blocking)
@@ -450,13 +626,13 @@ function buildCol2() {
   col2.style.display = ''; col2.innerHTML = '';
   col2.appendChild(makeItem('All', false, !selKat2, () => {
     selKat2 = null; selKat3 = null; selCatId = selKat1;
-    refreshCols(); updateCatLabel(); fetchItems();
+    refreshCols(); updateCatLabel(); saveMarketFilters(); fetchItems();
   }));
   cat1.children.forEach(sub => {
     const hasSub2 = sub.children && sub.children.length > 0;
     col2.appendChild(makeItem(sub.name, hasSub2, selKat2 === sub.id, () => {
       selKat2 = sub.id; selKat3 = null; selCatId = sub.id;
-      refreshCols(); updateCatLabel();
+      refreshCols(); updateCatLabel(); saveMarketFilters();
       if (!hasSub2) closeDrop();
       fetchItems(); // langsung tampilin item kategori ini (+descendant-nya)
       // Pre-fetch harga kategori ini di background (non-blocking)
@@ -475,12 +651,12 @@ function buildCol3() {
   col3.style.display = ''; col3.innerHTML = '';
   col3.appendChild(makeItem('All', false, !selKat3, () => {
     selKat3 = null; selCatId = selKat2;
-    buildCol3(); updateCatLabel(); fetchItems();
+    buildCol3(); updateCatLabel(); saveMarketFilters(); fetchItems();
   }));
   cat2.children.forEach(item => {
     col3.appendChild(makeItem(item.name, false, selKat3 === item.id, () => {
       selKat3 = item.id; selCatId = item.id;
-      buildCol3(); updateCatLabel(); closeDrop(); fetchItems();
+      buildCol3(); updateCatLabel(); closeDrop(); saveMarketFilters(); fetchItems();
       // Pre-fetch harga kategori ini di background (non-blocking)
       preloadCategoryPrices(item.id);
     }));
@@ -514,10 +690,10 @@ function buildTierDrop() {
   const col = document.getElementById('colTier');
   col.innerHTML = '';
   col.appendChild(makeItem('All', false, !selTier, () => {
-    selTier = null; setFilterVal('lblTier','valTier',null); closeDrop(); fetchItems();
+    selTier = null; setFilterVal('lblTier','valTier',null); closeDrop(); saveMarketFilters(); fetchItems();
   }));
   TIERS.forEach(t => col.appendChild(makeItem(TIER_LABEL[t], false, selTier === t, () => {
-    selTier = t; setFilterVal('lblTier','valTier',TIER_LABEL[t]); closeDrop(); fetchItems();
+    selTier = t; setFilterVal('lblTier','valTier',TIER_LABEL[t]); closeDrop(); saveMarketFilters(); fetchItems();
   })));
 }
 
@@ -525,10 +701,31 @@ function buildEncDrop() {
   const col = document.getElementById('colEnc');
   col.innerHTML = '';
   col.appendChild(makeItem('All', false, selEnc === null, () => {
-    selEnc = null; setFilterVal('lblEnc','valEnc',null); closeDrop(); fetchItems();
+    selEnc = null; setFilterVal('lblEnc','valEnc',null); closeDrop(); saveMarketFilters(); fetchItems();
   }));
   ENCS.forEach(e => col.appendChild(makeItem('Enchantment ' + e, false, selEnc === e, () => {
-    selEnc = e; setFilterVal('lblEnc','valEnc','Enc '+e); closeDrop(); fetchItems();
+    selEnc = e; setFilterVal('lblEnc','valEnc','Enc '+e); closeDrop(); saveMarketFilters(); fetchItems();
+  })));
+}
+
+// Quality BEDA dari Tier/Enc: dia BUKAN filter ke backend (kolom quality di
+// tabel items selalu 'Normal'), jadi milih quality gak perlu fetchItems() ulang.
+// Yang berubah cuma: (1) suffix ?quality= di gambar list, (2) qualities= yang
+// dikirim ke AODP buat harga list & popup. Makanya di sini panggil renderItems()
+// + fetchMarketPrices() pakai data yang udah ada (lastRenderedItems), bukan refetch.
+function buildQualityDrop() {
+  const col = document.getElementById('colQuality');
+  col.innerHTML = '';
+  QUALITIES.forEach(q => col.appendChild(makeItem(QUALITY_LABEL[q], false, selQuality === q, () => {
+    selQuality = q;
+    setFilterVal('lblQuality', 'valQuality', QUALITY_LABEL[q]);
+    closeDrop();
+    saveMarketFilters();
+    priceCache = {}; // harga lama gak valid lagi buat quality baru
+    if (lastRenderedItems.length) {
+      renderItems(lastRenderedItems);
+      fetchMarketPrices(lastRenderedItems);
+    }
   })));
 }
 
@@ -568,7 +765,9 @@ function fetchItems() {
         filtered = items.filter(i => i.name.toLowerCase().includes(q));
       }
       if (!filtered.length) { showEmpty('Tidak ada item ditemukan 😔'); return; }
+      lastRenderedItems = filtered;
       renderItems(filtered);
+      fetchMarketPrices(filtered); // ambil harga client-side (ala refine), lalu render ulang row begitu selesai
     })
     .catch(() => showEmpty('Gagal memuat item. Coba lagi.'));
 }
@@ -585,20 +784,78 @@ function renderItems(items) {
   items.forEach(item => {
     const row = document.createElement('div');
     row.className = 'item-row';
+    // Override suffix ?quality= dari backend (selalu 'Normal' karena kolom quality
+    // di DB item gak pernah diisi selain itu) dengan quality yang lagi dipilih user.
+    const qualityImgUrl = item.img_url ? item.img_url.split('?')[0] + '?quality=' + selQuality : null;
     row.innerHTML = `
       <div class="item-icon-wrap">
-            ${item.img_url
-      ? `<img class="item-icon" src="${item.img_url}" alt="${item.name}" loading="lazy" onerror="this.style.display='none'">`
+            ${qualityImgUrl
+      ? `<img class="item-icon" src="${qualityImgUrl}" alt="${item.name}" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="item-icon" style="display:flex;align-items:center;justify-content:center;font-size:18px;">?</div>`
     }
       </div>
       <div class="item-info">
         <span class="item-name">${item.name}</span>
+        ${priceCache[item.id] ? `<span class="item-price">${formatSilver(priceCache[item.id])}</span>` : ''}
       </div>`;
 
     row.addEventListener('click', () => openPopup(item.id));
     grid.appendChild(row);
   });
+}
+
+// ============================================================
+// BANGUN ID BUAT QUERY AODP DARI api_id + enc.
+// PENTING: equipment pakai suffix "@enc" (mis. T4_BAG@1), tapi RAW/REFINED
+// RESOURCE (WOOD/ORE/HIDE/FIBER/ROCK & turunannya) sudah punya "_LEVELx"
+// baked-in di api_id itu sendiri — kalau ditambah "@enc" lagi jadi salah
+// format dan AODP gak bakal balikin harga. Makanya dicek dulu di sini.
+// ============================================================
+// Format AODP: equipment → "api_id@enc" (mis. T4_BAG@1)
+// Resource/consumable → "api_id@enc" JUGA, api_id-nya udah termasuk "_LEVELx"
+// jadi hasilnya "T5_FIBER_LEVEL2@2" (samain kayak refine_blade.php: api()).
+function buildAodpId(item) {
+  const enc = item.enc || 0;
+  return enc > 0 ? `${item.api_id}@${enc}` : item.api_id;
+}
+// ============================================================
+// AMBIL HARGA CLIENT-SIDE (ala refine) — fetch langsung dari BROWSER
+// ke AODP, per batch max 200 id. Harga per item diambil yang TERENDAH
+// antar 7 kota (bukan cache dari backend, biar list gak berat di server).
+// Begitu selesai, render ulang list biar harga muncul.
+// ============================================================
+async function fetchMarketPrices(items) {
+  const idMap = items.filter(it => it.api_id).map(it => ({ id: it.id, aodpId: buildAodpId(it) }));
+  if (!idMap.length) return;
+
+  const uniqueAodpIds = [...new Set(idMap.map(m => m.aodpId))];
+  const kotaParam = CITIES.map(c => c.id).join(',');
+  const lowestByAodpId = {};
+
+  try {
+    for (let i = 0; i < uniqueAodpIds.length; i += 200) {
+      const batch = uniqueAodpIds.slice(i, i + 200);
+      const url = `${AODP_BASE}/api/v2/stats/prices/${batch.join(',')}?locations=${encodeURIComponent(kotaParam)}&qualities=${selQuality}`;
+      const res  = await fetch(url);
+      const data = await res.json();
+      for (const e of data) {
+        if (e.sell_price_min > 0) {
+          if (!lowestByAodpId[e.item_id] || e.sell_price_min < lowestByAodpId[e.item_id]) {
+            lowestByAodpId[e.item_id] = e.sell_price_min;
+          }
+        }
+      }
+    }
+
+    for (const m of idMap) {
+      const price = lowestByAodpId[m.aodpId];
+      if (price) priceCache[m.id] = price;
+    }
+
+    renderItems(items); // render ulang biar harga yang barusan didapat muncul
+  } catch (e) {
+    // gagal fetch harga -> list tetap tampil tanpa harga, gak ganggu fungsi utama
+  }
 }
 
 // ============================================================
@@ -611,10 +868,13 @@ function formatSilver(n) {
 }
 
 // ============================================================
-// POPUP — render INSTAN pakai harga cache dulu (biar gak nunggu
-// API luar yang bisa 1-8 detik), lalu di background kita coba
-// ambil harga real-time dan TIMPA box yang sudah tampil. Kalau
-// real-time gagal, cache yang sudah tampil dibiarkan (itu fallback-nya).
+// POPUP — render INSTAN pakai harga cache DB dulu (biar gak nunggu
+// AODP yang bisa 1-8 detik), lalu di background kita fetch harga
+// LANGSUNG DARI BROWSER KE AODP (persis kayak list) dan TIMPA box
+// yang sudah tampil. UI popup ini SUDAH GAK BERGANTUNG ke endpoint
+// refresh backend sama sekali — itu cuma dipanggil diam-diam di
+// belakang layar buat jaga tabel item_prices tetap fresh (kebutuhan
+// lain), hasilnya gak dipakai buat nampilin apa-apa di popup.
 // ============================================================
 function openPopup(itemId) {
   document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Memuat...</div>';
@@ -623,8 +883,9 @@ function openPopup(itemId) {
   fetch('/api/market/item/' + itemId)
     .then(r => r.json())
     .then(item => {
-      renderPopup(item);          // instan, pakai harga cache yang sudah ada
-      refreshPopupPrices(itemId); // lalu coba real-time di background, timpa kalau berhasil
+      renderPopup(item);                       // instan, pakai harga cache DB yang sudah ada (kalau ada)
+      fetchPopupPricesFromAodp(item); // lalu ambil harga REAL dari browser -> AODP (quality dari dropdown, via getAodpQualitiesParam()), timpa box
+      silentlyRefreshBackendCache(itemId);  // diam-diam suruh backend refresh tabel item_prices, TIDAK dipakai buat UI
     })
     .catch(() => {
       document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Gagal memuat data.</div>';
@@ -632,58 +893,101 @@ function openPopup(itemId) {
 }
 
 // ============================================================
-// REFRESH HARGA (background) — minta backend fetch real-time ke
-// Albion Online Data Project. Kalau berhasil & ada harganya, box
-// ditimpa dengan nilai real-time itu. Kalau gagal/kosong, box
-// dibiarkan seperti apa adanya (masih nunjukin harga cache).
+// AMBIL HARGA POPUP LANGSUNG DARI BROWSER KE AODP — sama persis
+// gayanya kayak fetchMarketPrices() punya list, bedanya di sini kita
+// butuh breakdown PER KOTA (bukan cuma yang terendah), soalnya popup
+// nampilin 7 kotak harga. Begitu respons AODP datang, tiap kotak
+// ditimpa dengan harganya masing-masing. Kalau AODP gagal/timeout,
+// box dibiarkan seperti render instan sebelumnya (cache DB / '—').
+// Ini SATU-SATUNYA sumber harga popup sekarang; gak ada ketergantungan
+// ke endpoint refresh-prices backend.
 // ============================================================
-function refreshPopupPrices(itemId) {
+function fetchPopupPricesFromAodp(item) {
+  if (!item.api_id) return;
+
   CITIES.forEach(c => {
-    const boxId = 'cpb-' + c.id.replace(' ', '-');
-    document.getElementById(boxId)?.classList.add('loading');
+    document.getElementById('cpb-' + c.id.replace(' ', '-'))?.classList.add('loading');
   });
 
-  fetch(`/api/market/item/${itemId}/refresh-prices`, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: { 'X-CSRF-TOKEN': getCsrf() },
-  })
+  const aodpId    = buildAodpId(item);
+  const kotaParam = CITIES.map(c => c.id).join(',');
+  const url = `${AODP_BASE}/api/v2/stats/prices/${aodpId}?locations=${encodeURIComponent(kotaParam)}&qualities=${selQuality}`;
+
+  fetch(url)
     .then(r => r.json())
     .then(data => {
+      // Ambil harga TERENDAH per kota, bukan overwrite langsung — soalnya kalau
+      // quality "All" dipilih, AODP balikin beberapa entry per kota (satu per
+      // quality), jadi entry terakhir yang datang gak boleh sembarang nimpa.
+      const priceByCity = {};
+      for (const e of data) {
+        if (e.sell_price_min > 0 && (!priceByCity[e.city] || e.sell_price_min < priceByCity[e.city])) {
+          priceByCity[e.city] = e.sell_price_min;
+        }
+      }
       CITIES.forEach(c => {
         const boxId = 'cpb-' + c.id.replace(' ', '-');
         const box = document.getElementById(boxId);
         if (!box) return; // popup udah ditutup / item lain dibuka
         box.classList.remove('loading');
-        const price = data.prices?.[c.id] ?? 0;
-        if (!price) return; // gak ada harga sama sekali (real-time maupun cache) → biarkan tampilan sebelumnya
+        const price = priceByCity[c.id];
+        if (!price) {
+          box.classList.add('no-data');
+          box.querySelector('.cpb-val').textContent = '—';
+          return;
+        }
         box.classList.remove('no-data');
         box.querySelector('.cpb-val').textContent = formatSilver(price);
       });
     })
     .catch(() => {
       CITIES.forEach(c => document.getElementById('cpb-' + c.id.replace(' ', '-'))?.classList.remove('loading'));
-      // gagal total → biarkan harga cache yang sudah tampil dari renderPopup
+      // gagal fetch AODP -> box dibiarkan sesuai render instan (cache DB kalau ada, atau '—')
     });
+}
+
+// ============================================================
+// DIAM-DIAM minta backend refresh harga ke tabel item_prices.
+// Fire-and-forget: hasilnya (berhasil/gagal) SAMA SEKALI gak dipakai
+// buat update UI popup — itu udah jadi tugas fetchPopupPricesFromAodp
+// di atas. Ini cuma biar item_prices tetap ke-update buat kebutuhan
+// lain (list, export, dsb), jadi popup gak nunggu ini sama sekali.
+// ============================================================
+function silentlyRefreshBackendCache(itemId) {
+  fetch(`/api/market/item/${itemId}/refresh-prices`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRF-TOKEN': getCsrf() },
+  }).catch(() => {}); // gagal gak masalah, popup gak bergantung sama ini
 }
 
 function renderPopup(item) {
   const enc      = item.enc ?? 0;
   const tierText = (item.tier ?? '') + (enc > 0 ? '.' + enc : '');
   const apiIdEnc = enc > 0 ? `${item.api_id}@${enc}` : item.api_id;
+  // Sama kayak di list: override suffix ?quality= dari backend (selalu 'Normal')
+  // dengan quality yang lagi dipilih user di dropdown (getImageQuality() handle
+  // kasus "All" -> fallback ke Normal karena "All" gak punya varian gambar).
+  const popupImgUrl = item.img_url ? item.img_url.split('?')[0] + '?quality=' + selQuality : item.img_url;
 
-  // Kotak harga kota — langsung pakai harga cache dulu (instan), gak nunggu
-  // fetch real-time. refreshPopupPrices() bakal nimpa box ini di background
-  // begitu hasil real-time datang.
+  // Kotak harga kota — langsung pakai harga cache DB dulu (instan), gak nunggu
+  // AODP. fetchPopupPricesFromAodp() bakal nimpa box ini di background begitu
+  // hasil fetch browser -> AODP datang (itu sumber utamanya sekarang).
   const cityBoxes = CITIES.map(c => {
     const price = item.prices?.[c.id] ?? 0;
     const boxId = 'cpb-' + c.id.replace(' ', '-');
+    const clickAttr = `onclick="selectHistoryCity('${c.id}', this)"`;
     return `
-    <div class="city-price-box ${price ? '' : 'no-data'} ${c.cls}" id="${boxId}" title="${c.id}">
+    <div class="city-price-box ${price ? '' : 'no-data'} ${c.cls}" id="${boxId}" title="${c.id}" ${clickAttr}>
       <span class="cpb-val">${price ? formatSilver(price) : '—'}</span>
     </div>
   `;
   }).join('');
+
+  // Simpan konteks item aktif buat dipakai loadPriceHistory() pas user pencet kota
+  currentPopupItem = { api_id: item.api_id, enc: enc };
+  currentHistoryCity = null;
+  destroyHistoryChart();
 
   // Buat list resource — minimal design: cuma gambar + jumlah aja
   // Kalau ada 2 recipe berbeda bahan, dipisahin dengan jarak/line
@@ -698,7 +1002,7 @@ function renderPopup(item) {
 
   document.getElementById('popupContent').innerHTML = `
     <div class="popup-head">
-      <img src="${item.img_url}" alt="${item.name}" onerror="this.style.opacity=0.3">
+      <img src="${popupImgUrl}" alt="${item.name}" onerror="this.style.opacity=0.3">
       <div>
         <div class="popup-item-name">${item.name}</div>
         <div class="popup-item-sub">${tierText}</div>
@@ -707,6 +1011,12 @@ function renderPopup(item) {
     <div class="popup-prices">
       <div class="popup-prices-label">Harga per Kota</div>
       <div class="city-prices-grid">${cityBoxes}</div>
+    </div>
+    <div class="popup-history">
+      <div class="popup-history-label">Tren Harga (30 Hari) — <span id="historyCityLabel">-</span></div>
+      <div class="popup-history-canvas-wrap" id="historyCanvasWrap">
+        <div class="popup-history-loading">Pilih kota di atas untuk lihat tren</div>
+      </div>
     </div>
     <div class="popup-resources">
       <div class="popup-resources-label">Bahan Crafting</div>
@@ -744,10 +1054,16 @@ fetch('/api/market/categories')
   .then(r => r.json())
   .then(data => {
     CATEGORIES = data;
-    buildCol1();
+    loadMarketFilters(); // pulihkan kategori/tier/enchant dari sesi sebelumnya (kalau ada)
+    refreshCols();
+    updateCatLabel();
     buildTierDrop();
+    setFilterVal('lblTier', 'valTier', selTier !== null ? TIER_LABEL[selTier] : null);
     buildEncDrop();
-    fetchItems(); // load semua item dari awal, gak perlu pilih kategori dulu
+    setFilterVal('lblEnc', 'valEnc', selEnc !== null ? ('Enc ' + selEnc) : null);
+    buildQualityDrop();
+    setFilterVal('lblQuality', 'valQuality', QUALITY_LABEL[selQuality]);
+    fetchItems(); // load item sesuai filter yang udah dipulihkan (atau semua item kalau belum pernah difilter)
   });
 </script>
 <x-comments page="market" />
