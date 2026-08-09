@@ -1,431 +1,9 @@
 @extends('layouts.app')
 @section('title', $stationName . ' — Albion Online Tools')
 @section('content')
+@vite(['resources/css/kalkulator/crafting-mage-tower.css'])
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<style>
-:root {
-  --parch-lt:  #dcc08a;
-  --panel-bd:  #6b4f1a;
-  --gold:      #f0c040;
-  --gold-dk:   #b8860b;
-  --text-lt:   #e8d5a3;
-  --text-dim:  #a08040;
-  --slot-bg:   #1a1208;
-  --slot-bd:   #4a3510;
-}
-.app { padding: 0 0 40px; }
-.panel {
-  background: linear-gradient(180deg, #2e2210 0%, #1e1608 100%);
-  border: 2px solid var(--panel-bd);
-  border-radius: 4px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.7);
-  overflow: visible;
-}
-.panel-header {
-  background: linear-gradient(180deg, #3d2e15 0%, #2a1f0e 100%);
-  border-bottom: 1px solid var(--panel-bd);
-  padding: 10px 16px;
-  display: flex; align-items: center; gap: 10px;
-}
-.panel-title { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; }
-.header-search {
-  margin-left: auto;
-  background: linear-gradient(180deg, #1a1208 0%, #110e05 100%);
-  border: 1px solid var(--slot-bd); border-radius: 3px;
-  color: var(--text-lt); font-family: 'Crimson Text', serif;
-  font-size: 13px; padding: 6px 10px; outline: none;
-  transition: border-color 0.15s; width: 180px;
-}
-.header-search:focus { border-color: var(--gold-dk); }
-.header-search::placeholder { color: var(--text-dim); }
 
-/* ====== FILTER BAR ====== */
-.filter-bar {
-  background: linear-gradient(180deg, #251a08 0%, #1a1005 100%);
-  border-bottom: 1px solid var(--panel-bd);
-  padding: 10px 12px;
-  display: flex; gap: 8px; flex-wrap: nowrap;
-  overflow-x: auto; overflow-y: visible; position: relative;
-}
-.flt-wrap { position: relative; }
-.flt-btn {
-  display: flex; align-items: center; gap: 6px;
-  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
-  border: 1px solid #8b6820; border-radius: 3px;
-  color: #2a1800; font-family: 'Cinzel', serif; font-size: 12px;
-  font-weight: 600; letter-spacing: 0.5px; padding: 7px 12px;
-  cursor: pointer; user-select: none; white-space: nowrap;
-  transition: all 0.1s; justify-content: space-between;
-}
-.flt-btn:hover { background: linear-gradient(180deg, #dabb5a 0%, #b88838 100%); border-color: var(--gold); }
-.flt-btn.open  { background: linear-gradient(180deg, #b89030 0%, #907020 100%); border-color: var(--gold); box-shadow: 0 0 8px rgba(240,192,64,0.3); }
-.flt-btn .flt-label { flex: 1; text-align: left; }
-.flt-btn .flt-val   { font-size: 10px; opacity: 0.75; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
-.flt-btn .flt-arrow { font-size: 8px; opacity: 0.7; margin-left: 2px; transition: transform 0.15s; }
-.flt-btn.open .flt-arrow { transform: rotate(180deg); }
-
-/* ====== DROPDOWN ====== */
-.drop-wrap {
-  position: fixed; z-index: 9999;
-  display: none; gap: 2px;
-  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.85));
-}
-.drop-wrap.show { display: flex; }
-.drop-col {
-  min-width: 175px; max-height: 370px; overflow-y: auto;
-  background: linear-gradient(180deg, #e8cf88 0%, #d4b468 100%);
-  border: 1px solid #8b6820; border-radius: 3px;
-  padding: 4px; display: flex; flex-direction: column; gap: 2px;
-}
-.drop-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 10px; border-radius: 2px;
-  background: transparent; border: 1px solid transparent;
-  cursor: pointer; font-family: 'Crimson Text', serif;
-  font-size: 14px; font-weight: 600; color: #2a1800;
-  transition: all 0.08s; white-space: nowrap;
-}
-.drop-item:hover  { background: linear-gradient(180deg, #f2dc9a 0%, #e2c878 100%); border-color: #a07828; }
-.drop-item.active { background: linear-gradient(180deg, #b88a28 0%, #906818 100%); border-color: #7a5010; color: #fff8e0; }
-.drop-item .di-arrow { font-size: 9px; color: #6b4f1a; margin-left: 8px; flex-shrink: 0; }
-.drop-item.active .di-arrow { color: #ffe090; }
-
-/* ====== ITEM LIST ====== */
-.item-list { min-height: 160px; padding: 0; position: relative; }
-.item-list-empty {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-dim);
-  font-style: italic; font-size: 14px; text-align: center;
-  font-family: 'Crimson Text', serif;
-}
-
-/* Scroll wrapper */
-.item-table-wrap { max-height: 480px; overflow-y: auto; }
-
-/* Tiap baris — gaya refine */
-.item-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(107,79,26,0.3);
-  cursor: pointer; transition: background 0.1s;
-}
-.item-row:hover { background: rgba(61,46,21,0.5); }
-
-/* Icon + badge */
-.item-icon-wrap { position: relative; flex-shrink: 0; }
-.item-icon {
-  width: 48px; height: 48px;
-  border: 1px solid var(--slot-bd); border-radius: 3px;
-  background: var(--slot-bg); object-fit: contain;
-  image-rendering: pixelated; display: block;
-}
-.tier-badge {
-  position: absolute; top: 1px; left: 1px;
-  width: 16px; height: 16px; border-radius: 2px;
-  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.78); border: 1px solid currentColor;
-  color: var(--gold);
-}
-.enc-badge {
-  position: absolute; bottom: 1px; right: 1px;
-  width: 14px; height: 14px; border-radius: 2px;
-  font-size: 8px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(140,80,0,0.85); color: #ffe090;
-}
-
-/* Info kanan: nama + badge harga */
-.item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.item-name { font-family: 'Crimson Text', serif; font-size: 15px; color: var(--parch-lt); font-weight: 600; }
-
-/* ====== SEARCH ====== */
-.search-bar { padding: 10px 12px 0; }
-.search-input {
-  width: 100%;
-  background: linear-gradient(180deg, #1a1208 0%, #110e05 100%);
-  border: 1px solid var(--slot-bd); border-radius: 3px;
-  color: var(--text-lt); font-family: 'Crimson Text', serif;
-  font-size: 14px; padding: 8px 12px; outline: none;
-  transition: border-color 0.15s;
-}
-.search-input:focus { border-color: var(--gold-dk); }
-.search-input::placeholder { color: var(--text-dim); }
-
-/* ====== POPUP ====== */
-.popup-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.82);
-  z-index: 10000;
-  display: none; align-items: center; justify-content: center;
-  padding: 16px;
-}
-.popup-overlay.show { display: flex; }
-.popup-box {
-  background: linear-gradient(180deg, #2e2210 0%, #1a1208 100%);
-  border: 2px solid var(--panel-bd); border-radius: 6px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.95);
-  width: 100%; max-width: 400px;
-  max-height: 88vh; overflow-y: auto;
-  position: relative;
-}
-.popup-close {
-  position: absolute; top: 10px; right: 10px;
-  width: 28px; height: 28px; border-radius: 50%;
-  background: linear-gradient(180deg, #6b1a1a 0%, #4a1010 100%);
-  border: 1px solid #8b3030; color: #f0c0c0;
-  font-size: 14px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; z-index: 1;
-}
-.popup-close:hover { background: #8b2020; border-color: #c04040; }
-
-/* Popup head: gambar + nama */
-.popup-head {
-  display: flex; gap: 14px; padding: 16px 44px 16px 16px;
-  background: linear-gradient(180deg, #3d2e15 0%, #2a1f0e 100%);
-  border-bottom: 1px solid var(--panel-bd); align-items: center;
-}
-.popup-head img {
-  width: 72px; height: 72px;
-  border: 1px solid var(--slot-bd); border-radius: 4px;
-  background: var(--slot-bg); object-fit: contain; flex-shrink: 0;
-}
-.popup-item-name {
-  font-family: 'Cinzel', serif; font-size: 15px;
-  color: var(--gold); margin-bottom: 4px; line-height: 1.3;
-}
-.popup-item-sub {
-  font-family: 'Crimson Text', serif; font-size: 12px;
-  color: var(--text-dim);
-}
-
-/* Harga per kota */
-.popup-prices {
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(107,79,26,0.4);
-}
-.popup-prices-label {
-  font-family: 'Cinzel', serif; font-size: 10px;
-  color: var(--text-dim); text-transform: uppercase;
-  letter-spacing: 1px; margin-bottom: 8px;
-}
-.city-prices-grid {
-  display: flex; gap: 6px; flex-wrap: wrap;
-}
-.city-price-box {
-  width: 44px; height: 44px; border-radius: 4px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  font-family: 'Cinzel', serif; font-size: 9px;
-  font-weight: 700; cursor: default;
-  border: 1px solid rgba(0,0,0,0.3);
-  gap: 2px;
-}
-.city-price-box .cpb-val { font-size: 11px; font-weight: 700; }
-.city-price-box.loading  { opacity: 0.5; }
-.city-price-box.no-data  { opacity: 0.3; }
-
-/* Warna kota Albion */
-.city-Caerleon      { background: #7b1a1a; color: #ffd0d0; border-color: #c0392b; }
-.city-Bridgewatch   { background: #7a3a00; color: #ffe0b0; border-color: #e67e22; }
-.city-Fort-Sterling { background: #3a3a3a; color: #f0f0f0; border-color: #bdc3c7; }
-.city-Lymhurst      { background: #1a4a1a; color: #c0ffc0; border-color: #27ae60; }
-.city-Martlock      { background: #1a2a5a; color: #c0d0ff; border-color: #2980b9; }
-.city-Thetford      { background: #3a1a5a; color: #e0c0ff; border-color: #8e44ad; }
-.city-Brecilien     { background: #0a3a2a; color: #a0ffe0; border-color: #1abc9c; }
-
-/* Resources / bahan */
-.popup-resources {
-  padding: 12px 16px 16px;
-}
-.popup-resources-label {
-  font-family: 'Cinzel', serif; font-size: 10px;
-  color: var(--text-dim); text-transform: uppercase;
-  letter-spacing: 1px; margin-bottom: 8px;
-}
-.resource-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); gap: 8px; }
-.resource-item {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  position: relative; cursor: pointer; transition: opacity 0.12s;
-}
-.resource-item:hover { opacity: 0.8; }
-.resource-item img {
-  width: 48px; height: 48px; object-fit: contain;
-  border: 1px solid var(--slot-bd); border-radius: 3px;
-  background: var(--slot-bg);
-}
-.resource-count {
-  position: absolute; bottom: -5px; right: -5px;
-  font-family: 'Cinzel', serif; font-size: 11px;
-  color: var(--gold); font-weight: 700;
-  background: var(--dark-bg); border: 1px solid var(--gold);
-  border-radius: 3px; padding: 1px 3px;
-}
-.popup-loading {
-  padding: 40px; text-align: center;
-  color: var(--text-dim); font-style: italic;
-  font-family: 'Crimson Text', serif; font-size: 14px;
-}
-
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: #8b6820; border-radius: 3px; }
-
-/* ====== MODE TOGGLE (Simple / Advance) ====== */
-.mode-toggle { display:flex; gap:0; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:4px; padding:3px; margin-bottom:10px; }
-.mode-btn { flex:1; background:transparent; border:none; color:var(--text-dim); font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; border-radius:3px; text-transform:uppercase; transition:all .15s; }
-.mode-btn.active { background:linear-gradient(180deg,#4a3818,#2e2210); color:var(--gold); border:1px solid var(--panel-bd); }
-
-/* ====== WIZARD (MODE SIMPLE) ====== */
-.wiz-step { padding:14px 0; border-bottom:1px solid rgba(107,79,26,.3); }
-.wiz-step:last-child { border-bottom:none; }
-.wiz-label { font-family:'Cinzel',serif; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
-.wiz-options { display:flex; flex-wrap:wrap; gap:7px; }
-.wiz-opt { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--panel-bd); border-radius:4px; color:var(--text-lt); font-family:'Crimson Text',serif; font-size:14px; padding:9px 15px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px; }
-.wiz-opt:hover { border-color:var(--gold); }
-.wiz-opt.sel { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
-.wiz-opt .wo-arrow { font-size:9px; opacity:.7; }
-.wiz-cat-crumb { font-family:'Crimson Text',serif; font-style:italic; font-size:12px; color:var(--text-dim); margin:12px 0 8px 16px; }
-.wiz-cat-crumb-3 { margin-left:32px; }
-.wiz-cat-lvl2 { margin-left:16px; padding-left:10px; border-left:2px solid rgba(240,192,64,.35); }
-.wiz-cat-lvl3 { margin-left:32px; padding-left:10px; border-left:2px solid rgba(240,192,64,.6); }
-.wiz-next-row { margin-top:10px; }
-.wiz-btn-lanjut { background:linear-gradient(180deg,#4a6b1a,#2e4210); border:1px solid #6b8b30; border-radius:3px; color:#d0f0a0; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:9px 16px; cursor:pointer; text-transform:uppercase; }
-.wiz-btn-lanjut:hover { border-color:#8bc040; color:#fff; }
-.wiz-btn-lanjut:disabled { opacity:.4; cursor:not-allowed; }
-.wiz-item-list { max-height:360px; overflow-y:auto; border:1px solid var(--slot-bd); border-radius:3px; }
-.wiz-input-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.wiz-input-row label { font-size:12px; color:var(--text-dim); min-width:150px; }
-.wiz-input-row input[type=number] { background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-lt); font-size:14px; padding:8px 10px; outline:none; width:120px; }
-.wiz-input-row input:focus { border-color:var(--gold); }
-.wiz-btn-hitung { width:100%; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:12px; cursor:pointer; text-transform:uppercase; margin-top:4px; }
-.wiz-btn-hitung:hover { background:linear-gradient(180deg,#a05800,#703800); }
-.wiz-selected-item { display:flex; align-items:center; gap:10px; background:rgba(0,0,0,.25); border:1px solid var(--slot-bd); border-radius:4px; padding:8px 10px; margin-bottom:12px; }
-.wiz-selected-item img { width:40px; height:40px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); }
-.wiz-selected-item .wsi-name { flex:1; font-family:'Crimson Text',serif; font-size:14px; color:var(--gold); }
-.wiz-selected-item .wsi-change { background:none; border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-dim); font-size:11px; padding:5px 9px; cursor:pointer; }
-.wiz-selected-item .wsi-change:hover { border-color:var(--gold); color:var(--gold); }
-.wiz-result { margin:14px 0; background:linear-gradient(180deg,#2e2210,#1e1608); border:2px solid var(--panel-bd); border-radius:4px; padding:16px; }
-.wiz-result-text { font-size:15px; line-height:1.7; color:var(--text-lt); }
-.wiz-result-text b { color:var(--gold); }
-.bahan-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
-.bahan-slot { display:flex; flex-direction:column; align-items:center; gap:3px; }
-.bahan-slot img { width:44px; height:44px; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); object-fit:contain; }
-.bahan-qty { font-family:'Cinzel',serif; font-size:11px; font-weight:700; text-align:center; }
-.bahan-qty .butuh { color:var(--gold); }
-.bahan-qty .punya { color:#6f8; }
-.bahan-name { font-size:9px; color:var(--text-dim); text-align:center; max-width:60px; line-height:1.2; }
-.bahan-arrow { font-size:16px; color:var(--text-dim); align-self:center; padding-bottom:18px; }
-.reset-btn { background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-size:12px; padding:9px 12px; cursor:pointer; }
-.reset-btn:hover { border-color:#c04040; }
-
-/* ====== CRAFT SLOTS ROW (Mode Advance) ====== */
-.craft-slots-row { padding:14px 16px; border-top:1px solid var(--panel-bd); display:flex; flex-direction:column; gap:10px; }
-.craft-slots-empty { color:var(--text-dim); font-style:italic; font-size:13px; font-family:'Crimson Text',serif; }
-.craft-recipe-tabs { display:flex; gap:6px; flex-wrap:wrap; }
-.craft-tab { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--panel-bd); border-radius:4px; color:var(--text-dim); font-family:'Cinzel',serif; font-size:11px; font-weight:700; letter-spacing:.5px; padding:7px 14px; cursor:pointer; text-transform:uppercase; transition:all .12s; }
-.craft-tab:hover { border-color:var(--gold-dk); color:var(--text-lt); }
-.craft-tab.active { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
-.craft-slots-grid { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.craft-slot { width:54px; height:54px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:4px; position:relative; flex-shrink:0; cursor:pointer; }
-.craft-slot img { width:100%; height:100%; object-fit:contain; display:block; }
-.craft-slot .cs-need { position:absolute; bottom:1px; right:2px; font-size:9px; font-weight:700; font-family:'Cinzel',serif; color:#f0c0c0; text-shadow:0 1px 2px #000; padding:0 1px; background:rgba(0,0,0,.55); border-radius:2px; }
-.craft-slot.ok { border-color:#6f8; }
-.craft-slot.ok .cs-need { color:#8fe0a0; }
-.craft-arrow { font-size:18px; color:var(--text-dim); }
-.craft-reset-row { padding:0 16px 14px; }
-
-/* ====== TABEL DIKUNCI SAAT ITEM SEDANG DIPILIH ====== */
-.item-row.ct-dim { opacity:.28; filter:grayscale(65%); pointer-events:none; }
-.item-row.ct-selected { border:1px solid var(--gold); background:rgba(240,192,64,.1); border-radius:3px; }
-#itemTableWrap.ct-locked { overflow:hidden; }
-
-/* ====== BOTTOM BAR: Return % + Tombol Craft ====== */
-.craft-bottom-bar { display:flex; gap:8px; align-items:center; padding:10px 16px; border-top:1px solid var(--panel-bd); background:rgba(0,0,0,.15); flex-wrap:wrap; }
-.craft-ret-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
-.craft-ret-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
-.craft-ret-inp { width:52px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
-.craft-modal-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
-.craft-modal-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
-.craft-modal-wrap span { font-family:'Cinzel',serif; font-size:14px; font-weight:700; color:var(--gold); }
-.craft-sell-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
-.craft-sell-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
-.craft-sell-inp { width:74px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
-.craft-qty-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
-.craft-qty-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
-.craft-qty-inp { width:44px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
-.craft-qty-inp:disabled { opacity:.45; }
-.craft-max-chk { display:flex; align-items:center; gap:4px; cursor:pointer; font-size:11px; color:var(--text-dim); white-space:nowrap; }
-.craft-max-chk input { cursor:pointer; }
-
-/* ====== JOURNAL PICKER ====== */
-.craft-journal-section { padding: 0 16px 14px; }
-.craft-journal-toggle { display:flex; align-items:center; gap:7px; cursor:pointer; font-family:'Crimson Text',serif; font-size:14px; color:var(--text-lt); user-select:none; }
-.craft-journal-toggle input { cursor:pointer; }
-.craft-journal-picker { display:flex; align-items:center; gap:10px; margin-top:10px; background:rgba(0,0,0,.25); border:1px solid var(--slot-bd); border-radius:4px; padding:8px 10px; }
-.craft-journal-picker img { width:40px; height:40px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); flex-shrink:0; }
-.craft-journal-picker select { background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-lt); font-family:'Crimson Text',serif; font-size:13px; padding:6px 8px; outline:none; cursor:pointer; }
-.craft-journal-picker select:focus { border-color:var(--gold-dk); }
-.craft-result-panel { margin:0 16px 14px; background:linear-gradient(180deg,#2e2210 0%,#1e1608 100%); border:2px solid var(--panel-bd); border-radius:4px; padding:12px 14px; display:flex; flex-direction:column; gap:7px; }
-.crp-row { display:flex; justify-content:space-between; align-items:center; }
-.crp-label { font-family:'Cinzel',serif; font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
-.crp-val { font-family:'Cinzel',serif; font-size:15px; font-weight:700; color:var(--gold); }
-.crp-val.positive { color:#8fe0a0; }
-.crp-val.negative { color:#f08080; }
-.crp-group-lbl { font-family:'Cinzel',serif; font-size:11px; color:var(--gold-dk); text-transform:uppercase; letter-spacing:1px; margin-top:4px; padding-bottom:3px; border-bottom:1px solid rgba(107,79,26,.4); }
-.crp-group-lbl:first-child { margin-top:0; }
-.crp-subtotal { margin-top:2px; padding-top:5px; border-top:1px dashed rgba(107,79,26,.5); }
-.crp-subtotal .crp-label { color:var(--text-lt); }
-.crp-total { margin-top:4px; padding-top:7px; border-top:1px solid var(--panel-bd); }
-.crp-total .crp-label { color:var(--text-lt); font-size:11px; }
-.crp-total .crp-val { font-size:17px; }
-
-/* ====== STATUS JURNAL DI INVENTORY (full + partial jadi slot ikon, bukan teks) ====== */
-.cinv-slot.journal-full,
-.cinv-slot.journal-partial { border-color:var(--gold-dk); background:rgba(240,192,64,.08); }
-.cinv-slot.journal-partial { opacity:.85; }
-.cinv-slot .cinv-qty-frac { position:absolute; bottom:1px; left:2px; right:2px; font-size:8px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; text-align:center; line-height:1.1; }
-.craft-btn { flex:1; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; text-transform:uppercase; }
-.craft-btn:hover:not(:disabled) { background:linear-gradient(180deg,#a05800,#703800); }
-.craft-btn:disabled { opacity:.35; cursor:not-allowed; }
-
-/* ====== INVENTORY (Mode Advance Craft) ====== */
-.craft-inv-section { padding:12px 16px 16px; border-top:1px solid var(--panel-bd); }
-.craft-inv-lbl { font-family:'Cinzel',serif; font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
-.cinv-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
-.cinv-slot { aspect-ratio:1; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; position:relative; cursor:pointer; overflow:hidden; }
-.cinv-slot.filled:hover { border-color:var(--gold); }
-.cinv-slot img { width:100%; height:100%; object-fit:contain; display:block; }
-.cinv-slot .cinv-qty { position:absolute; bottom:1px; right:2px; font-size:10px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; }
-
-/* ====== RECIPE POPUP (grouping Resep 1 / Resep 2) ====== */
-.craft-recipe-group { margin-bottom:16px; }
-.craft-recipe-group:last-child { margin-bottom:0; }
-.craft-recipe-title { font-family:'Cinzel',serif; font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
-.craft-recipe-items { display:flex; gap:10px; flex-wrap:wrap; }
-.craft-res-item { display:flex; flex-direction:column; align-items:center; gap:4px; width:64px; cursor:pointer; padding:6px; border-radius:4px; border:1px solid transparent; transition:all .12s; }
-.craft-res-item:hover { border-color:var(--gold-dk); background:rgba(240,192,64,.06); }
-.craft-res-item img { width:44px; height:44px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); }
-.craft-res-item .cri-count { font-family:'Cinzel',serif; font-size:10px; font-weight:700; color:var(--text-dim); }
-.craft-res-item.ok .cri-count { color:#8fe0a0; }
-.craft-res-item .cri-name { font-size:9px; color:var(--text-dim); text-align:center; line-height:1.2; }
-
-/* ====== TOAST ====== */
-.craft-toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:10001; white-space:nowrap; }
-.craft-toast.show { transform:translateX(-50%) translateY(0); }
-
-/* DESKTOP TWO-COLUMN LAYOUT — Mode Advance saja (item list kiri, slot resep+inventory+craft kanan) */
-#mtAdvanceWrap .rw-main { display:flex; flex-direction:column; }
-#mtAdvanceWrap .rw-col-left, #mtAdvanceWrap .rw-col-right { display:flex; flex-direction:column; min-width:0; }
-
-@media (min-width:960px) {
-  #mtAdvanceWrap { max-width:1180px; margin:0 auto; }
-  #mtAdvanceWrap .rw-main { flex-direction:row; align-items:flex-start; }
-  #mtAdvanceWrap .rw-col-left { flex:1 1 auto; border-right:1px solid var(--panel-bd); }
-  #mtAdvanceWrap .rw-col-right { flex:0 0 360px; }
-  #mtAdvanceWrap .item-list { max-height:600px; overflow-y:auto; }
-}
-</style>
 
 <div class="mode-toggle">
   <button id="btnModeSimple" class="mode-btn active" onclick="setMTMode('simple')">🧙 Mode Simple</button>
@@ -570,21 +148,42 @@
           <button class="reset-btn" onclick="resetCraftTarget()">🔄 Ganti Item</button>
         </div>
 
-        <!-- JURNAL -->
+        <!-- JURNAL — toggle tombol (bukan checkbox), pilihan jenis/tier
+             pakai chip tombol (bukan dropdown select). Jurnal TIDAK perlu
+             dimasukkan ke Inventory bahan; status penuh/progress-nya
+             tampil sebagai badge di sini juga. -->
         <div class="craft-journal-section" id="craftJournalSection" style="display:none">
-          <label class="craft-journal-toggle">
-            <input type="checkbox" id="useJournalChk" onchange="onUseJournalChange()"> 📔 Gunakan Jurnal
-          </label>
+          <button type="button" class="craft-journal-toggle-btn" id="useJournalBtn" onclick="onUseJournalToggle()">📔 Gunakan Jurnal</button>
           <div class="craft-journal-picker" id="journalPickerRow" style="display:none">
             <img id="journalIcon" src="" alt="Jurnal" onerror="this.style.opacity=.3">
-            <select id="journalTypeSelect" onchange="onJournalOptionChange()"></select>
-            <select id="journalTierSelect" onchange="onJournalOptionChange()"></select>
+            <div class="craft-journal-picker-body">
+              <div class="craft-journal-dd-row">
+                <div class="flt-wrap">
+                  <div class="flt-btn" id="btnJtype" onclick="toggleDrop('jtype')">
+                    <span class="flt-label" id="lblJtype">Jenis Jurnal</span>
+                    <span class="flt-val"   id="valJtype" style="display:none"></span>
+                    <span class="flt-arrow">▼</span>
+                  </div>
+                  <div class="drop-wrap" id="dropJtype">
+                    <div class="drop-col" id="colJtype"></div>
+                  </div>
+                </div>
+                <div class="flt-wrap">
+                  <div class="flt-btn" id="btnJtier" onclick="toggleDrop('jtier')">
+                    <span class="flt-label" id="lblJtier">Tier</span>
+                    <span class="flt-val"   id="valJtier" style="display:none"></span>
+                    <span class="flt-arrow">▼</span>
+                  </div>
+                  <div class="drop-wrap" id="dropJtier">
+                    <div class="drop-col" id="colJtier"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <!-- Status jurnal (penuh + progress terisi sebagian) sekarang tampil
-               sebagai ikon langsung di grid Inventory di bawah, bukan teks lagi. -->
         </div>
 
-        <!-- INVENTORY -->
+        <!-- INVENTORY (murni bahan crafting — jurnal gak ikut di sini) -->
         <div class="craft-inv-section">
           <div class="craft-inv-lbl">📦 Inventory (<span id="craftInvCount">0</span>)</div>
           <div class="cinv-grid" id="craftInvGrid"></div>
@@ -599,17 +198,14 @@
           </div>
           <div class="craft-qty-wrap">
             <label>🔢 Jumlah</label>
-            <input class="craft-qty-inp" type="number" id="craftQty" value="1" min="1" disabled oninput="onCraftQtyInput()">
-            <label class="craft-max-chk"><input type="checkbox" id="craftHabis" checked onchange="onCraftHabisChange()"> Max</label>
-            <label class="craft-max-chk"><input type="checkbox" id="craftHabiskanBahan" onchange="onCraftHabiskanBahanChange()"> Habiskan Bahan</label>
+            <input class="craft-qty-inp" type="number" id="craftQty" value="1" min="1" disabled>
+            <label class="craft-max-chk"><input type="checkbox" id="craftHabis" onchange="onCraftHabisChange()"> Crafting Habis</label>
           </div>
           <div class="craft-sell-wrap">
             <label>💵 Harga Jual</label>
             <input class="craft-sell-inp" type="number" id="craftSellPrice" placeholder="0" min="0" oninput="craftSellPriceIsDefault=false">
-          </div>
-          <div class="craft-modal-wrap">
-            <label>💰 Modal</label>
-            <span id="craftModalVal">0</span>
+            <label class="craft-max-chk"><input type="checkbox" id="craftPremium" onchange="renderCraftResultPanel()"> Premium</label>
+            <label class="craft-max-chk"><input type="checkbox" id="craftOrderCost" onchange="renderCraftResultPanel()"> Pesanan Jual</label>
           </div>
           <button class="craft-btn" id="craftBtn" disabled onclick="doCraft()">⚒️ Craft</button>
         </div>
@@ -625,13 +221,14 @@
           <div class="crp-row" id="crpModalJurnalRow" style="display:none"><span class="crp-label">Jurnal Dibutuhkan</span><span class="crp-val" id="crpModalJurnal">0</span></div>
           <div class="crp-row crp-subtotal"><span class="crp-label">Total Modal</span><span class="crp-val" id="crpTotalModal">0</span></div>
 
-          <div class="crp-group-lbl">📈 Profit</div>
-          <div class="crp-row"><span class="crp-label">Item Hasil Craft</span><span class="crp-val" id="crpProfitItem">0</span></div>
-          <div class="crp-row"><span class="crp-label">Sisa Bahan</span><span class="crp-val" id="crpProfitSisa">0</span></div>
+          <div class="crp-group-lbl" id="crpProfitGroupLbl">📈 Profit</div>
+          <div class="crp-row" id="crpRowProfitItem"><span class="crp-label">Item Hasil Craft</span><span class="crp-val" id="crpProfitItem">0</span></div>
+          <div class="crp-row" id="crpRowPajak"><span class="crp-label">Pajak &amp; Biaya Pesanan</span><span class="crp-val negative" id="crpPajak">0</span></div>
+          <div class="crp-row" id="crpRowProfitSisa"><span class="crp-label">Sisa Bahan</span><span class="crp-val" id="crpProfitSisa">0</span></div>
           <div class="crp-row" id="crpProfitJurnalRow" style="display:none"><span class="crp-label">Jurnal Penuh</span><span class="crp-val" id="crpProfitJurnal">0</span></div>
-          <div class="crp-row crp-subtotal"><span class="crp-label">Hasil Akhir</span><span class="crp-val" id="crpHasilAkhir">0</span></div>
+          <div class="crp-row crp-subtotal" id="crpRowHasilAkhir"><span class="crp-label">Hasil Akhir</span><span class="crp-val" id="crpHasilAkhir">0</span></div>
 
-          <div class="crp-row crp-total"><span class="crp-label">Total Profit</span><span class="crp-val" id="crpTotalProfit">0</span></div>
+          <div class="crp-row crp-total" id="crpRowTotalProfit"><span class="crp-label">Total Profit</span><span class="crp-val" id="crpTotalProfit">0</span></div>
         </div>
       </div>
     </div>
@@ -1453,7 +1050,12 @@ let craftModalLock       = null;
 
 // Konstanta dari config/albion.php, dipakai buat hitung kebutuhan &
 // nilai jurnal (frontend, biar gak bolak-balik ke server tiap render).
-const ALBION_JOURNAL_REQUIREMENT = @json(config('albion.fame.journal_requirement'));
+// CATATAN: max fame per journal SENGAJA TIDAK di sini lagi (dulu
+// ALBION_JOURNAL_REQUIREMENT, global per tier doang) — beda journal_name
+// bisa punya kurva fame beda (mis. Generalist's Journal T4 = 5400,
+// sedangkan Fletcher's/Imbuer's/dll T4 = 3600). Sekarang dikirim backend
+// per journal type lewat journal_options[].max_fame_by_tier — lihat
+// getJournalMaxFame().
 const ALBION_JOURNAL_PRICE       = @json(config('albion.journal.price'));
 const ALBION_JOURNAL_BASE_AMOUNT = @json(config('albion.journal.base_amount'));
 const ALBION_LABORER_RATIO       = @json(config('albion.journal.laborer_ratio'));
@@ -1556,6 +1158,22 @@ function getJournalResourceValue() {
   return val; // asumsi yield 100% — field Yield% sudah dihapus dari UI
 }
 
+// Max fame buat isi 1 journal PENUH — per journal type & tier, dari
+// journal_options[].max_fame_by_tier (dikirim backend, sumbernya tabel
+// journal_requirements hasil sync items.xml). GANTI dari
+// ALBION_JOURNAL_REQUIREMENT lama yang global per tier doang, gak lihat
+// journal_name — itu yang bikin Tier 4 Fletcher's kepake 1200 padahal
+// 3600, dan Generalist's Journal ikut kepake angka journal crafting
+// padahal sebenarnya beda kurva (5400 di T4).
+function getJournalMaxFame() {
+  if (!craftJournalType || !craftJournalTier) return null;
+  const opt = craftJournalOptions.find(o => o.name === craftJournalType);
+  const maxByTier = opt && opt.max_fame_by_tier;
+  const val = maxByTier ? maxByTier[craftJournalTier] : null;
+  if (val === undefined || val === null) return null;
+  return val;
+}
+
 // Nilai silver "sisa bahan" resep aktif, real-time dari craftInv sekarang
 // (bukan snapshot) — dipakai buat panel Profit.
 function calcGroupValue(group) {
@@ -1647,90 +1265,91 @@ function getMaxCraftable(group) {
   return Math.min(...group.map(r => Math.floor(getInvQty(r.item_id, r.name) / r.count)));
 }
 
-// Sinkronkan field Jumlah dengan bahan yang tersedia. Kalau checkbox
-// "Max" dicentang, field dikunci dan otomatis ikut max craftable.
+// Field Jumlah SELALU otomatis (gak bisa diketik manual) — cuma ada satu
+// checkbox "Crafting Habis":
+//  - TIDAK dicentang -> craft SEKALI dengan jumlah maksimal yang bisa
+//    dibikin dari bahan yang ada sekarang (getMaxCraftable).
+//  - Dicentang -> loop craft berulang sampai bahan mentok, bahan hasil
+//    return% ikut dipakai lagi buat putaran berikutnya (simulateLoopN).
 function updateCraftQtyField() {
-  const group = craftRecipes[craftActiveRecipe] || [];
-  const max   = getMaxCraftable(group);
-  const habis = document.getElementById('craftHabis').checked;
+  const group  = craftRecipes[craftActiveRecipe] || [];
+  const habis  = isHabiskanBahanMode();
   const qtyInp = document.getElementById('craftQty');
-  qtyInp.max = Math.max(max, 1);
+  qtyInp.disabled = true;
+
   if (habis) {
-    qtyInp.value = max > 0 ? max : 1;
-    qtyInp.disabled = true;
+    const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('craftReturn').value) || 0));
+    const { total } = simulateLoopN(group, retPct);
+    qtyInp.value = total;
   } else {
-    qtyInp.disabled = false;
-    if ((parseInt(qtyInp.value) || 1) > max) qtyInp.value = Math.max(max, 1);
+    const max = getMaxCraftable(group);
+    qtyInp.value = max;
   }
 }
 
 function onCraftHabisChange() {
-  const maxChecked   = document.getElementById('craftHabis').checked;
-  const habisBahanEl = document.getElementById('craftHabiskanBahan');
-  habisBahanEl.disabled = maxChecked; // saling eksklusif dgn Habiskan Bahan
-  if (maxChecked) habisBahanEl.checked = false;
   updateCraftQtyField();
   updateCraftModal();
   updateCraftButtonState();
 }
 
-// Checkbox "Habiskan Bahan" — mode loop simulasi (simulateLoopN), saling
-// eksklusif sama checkbox "Max". Field Jumlah gak relevan di mode ini
-// (jumlah hasil ditentukan otomatis dari simulasi), jadi dikunci disabled.
-function onCraftHabiskanBahanChange() {
-  const habisBahan = document.getElementById('craftHabiskanBahan').checked;
-  const maxEl      = document.getElementById('craftHabis');
-  const qtyInp     = document.getElementById('craftQty');
-  maxEl.disabled = habisBahan;
-  if (habisBahan) {
-    maxEl.checked = false;
-    qtyInp.disabled = true;
-  } else {
-    updateCraftQtyField(); // balikin ke behaviour normal (ikut checkbox Max)
-  }
-  updateCraftModal();
-  updateCraftButtonState();
-}
-
-function onCraftQtyInput() {
-  updateCraftModal();
-  updateCraftButtonState();
-}
-
 function isHabiskanBahanMode() {
-  const el = document.getElementById('craftHabiskanBahan');
+  const el = document.getElementById('craftHabis');
   return el ? el.checked : false;
 }
 
-// Isi ulang dropdown tier sesuai jenis journal yg lagi dipilih
-// (tiap jenis journal punya range tier yang sama, tapi disusun generik
-// biar tetap benar kalau nanti journal_options per jenis punya range beda).
-function buildJournalTierOptions() {
-  const opt = craftJournalOptions.find(o => o.name === craftJournalType);
+// Dropdown jenis jurnal — pakai komponen dropdown yang sama kayak filter
+// tabel (toggleDrop/makeItem/setFilterVal, lihat CATEGORY/TIER/ENC di atas).
+function buildJournalTypeDrop() {
+  const col = document.getElementById('colJtype');
+  col.innerHTML = '';
+  craftJournalOptions.forEach(o => {
+    col.appendChild(makeItem(o.name, false, o.name === craftJournalType, () => {
+      craftJournalType = o.name;
+      setFilterVal('lblJtype', 'valJtype', o.name);
+      closeDrop();
+      const tiers = o.tiers || [];
+      if (!tiers.some(t => t == craftJournalTier)) craftJournalTier = tiers[tiers.length - 1] ?? craftJournalTier;
+      buildJournalTypeDrop();
+      buildJournalTierDrop();
+      setFilterVal('lblJtier', 'valJtier', 'Tier ' + craftJournalTier);
+      updateJournalIcon();
+      renderCraftInventory();
+      renderCraftResultPanel();
+      saveCraftState();
+    }));
+  });
+}
+
+// Dropdown tier jurnal, mengikuti jenis journal yg aktif.
+function buildJournalTierDrop() {
+  const opt   = craftJournalOptions.find(o => o.name === craftJournalType);
   const tiers = opt ? opt.tiers : [];
-  const tierSelect = document.getElementById('journalTierSelect');
-  tierSelect.innerHTML = tiers.map(t => `<option value="${t}">Tier ${t}</option>`).join('');
+  const col   = document.getElementById('colJtier');
+  col.innerHTML = '';
+  tiers.forEach(t => {
+    col.appendChild(makeItem('Tier ' + t, false, t == craftJournalTier, () => {
+      craftJournalTier = t;
+      setFilterVal('lblJtier', 'valJtier', 'Tier ' + t);
+      closeDrop();
+      buildJournalTierDrop();
+      updateJournalIcon();
+      renderCraftInventory();
+      renderCraftResultPanel();
+      saveCraftState();
+    }));
+  });
 }
 
 function updateJournalIcon() {
   document.getElementById('journalIcon').src = journalIconUrl(craftJournalType, craftJournalTier);
 }
 
-function onJournalOptionChange() {
-  craftJournalType = document.getElementById('journalTypeSelect').value;
-  buildJournalTierOptions();
-  const tierSelect = document.getElementById('journalTierSelect');
-  const stillValid = [...tierSelect.options].some(o => o.value == craftJournalTier);
-  if (!stillValid) craftJournalTier = parseInt(tierSelect.options[tierSelect.options.length - 1]?.value) || craftJournalTier;
-  tierSelect.value = craftJournalTier;
-  updateJournalIcon();
-  renderCraftInventory();
-  renderCraftResultPanel();
-  saveCraftState();
-}
-
-function onUseJournalChange() {
-  craftUseJournal = document.getElementById('useJournalChk').checked;
+// Tombol toggle "Gunakan Jurnal" (ganti checkbox). Jurnal TIDAK perlu
+// dimasukkan ke Inventory bahan — cuma nge-switch mode fame-tracking.
+function onUseJournalToggle() {
+  craftUseJournal = !craftUseJournal;
+  document.getElementById('useJournalBtn').classList.toggle('active', craftUseJournal);
   document.getElementById('journalPickerRow').style.display = craftUseJournal ? '' : 'none';
   renderCraftInventory();
   renderCraftResultPanel();
@@ -1751,18 +1370,18 @@ function renderJournalPicker(item, savedJournal) {
   }
   section.style.display = '';
 
-  const typeSelect = document.getElementById('journalTypeSelect');
-  typeSelect.innerHTML = craftJournalOptions.map(o => `<option value="${o.name}">${o.name}</option>`).join('');
-
   craftJournalType = (savedJournal && savedJournal.type) || item.default_journal || craftJournalOptions[0].name;
-  typeSelect.value = craftJournalType;
-  buildJournalTierOptions();
+  setFilterVal('lblJtype', 'valJtype', craftJournalType);
+  buildJournalTypeDrop();
 
-  craftJournalTier = (savedJournal && savedJournal.tier) || item.default_journal_tier;
-  document.getElementById('journalTierSelect').value = craftJournalTier;
+  const opt   = craftJournalOptions.find(o => o.name === craftJournalType);
+  const tiers = opt ? opt.tiers : [];
+  craftJournalTier = (savedJournal && savedJournal.tier) || item.default_journal_tier || tiers[tiers.length - 1];
+  setFilterVal('lblJtier', 'valJtier', 'Tier ' + craftJournalTier);
+  buildJournalTierDrop();
 
   craftUseJournal = savedJournal ? !!savedJournal.use : false;
-  document.getElementById('useJournalChk').checked = craftUseJournal;
+  document.getElementById('useJournalBtn').classList.toggle('active', craftUseJournal);
   document.getElementById('journalPickerRow').style.display = craftUseJournal ? '' : 'none';
 
   updateJournalIcon();
@@ -1779,9 +1398,9 @@ function renderJournalPicker(item, savedJournal) {
 let journalPopupMode = null; // 'full' | 'partial'
 
 function openJournalFullPopup() {
-  if (!craftJournalTier || !ALBION_JOURNAL_REQUIREMENT[craftJournalTier]) return;
+  const req = getJournalMaxFame();
+  if (!craftJournalTier || !req) return;
   journalPopupMode = 'full';
-  const req  = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
   const full = Math.floor(totalFameAccumulated / req);
   const autoVal = getJournalResourceValue();
 
@@ -1797,9 +1416,9 @@ function openJournalFullPopup() {
 }
 
 function openJournalPartialPopup() {
-  if (!craftJournalTier || !ALBION_JOURNAL_REQUIREMENT[craftJournalTier]) return;
+  const req = getJournalMaxFame();
+  if (!craftJournalTier || !req) return;
   journalPopupMode = 'partial';
-  const req      = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
   const full     = Math.floor(totalFameAccumulated / req);
   const sisaFame = totalFameAccumulated - (full * req);
 
@@ -1938,6 +1557,7 @@ function resetCraftTarget() {
   journalPriceOverride  = null;
   document.getElementById('craftJournalSection').style.display = 'none';
   document.getElementById('journalPickerRow').style.display = 'none';
+  document.getElementById('useJournalBtn').classList.remove('active');
   unlockItemTable();
   renderCraftInventory();
   renderCraftSlots();
@@ -2102,29 +1722,37 @@ function doCraftDeleteResource() {
 }
 
 // ------------------------------------------------------------
-// INVENTORY GRID
+// INVENTORY GRID — bahan crafting + slot jurnal (Penuh / Terisi
+// Sebagian). Jurnal BARU muncul di sini SETELAH crafting pertama kali
+// beneran ditekan (craftModalLock !== null) — sebelum itu fame masih 0
+// dan jurnal belum relevan buat dimasukkan. Begitu sudah pernah craft,
+// cuma yang benar-benar ADA yang ditampilkan: kalau cuma ada progress
+// sebagian ya cuma slot itu, kalau udah ada yang penuh ya slot itu,
+// kalau dua-duanya ada ya dua-duanya muncul.
 // ------------------------------------------------------------
 function renderCraftInventory() {
   const grid = document.getElementById('craftInvGrid');
   let html = '';
 
-  // Slot jurnal (PENUH + TERISI SEBAGIAN) — cuma muncul kalau "Gunakan
-  // Jurnal" aktif dan tier-nya sudah dipilih. Dihitung dari
-  // totalFameAccumulated, real-time tiap kali grid ini di-render ulang.
-  if (craftUseJournal && craftJournalTier && ALBION_JOURNAL_REQUIREMENT[craftJournalTier]) {
-    const req      = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+  const sudahCraft = craftModalLock !== null;
+  const journalMaxFame = getJournalMaxFame();
+  if (craftUseJournal && craftJournalTier && journalMaxFame && sudahCraft) {
+    const req      = journalMaxFame;
     const full     = Math.floor(totalFameAccumulated / req);
     const sisaFame = totalFameAccumulated - (full * req);
 
-    html += `<div class="cinv-slot journal-full" title="Jurnal Penuh × ${full} — klik buat atur harga" onclick="openJournalFullPopup()">
-      <img src="${journalFullIconUrl(craftJournalType, craftJournalTier)}" alt="Jurnal Penuh" onerror="this.style.opacity=.3">
-      <span class="cinv-qty">${full}</span>
-    </div>`;
-
-    html += `<div class="cinv-slot journal-partial" title="Progress ${Math.round(sisaFame)}/${req} fame" onclick="openJournalPartialPopup()">
-      <img src="${journalPartialIconUrl(craftJournalType, craftJournalTier)}" alt="Jurnal Terisi Sebagian" onerror="this.style.opacity=.3">
-      <span class="cinv-qty-frac">${Math.round(sisaFame)}/${req}</span>
-    </div>`;
+    if (full > 0) {
+      html += `<div class="cinv-slot journal-full" title="Jurnal Penuh × ${full} — klik buat atur harga" onclick="openJournalFullPopup()">
+        <img src="${journalFullIconUrl(craftJournalType, craftJournalTier)}" alt="Jurnal Penuh" onerror="this.style.opacity=.3">
+        <span class="cinv-qty">${full}</span>
+      </div>`;
+    }
+    if (sisaFame > 0) {
+      html += `<div class="cinv-slot journal-partial" title="Progress ${Math.round(sisaFame)}/${req} fame" onclick="openJournalPartialPopup()">
+        <img src="${journalPartialIconUrl(craftJournalType, craftJournalTier)}" alt="Jurnal Terisi Sebagian" onerror="this.style.opacity=.3">
+        <span class="cinv-qty-frac">${Math.round(sisaFame)}/${req}</span>
+      </div>`;
+    }
   }
 
   const slots = Math.max(craftInv.length, 10);
@@ -2165,24 +1793,64 @@ function updateCraftButtonState() {
 }
 
 function updateCraftModal() {
+  // Tombol "Modal" kecil di bottom bar udah dihapus (nilainya kepakai
+  // dobel/gak konsisten sama panel breakdown "Total Modal" di bawah).
+  // Fungsi ini dipertahankan namanya krn dipanggil di banyak tempat,
+  // tapi sekarang cuma nge-trigger update panel detail.
+  updateCraftResultPreview();
+}
+
+// ============================================================
+// PREVIEW PANEL HASIL CRAFT — begitu bahan mulai dimasukin ke
+// inventory (SEBELUM tombol Craft ditekan), panel craftResultPanel
+// langsung nongol nampilin bagian Modal aja (Bahan Crafting +
+// Total Modal). Grup Profit (Item Hasil, Sisa Bahan, Hasil Akhir,
+// Total Profit) masih disembunyikan karena belum ada craft yang
+// beneran kejadian — Item Hasil masih 0 dan "Sisa Bahan" belum
+// valid sebagai konsep (bahan yg ada sekarang itu bahan AWAL, bukan
+// sisa). Baris Jurnal Dibutuhkan juga masih disembunyikan karena
+// itu dihitung dari totalFameAccumulated, yang cuma numpuk stlh
+// craft pertama beneran terjadi.
+//
+// PENTING soal sumber angka Modal: PAKAI calcGroupValue(group)
+// (nilai riil bahan yg ADA di inventory sekarang), BUKAN total dari
+// updateCraftModal() (yg dihitung dari simulasi "berapa yg bakal
+// KEPAKE kalau Craft ditekan sekarang"). Simulasi itu butuh SEMUA
+// bahan resep lengkap dulu buat bisa hasilin output — begitu ada 1
+// bahan yg masih 0 (belum sempat ditambahin), hasil simulasinya 0
+// craft bisa dibuat, jadi SEMUA bahan lain yg udah ditambahin ikut
+// keitung 0 juga (padahal udah beneran dibeli/ditaro user). Bug ini
+// sempet kejadian pas modal-preview masih numpang hitungan
+// updateCraftModal() — makanya sekarang dipisah, pakai
+// calcGroupValue() yg gak peduli lengkap/belum resepnya.
+//
+// Begitu craftModalLock kekunci (= sudah pernah craft), fungsi ini
+// gak ngapa2in lagi (return awal) — renderCraftResultPanel() yang
+// pegang kendali penuh, termasuk munculin lagi grup Profit.
+// ============================================================
+function updateCraftResultPreview() {
+  if (craftModalLock !== null) return; // sudah pernah craft, biar renderCraftResultPanel() yg urus
+
+  const panel = document.getElementById('craftResultPanel');
+  const adaBahan = craftInv.length > 0 || craftUseJournal;
+  if (!adaBahan) { panel.style.display = 'none'; return; }
+
   const group = craftRecipes[craftActiveRecipe] || [];
-  let total = 0;
-  if (isHabiskanBahanMode()) {
-    const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('craftReturn').value) || 0));
-    const { stock, invs } = simulateLoopN(group, retPct);
-    group.forEach((r, i) => {
-      const inv = invs[i];
-      if (!inv) return;
-      total += Math.max(0, inv.qty - stock[i]) * (inv.harga || 0);
-    });
-  } else {
-    const jumlah = getCraftQty();
-    group.forEach(r => {
-      const inv = craftInv.find(i => (r.item_id ? i.itemId === r.item_id : i.name === r.name));
-      total += (inv?.harga || 0) * r.count * jumlah;
-    });
-  }
-  document.getElementById('craftModalVal').textContent = formatSilver(total);
+  const modalBahan = calcGroupValue(group); // nilai bahan yg ADA di inventory, apa adanya
+
+  panel.style.display = '';
+  document.getElementById('crpModalBahan').textContent = formatSilver(modalBahan);
+  document.getElementById('crpModalJurnalRow').style.display = 'none';
+  document.getElementById('crpTotalModal').textContent = formatSilver(modalBahan);
+
+  // Sembunyikan grup Profit selama masih preview (belum craft)
+  document.getElementById('crpProfitGroupLbl').style.display  = 'none';
+  document.getElementById('crpRowProfitItem').style.display   = 'none';
+  document.getElementById('crpRowPajak').style.display        = 'none';
+  document.getElementById('crpRowProfitSisa').style.display   = 'none';
+  document.getElementById('crpProfitJurnalRow').style.display = 'none';
+  document.getElementById('crpRowHasilAkhir').style.display   = 'none';
+  document.getElementById('crpRowTotalProfit').style.display  = 'none';
 }
 
 // Simulasi loop craft berulang sampai bahan mentok — generalisasi dari
@@ -2220,10 +1888,7 @@ function doCraft() {
   const retPct    = Math.min(100, Math.max(0, parseFloat(document.getElementById('craftReturn').value) || 0));
   const sellPrice = parseFloat(document.getElementById('craftSellPrice').value) || 0;
 
-  // Checkbox 'craftHabiskanBahan' sudah dipasang di bottom bar (mutual
-  // exclusive dengan 'Max' — lihat onCraftHabisChange/onCraftHabiskanBahanChange).
-  const habisEl = document.getElementById('craftHabiskanBahan');
-  const habis   = habisEl ? habisEl.checked : false;
+  const habis = isHabiskanBahanMode();
 
   let jumlah, modal = 0; // modal = total harga bahan yg beneran kepakai (gak balik lewat return%)
 
@@ -2295,22 +1960,50 @@ function doCraft() {
 //        floor(fame/requirement) × nilai resource balik journal × yield%)
 //        + Total Profit (jumlah Profit − jumlah Modal).
 // ============================================================
+// Pajak market (4% premium / 8% non-premium) + biaya pesanan jual 2,5%
+// (cuma kalau jual pakai Pesanan Jual, kalau dijual langsung ke buy
+// order yang ada gak kena biaya ini). Dua-duanya potong dari Harga Jual
+// yang diinput user, real-time ngikutin checkbox Premium/Pesanan Jual.
+function getSellFeeMultiplier() {
+  const premium   = document.getElementById('craftPremium').checked;
+  const pakaiOrder = document.getElementById('craftOrderCost').checked;
+  const taxPct   = premium ? 0.04 : 0.08;
+  const orderPct = pakaiOrder ? 0.025 : 0;
+  return (1 - taxPct) * (1 - orderPct);
+}
+
 function renderCraftResultPanel() {
-  if (craftModalLock === null) return; // belum pernah craft di sesi ini
+  if (craftModalLock === null) {
+    // Belum pernah craft di sesi ini -> masih mode preview (cuma Modal).
+    // updateCraftModal() itung ulang nilai modal skrg & manggil
+    // updateCraftResultPreview() di baliknya — jadi titik panggil manapun
+    // (toggle jurnal, ganti tier jurnal, dll) ikut konsisten munculin panel.
+    updateCraftModal();
+    return;
+  }
 
   document.getElementById('craftResultPanel').style.display = '';
+  // Keluar dari mode preview (lihat updateCraftResultPreview) — tampilkan
+  // lagi grup Profit yang sempat disembunyikan sebelum craft pertama.
+  document.getElementById('crpProfitGroupLbl').style.display = '';
+  document.getElementById('crpRowProfitItem').style.display  = '';
+  document.getElementById('crpRowPajak').style.display       = '';
+  document.getElementById('crpRowProfitSisa').style.display  = '';
+  document.getElementById('crpRowHasilAkhir').style.display  = '';
+  document.getElementById('crpRowTotalProfit').style.display = '';
   const group = craftRecipes[craftActiveRecipe] || [];
 
   // --- MODAL ---
   document.getElementById('crpModalBahan').textContent = formatSilver(craftModalLock);
 
-  const showJurnal = craftUseJournal && craftJournalTier && ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+  const journalMaxFameProfit = getJournalMaxFame();
+  const showJurnal = craftUseJournal && craftJournalTier && journalMaxFameProfit;
   document.getElementById('crpModalJurnalRow').style.display  = showJurnal ? '' : 'none';
   document.getElementById('crpProfitJurnalRow').style.display = showJurnal ? '' : 'none';
 
   let jurnalModalVal = 0, jurnalProfitVal = 0;
   if (showJurnal) {
-    const req   = ALBION_JOURNAL_REQUIREMENT[craftJournalTier];
+    const req   = journalMaxFameProfit;
     const harga = ALBION_JOURNAL_PRICE[craftJournalTier] || 0;
     const needed = Math.ceil(totalFameAccumulated / req); // total journal kosong TERPAKAI sejak awal sesi
     const full   = Math.floor(totalFameAccumulated / req);
@@ -2331,8 +2024,11 @@ function renderCraftResultPanel() {
 
   // --- PROFIT ---
   const exOut = craftTarget ? craftInv.find(i => i.itemId === craftTarget.id) : null;
-  const itemHasilVal = exOut ? exOut.qty * (exOut.harga || 0) : 0;
+  const itemHasilGross = exOut ? exOut.qty * (exOut.harga || 0) : 0;
+  const feeMultiplier  = getSellFeeMultiplier();
+  const itemHasilVal   = itemHasilGross * feeMultiplier; // NETO, sudah dipotong pajak + biaya pesanan
   document.getElementById('crpProfitItem').textContent = formatSilver(itemHasilVal);
+  document.getElementById('crpPajak').textContent = '-' + formatSilver(itemHasilGross - itemHasilVal);
 
   const sisaBahanVal = calcGroupValue(group);
   document.getElementById('crpProfitSisa').textContent = formatSilver(sisaBahanVal);
@@ -2366,23 +2062,35 @@ function showCraftToast(msg) {
 const STATION = '{{ $station ?? "mage-tower" }}';
 const CRAFT_API_BASE = STATION === 'mage-tower' ? '/api/crafting' : `/api/crafting/${STATION}`;
 
-fetch(`${CRAFT_API_BASE}/categories`)
-  .then(r => r.json())
-  .then(data => {
-    CATEGORIES = data;
-    restoreFilterState(); // Bug D fix: pulihkan filter kategori/tier/enc/search sebelum build dropdown
-    refreshCols();        // buildCol1() + buildCol2() (yg otomatis manggil buildCol3()) — biar dropdown
-                           // sub-kategori kolom 2/3 ikut kebangun sesuai state restore, bukan cuma kolom 1
-    buildTierDrop();
-    buildEncDrop();
-    updateCatLabel();
-    if (selTier)          setFilterVal('lblTier', 'valTier', TIER_LABEL[selTier]);
-    if (selEnc !== null)  setFilterVal('lblEnc', 'valEnc', 'Enc ' + selEnc);
-    if (searchQ)          document.getElementById('searchInput').value = searchQ;
-    fetchItems(); // load semua item dari awal (Mode Advance), gak perlu pilih kategori dulu
-    wizMtBuildCat1(); // siapkan step 1 wizard Mode Simple
-    loadCraftState(); // pulihkan target + inventory bahan dari sesi sebelumnya (kalau ada)
-  });
+function loadCategoriesAndInit(isRetry) {
+  fetch(`${CRAFT_API_BASE}/categories`)
+    .then(r => r.json())
+    .then(data => {
+      CATEGORIES = data;
+      restoreFilterState(); // Bug D fix: pulihkan filter kategori/tier/enc/search sebelum build dropdown
+      refreshCols();        // buildCol1() + buildCol2() (yg otomatis manggil buildCol3()) — biar dropdown
+                             // sub-kategori kolom 2/3 ikut kebangun sesuai state restore, bukan cuma kolom 1
+      buildTierDrop();
+      buildEncDrop();
+      updateCatLabel();
+      if (selTier)          setFilterVal('lblTier', 'valTier', TIER_LABEL[selTier]);
+      if (selEnc !== null)  setFilterVal('lblEnc', 'valEnc', 'Enc ' + selEnc);
+      if (searchQ)          document.getElementById('searchInput').value = searchQ;
+      fetchItems(); // load semua item dari awal (Mode Advance), gak perlu pilih kategori dulu
+      wizMtBuildCat1(); // siapkan step 1 wizard Mode Simple
+      loadCraftState(); // pulihkan target + inventory bahan dari sesi sebelumnya (kalau ada)
+    })
+    .catch(() => {
+      // Sebelumnya gak ada .catch() di sini -> kalau fetch categories gagal/telat
+      // (mis. server lagi hiccup), restoreFilterState() ikut gak pernah kepanggil,
+      // dan dari sisi user kelihatan kayak "filter kategori/tier/enchant ke-reset".
+      // Fix: auto-retry sekali (1.5 detik), baru kasih tau user kalau tetap gagal.
+      if (!isRetry) { setTimeout(() => loadCategoriesAndInit(true), 1500); return; }
+      showEmpty('Gagal memuat kategori. Coba refresh halaman.');
+      showCraftToast('❌ Gagal memuat kategori, coba refresh.');
+    });
+}
+loadCategoriesAndInit(false);
 renderCraftInventory();
 renderCraftSlots();
 updateCraftQtyField();

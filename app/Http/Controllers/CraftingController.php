@@ -365,6 +365,21 @@ class CraftingController extends Controller
         return round($baseAmount * $totalUnitValue, 2);
     }
 
+    // Max fame buat isi 1 journal penuh, per tier — diambil dari tabel
+    // journal_requirements (hasil sync items.xml), BUKAN config manual.
+    // Beda journal_name bisa punya kurva fame beda (contoh: Generalist's
+    // Journal T4 = 5400, sedangkan Fletcher's/Imbuer's/Blacksmith's/
+    // Tinker's Journal T4 = 3600) — makanya di-lookup per nama, bukan
+    // pakai satu tabel global per tier kayak sebelumnya.
+    private function journalMaxFameByTier(string $journalName, array $tierRange): \Illuminate\Support\Collection
+    {
+        $rows = \App\Models\JournalRequirement::where('journal_name', $journalName)
+            ->whereIn('tier', $tierRange)
+            ->pluck('max_fame', 'tier');
+
+        return collect($tierRange)->mapWithKeys(fn($t) => [$t => $rows[$t] ?? null]);
+    }
+
     private function computeFame(int $tier, int $encLevel, float $a, string $itemType): ?array
     {
         $multiplier = config("albion.fame.tier_multiplier.$tier");
@@ -462,6 +477,7 @@ class CraftingController extends Controller
                     'resource_value_by_tier' => collect($tierRange)->mapWithKeys(
                         fn($t) => [$t => $this->journalResourceValue($craftingStation->journal_name, $t)]
                     ),
+                    'max_fame_by_tier' => $this->journalMaxFameByTier($craftingStation->journal_name, $tierRange),
                 ];
                 $journalOptions[] = [
                     'name'  => "Generalist's Journal",
@@ -469,6 +485,7 @@ class CraftingController extends Controller
                     'resource_value_by_tier' => collect($tierRange)->mapWithKeys(
                         fn($t) => [$t => $this->journalResourceValue("Generalist's Journal", $t)]
                     ),
+                    'max_fame_by_tier' => $this->journalMaxFameByTier("Generalist's Journal", $tierRange),
                 ];
             }
         }

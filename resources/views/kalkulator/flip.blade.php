@@ -45,58 +45,132 @@
   .foot-note{padding:10px 16px;font-size:.78rem;color:var(--text-muted);border-top:1px solid var(--border);background:rgba(0,0,0,0.2);}
   .foot-note b{color:var(--text);}
 
-  /* ====== MODE ADVANCE ====== */
-  .sub-toggle{display:flex;gap:6px;padding:12px 16px 0;}
-  .sub-btn{flex:1;background:var(--slot);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:.78rem;font-weight:600;padding:8px;cursor:pointer;transition:all .15s;}
-  .sub-btn.active{background:rgba(95,179,168,0.15);border-color:var(--green);color:var(--green);}
+  /* ====== MODE ADVANCE — dibangun ulang, gaya market browser ======
+     Semua class di-prefix "fm-" (Flip Market) supaya gak numpuk sama
+     class generik punya Mode Simple (.panel, .panel-header, dst) yang
+     didefinisikan di atas dengan warna beda. Belum ada logic flip
+     kota-ke-kota / Black Market — ini baru tahap browse harga per kota
+     pakai endpoint /api/market/* yang sudah ada (gak duplikat backend). */
+  .fm-panel{
+    background: linear-gradient(180deg, #2e2210 0%, #1e1608 100%);
+    border: 2px solid #6b4f1a; border-radius: 4px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.7); overflow: visible;
+  }
+  .fm-panel-header{
+    background: linear-gradient(180deg, #3d2e15 0%, #2a1f0e 100%);
+    border-bottom: 1px solid #6b4f1a; padding: 10px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .fm-panel-title{font-family:'Cinzel',serif;font-size:14px;color:#f0c040;letter-spacing:1px;text-transform:uppercase;}
+  .fm-header-search{
+    margin-left:auto; background: linear-gradient(180deg, #1a1208 0%, #110e05 100%);
+    border:1px solid #4a3510; border-radius:3px; color:#e8d5a3;
+    font-family:'Crimson Text',serif; font-size:13px; padding:6px 10px;
+    outline:none; width:180px; transition:border-color .15s;
+  }
+  .fm-header-search:focus{border-color:#b8860b;}
+  .fm-header-search::placeholder{color:#a08040;}
 
-  .adv-controls{padding:14px 16px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--border);}
-  .ctrl-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:6px;display:block;}
+  .fm-filter-bar{
+    background: linear-gradient(180deg, #251a08 0%, #1a1005 100%);
+    border-bottom:1px solid #6b4f1a; padding:10px 12px;
+    display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:visible; position:relative;
+  }
+  .fm-flt-wrap{position:relative;}
+  .fm-flt-btn{
+    display:flex; align-items:center; gap:6px;
+    background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+    border:1px solid #8b6820; border-radius:3px; color:#2a1800;
+    font-family:'Cinzel',serif; font-size:12px; font-weight:600; letter-spacing:.5px;
+    padding:7px 12px; cursor:pointer; user-select:none; white-space:nowrap;
+    transition:all .1s; justify-content:space-between;
+  }
+  .fm-flt-btn:hover{background:linear-gradient(180deg,#dabb5a 0%,#b88838 100%);border-color:#f0c040;}
+  .fm-flt-btn.open{background:linear-gradient(180deg,#b89030 0%,#907020 100%);border-color:#f0c040;box-shadow:0 0 8px rgba(240,192,64,.3);}
+  .fm-flt-btn .fm-flt-label{flex:1;text-align:left;}
+  .fm-flt-btn .fm-flt-val{font-size:10px;opacity:.75;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
+  .fm-flt-btn .fm-flt-arrow{font-size:8px;opacity:.7;margin-left:2px;transition:transform .15s;}
+  .fm-flt-btn.open .fm-flt-arrow{transform:rotate(180deg);}
 
-  .city-grid{display:flex;flex-wrap:wrap;gap:6px;}
-  .city-chip{background:var(--slot);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:.78rem;color:var(--text-muted);cursor:pointer;user-select:none;transition:all .15s;}
-  .city-chip.sel{background:var(--gold);border-color:var(--gold);color:#1a1510;font-weight:600;}
+  .fm-drop-wrap{position:fixed;z-index:9999;display:none;gap:2px;filter:drop-shadow(0 6px 20px rgba(0,0,0,.85));}
+  .fm-drop-wrap.show{display:flex;}
+  .fm-drop-col{
+    min-width:175px; max-height:370px; overflow-y:auto;
+    background: linear-gradient(180deg, #e8cf88 0%, #d4b468 100%);
+    border:1px solid #8b6820; border-radius:3px; padding:4px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .fm-drop-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px; border-radius:2px; background:transparent; border:1px solid transparent;
+    cursor:pointer; font-family:'Crimson Text',serif; font-size:14px; font-weight:600; color:#2a1800;
+    transition:all .08s; white-space:nowrap;
+  }
+  .fm-drop-item:hover{background:linear-gradient(180deg,#f2dc9a 0%,#e2c878 100%);border-color:#a07828;}
+  .fm-drop-item.active{background:linear-gradient(180deg,#b88a28 0%,#906818 100%);border-color:#7a5010;color:#fff8e0;}
+  .fm-drop-item .fm-di-arrow{font-size:9px;color:#6b4f1a;margin-left:8px;flex-shrink:0;}
+  .fm-drop-item.active .fm-di-arrow{color:#ffe090;}
 
-  .check-row{display:flex;flex-wrap:wrap;gap:14px;}
-  .check-item{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--text);cursor:pointer;}
-  .check-item input{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;}
-  .check-item.disabled{opacity:.4;pointer-events:none;}
+  .fm-item-list{min-height:160px;padding:0;position:relative;}
+  .fm-item-list-empty{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:#a08040; font-style:italic; font-size:14px; text-align:center; font-family:'Crimson Text',serif;
+  }
+  .fm-item-table-wrap{max-height:480px;overflow-y:auto;}
+  .fm-item-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid rgba(107,79,26,.3);cursor:pointer;transition:background .1s;}
+  .fm-item-row:hover{background:rgba(61,46,21,.5);}
+  .fm-item-icon{width:48px;height:48px;border:1px solid #4a3510;border-radius:3px;background:#1a1208;object-fit:contain;image-rendering:pixelated;display:block;flex-shrink:0;}
+  .fm-item-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+  .fm-item-name{font-family:'Crimson Text',serif;font-size:15px;color:#dcc08a;font-weight:600;}
+  .fm-item-price{font-family:'Cinzel',serif;font-size:11px;color:#f0c040;}
 
-  .filter-toggle{display:flex;gap:6px;}
-  .filter-btn{flex:1;background:var(--slot);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:.74rem;padding:7px;cursor:pointer;text-align:center;transition:all .15s;}
-  .filter-btn.active{background:var(--gold);border-color:var(--gold);color:#1a1510;font-weight:600;}
-
-  .quality-select{background:var(--slot);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem;padding:7px 10px;}
-
-  .opp-list{max-height:560px;overflow-y:auto;}
-  .opp-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(51,43,33,0.4);cursor:pointer;transition:background .1s;}
-  .opp-row:hover{background:rgba(34,28,21,0.5);}
-  .opp-icon{width:42px;height:42px;border:1px solid var(--border);border-radius:6px;background:var(--slot);object-fit:contain;flex-shrink:0;}
-  .opp-info{flex:1;min-width:0;}
-  .opp-name{font-size:.86rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .opp-tier{display:inline-block;font-size:.68rem;color:var(--gold);border:1px solid var(--border);border-radius:4px;padding:1px 5px;margin-left:6px;}
-  .opp-route{font-size:.75rem;color:var(--text-muted);margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-  .opp-route b{color:var(--text);font-weight:600;}
-  .opp-badge-risk{font-size:.65rem;background:rgba(201,123,95,0.2);color:var(--red);border-radius:4px;padding:1px 5px;}
-  .opp-right{text-align:right;flex-shrink:0;}
-  .opp-profit{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700;color:var(--green);}
-  .opp-meta{font-size:.68rem;color:var(--text-muted);margin-top:2px;}
-
-  .empty-state{padding:40px 16px;text-align:center;color:var(--text-muted);font-size:.85rem;font-style:italic;}
-
-  .bm-warning{margin:12px 16px 0;padding:10px 12px;background:rgba(201,123,95,0.12);border:1px solid rgba(201,123,95,0.4);border-radius:8px;color:var(--red);font-size:.76rem;line-height:1.4;}
-
-  /* ====== POPUP PAIRING ====== */
-  .pair-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
-  .pair-overlay.show{display:flex;}
-  .pair-box{background:var(--card);border:1px solid var(--border);border-radius:10px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;}
-  .pair-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-  .pair-head img{width:44px;height:44px;border-radius:6px;background:var(--slot);}
-  .pair-head-name{font-size:.95rem;font-weight:700;color:var(--gold);}
-  .pair-close{margin-left:auto;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;}
-  .pair-item{padding:10px 16px;border-bottom:1px solid rgba(51,43,33,0.4);display:flex;justify-content:space-between;align-items:center;gap:8px;}
-  .pair-route{font-size:.8rem;color:var(--text);}
-  .pair-profit{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;color:var(--green);}
+  /* Popup — sama gayanya kayak popup market: harga per kota + tren 30 hari */
+  .fm-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:10000;display:none;align-items:center;justify-content:center;padding:16px;}
+  .fm-popup-overlay.show{display:flex;}
+  .fm-popup-box{
+    background: linear-gradient(180deg, #2e2210 0%, #1a1208 100%);
+    border:2px solid #6b4f1a; border-radius:6px; box-shadow:0 8px 40px rgba(0,0,0,.95);
+    width:100%; max-width:400px; max-height:88vh; overflow-y:auto; position:relative;
+  }
+  .fm-popup-close{
+    position:absolute; top:10px; right:10px; width:28px; height:28px; border-radius:50%;
+    background: linear-gradient(180deg, #6b1a1a 0%, #4a1010 100%);
+    border:1px solid #8b3030; color:#f0c0c0; font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; z-index:1;
+  }
+  .fm-popup-close:hover{background:#8b2020;border-color:#c04040;}
+  .fm-popup-head{
+    display:flex; gap:14px; padding:16px 44px 16px 16px;
+    background: linear-gradient(180deg, #3d2e15 0%, #2a1f0e 100%);
+    border-bottom:1px solid #6b4f1a; align-items:center;
+  }
+  .fm-popup-head img{width:72px;height:72px;border:1px solid #4a3510;border-radius:4px;background:#1a1208;object-fit:contain;flex-shrink:0;}
+  .fm-popup-item-name{font-family:'Cinzel',serif;font-size:15px;color:#f0c040;margin-bottom:4px;line-height:1.3;}
+  .fm-popup-item-sub{font-family:'Crimson Text',serif;font-size:12px;color:#a08040;}
+  .fm-popup-prices{padding:12px 16px;border-bottom:1px solid rgba(107,79,26,.4);}
+  .fm-popup-prices-label{font-family:'Cinzel',serif;font-size:10px;color:#a08040;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+  .fm-city-prices-grid{display:flex;gap:6px;flex-wrap:wrap;}
+  .fm-city-price-box{
+    width:44px;height:44px;border-radius:4px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+    border:1px solid rgba(0,0,0,.3);gap:2px;cursor:pointer;transition:box-shadow .15s,transform .1s;
+  }
+  .fm-city-price-box .fm-cpb-val{font-size:11px;font-weight:700;}
+  .fm-city-price-box.loading{opacity:.5;}
+  .fm-city-price-box.no-data{opacity:.3;cursor:default;}
+  .fm-city-price-box.active{box-shadow:0 0 0 2px #f0c060;transform:translateY(-1px);}
+  .fm-city-Caerleon{background:#7b1a1a;color:#ffd0d0;border-color:#c0392b;}
+  .fm-city-Bridgewatch{background:#7a3a00;color:#ffe0b0;border-color:#e67e22;}
+  .fm-city-Fort-Sterling{background:#3a3a3a;color:#f0f0f0;border-color:#bdc3c7;}
+  .fm-city-Lymhurst{background:#1a4a1a;color:#c0ffc0;border-color:#27ae60;}
+  .fm-city-Martlock{background:#1a2a5a;color:#c0d0ff;border-color:#2980b9;}
+  .fm-city-Thetford{background:#3a1a5a;color:#e0c0ff;border-color:#8e44ad;}
+  .fm-city-Brecilien{background:#0a3a2a;color:#a0ffe0;border-color:#1abc9c;}
+  .fm-popup-history{padding:12px 16px;}
+  .fm-popup-history-label{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#a89878;margin-bottom:8px;}
+  .fm-popup-history-canvas-wrap{position:relative;height:160px;}
+  .fm-popup-history-empty,.fm-popup-history-loading{color:#a89878;font-size:13px;display:flex;align-items:center;justify-content:center;height:160px;}
+  .fm-popup-loading{padding:40px;text-align:center;color:#a08040;font-style:italic;font-family:'Crimson Text',serif;font-size:14px;}
 </style>
 
 <div class="flip-wrap">
@@ -159,88 +233,100 @@
     </div>
   </div>
 
+
+<style>
+  .fm-scan-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #6b4f1a;background:rgba(0,0,0,.15);flex-wrap:wrap;}
+  .fm-scan-btn{background:linear-gradient(180deg,#f0c040 0%,#c89020 100%);border:1px solid #8b6820;border-radius:4px;color:#2a1800;font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:.5px;padding:10px 22px;cursor:pointer;transition:all .15s;}
+  .fm-scan-btn:hover:not(:disabled){background:linear-gradient(180deg,#ffd060 0%,#daa030 100%);}
+  .fm-scan-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .fm-scan-status{font-family:'Crimson Text',serif;font-size:12px;color:#a08040;}
+
+  .fm-opp-list{min-height:120px;padding:0;position:relative;}
+  .fm-opp-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(107,79,26,.3);}
+  .fm-opp-icon{width:44px;height:44px;border:1px solid #4a3510;border-radius:3px;background:#1a1208;object-fit:contain;image-rendering:pixelated;flex-shrink:0;}
+  .fm-opp-info{flex:1;min-width:0;}
+  .fm-opp-name{font-family:'Crimson Text',serif;font-size:14px;color:#dcc08a;font-weight:600;}
+  .fm-opp-tier{font-family:'Cinzel',serif;font-size:10px;color:#f0c040;margin-left:6px;}
+  .fm-opp-route{display:flex;align-items:center;gap:6px;margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a89878;flex-wrap:wrap;}
+  .fm-opp-city-badge{padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;}
+  .fm-opp-right{text-align:right;flex-shrink:0;}
+  .fm-opp-profit{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#5FB3A8;}
+  .fm-opp-meta{font-family:'Crimson Text',serif;font-size:11px;color:#a08040;margin-top:2px;}
+
+  .fm-opp-pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #6b4f1a;}
+  .fm-pg-btn{background:var(--card,#221C15);border:1px solid #6b4f1a;border-radius:4px;color:#dcc08a;font-size:12px;padding:8px 14px;cursor:pointer;}
+  .fm-pg-btn:disabled{opacity:.3;cursor:not-allowed;}
+</style>
+
   {{-- ============================================================ --}}
-  {{-- MODE ADVANCE — opportunity board otomatis (kota & Black Market) --}}
+  {{-- MODE ADVANCE — Scan Opportunity Flip.
+       Kategori wajib dipilih sampai leaf (gak ada opsi "All") biar
+       scope hitung profit kecil. Tier & Enchant boleh "All". Compute
+       cuma jalan pas klik tombol Scan (bukan browse otomatis), hasil
+       di-cache di server per kombinasi filter (cooldown), pagination
+       hasil scan di-slice di sisi client dari data yang sudah didapat
+       (gak ada request/hitung ulang per ganti halaman). --}}
   {{-- ============================================================ --}}
   <div id="modeAdvanceWrap" style="display:none">
-    <div class="panel">
-      <div class="sub-toggle">
-        <button id="btnSubKota" class="sub-btn active" onclick="setFlipSubMode('kota')">🏙️ Flip Kota</button>
-        <button id="btnSubBm" class="sub-btn" onclick="setFlipSubMode('blackmarket')">🏴 Black Market</button>
+    <div class="fm-panel">
+      <div class="fm-panel-header">
+        <span>📊</span>
+        <span class="fm-panel-title">Scan Opportunity Flip</span>
       </div>
 
-      {{-- ---- KONTROL: FLIP KOTA ---- --}}
-      <div class="adv-controls" id="ctrlKota">
-        <div>
-          <span class="ctrl-label">Pilih Kota (minimal 2)</span>
-          <div class="city-grid" id="cityGrid"></div>
+      <div class="fm-filter-bar" id="fmFilterBar">
+        <!-- CATEGORY (wajib sampai leaf, tanpa opsi All) -->
+        <div class="fm-flt-wrap">
+          <div class="fm-flt-btn" id="fmBtnCategory" onclick="fmToggleDrop('category')">
+            <span class="fm-flt-label" id="fmLblCategory">Category</span>
+            <span class="fm-flt-val" id="fmValCategory" style="display:none"></span>
+            <span class="fm-flt-arrow">▼</span>
+          </div>
+          <div class="fm-drop-wrap" id="fmDropCategory">
+            <div class="fm-drop-col" id="fmColKat1"></div>
+            <div class="fm-drop-col" id="fmColKat2" style="display:none"></div>
+            <div class="fm-drop-col" id="fmColKat3" style="display:none"></div>
+          </div>
         </div>
-        <div class="check-row">
-          <label class="check-item">
-            <input type="checkbox" id="cbPremiumAdv" onchange="saveFlipAdvPrefs();fetchOpportunities()">
-            👑 Premium (pajak 8%→4%)
-          </label>
-          <label class="check-item">
-            <input type="checkbox" id="cbSellOrder" onchange="saveFlipAdvPrefs();fetchOpportunities()">
-            📋 Sell Order (handling 2.5%)
-          </label>
+        <!-- TIER (boleh All) -->
+        <div class="fm-flt-wrap">
+          <div class="fm-flt-btn" id="fmBtnTier" onclick="fmToggleDrop('tier')">
+            <span class="fm-flt-label" id="fmLblTier">Tier</span>
+            <span class="fm-flt-val" id="fmValTier" style="display:none"></span>
+            <span class="fm-flt-arrow">▼</span>
+          </div>
+          <div class="fm-drop-wrap" id="fmDropTier">
+            <div class="fm-drop-col" id="fmColTier"></div>
+          </div>
         </div>
-        <div>
-          <span class="ctrl-label">Quality</span>
-          <select class="quality-select" id="qualityKota" onchange="saveFlipAdvPrefs();fetchOpportunities()">
-            <option value="1">Normal</option>
-            <option value="2">Good</option>
-            <option value="3">Outstanding</option>
-            <option value="4">Excellent</option>
-            <option value="5">Masterpiece</option>
-          </select>
-        </div>
-        <div class="filter-toggle" id="filterKota">
-          <div class="filter-btn" data-val="all" onclick="setFilterKota('all')">Semua Item</div>
-          <div class="filter-btn" data-val="has_data" onclick="setFilterKota('has_data')">Ada Data</div>
-          <div class="filter-btn active" data-val="profitable" onclick="setFilterKota('profitable')">Profit</div>
+        <!-- ENCHANTMENT (boleh All) -->
+        <div class="fm-flt-wrap">
+          <div class="fm-flt-btn" id="fmBtnEnc" onclick="fmToggleDrop('enc')">
+            <span class="fm-flt-label" id="fmLblEnc">Enchantment</span>
+            <span class="fm-flt-val" id="fmValEnc" style="display:none"></span>
+            <span class="fm-flt-arrow">▼</span>
+          </div>
+          <div class="fm-drop-wrap" id="fmDropEnc">
+            <div class="fm-drop-col" id="fmColEnc"></div>
+          </div>
         </div>
       </div>
 
-      <div class="opp-list" id="oppListKota"></div>
+      <div class="fm-scan-bar">
+        <button class="fm-scan-btn" id="fmScanBtn" onclick="fmRunScan()" disabled>🔍 Scan</button>
+        <span class="fm-scan-status" id="fmScanStatus"></span>
+      </div>
+
+      <div class="fm-opp-list" id="fmOppList">
+        <div class="fm-item-list-empty" id="fmEmptyMsg">Pilih kategori sampai habis (leaf), lalu klik Scan 🗡️</div>
+        <div id="fmOppRows" style="display:none"></div>
+        <div class="fm-opp-pagination" id="fmPagination" style="display:none">
+          <button class="fm-pg-btn" id="fmPgPrev" onclick="fmGoToPage(fmCurrentPage - 1)">‹ Sebelumnya</button>
+          <span id="fmPgLabel"></span>
+          <button class="fm-pg-btn" id="fmPgNext" onclick="fmGoToPage(fmCurrentPage + 1)">Berikutnya ›</button>
+        </div>
+      </div>
     </div>
-
-      {{-- ---- KONTROL: BLACK MARKET ---- --}}
-    <div class="panel" id="panelBm" style="display:none">
-      <div class="bm-warning">
-        ⚠️ Data harga Black Market sering telat update — selalu cek ulang harga langsung in-game sebelum bawa barang lewat black zone.
-      </div>
-      <div class="adv-controls">
-        <div>
-          <span class="ctrl-label">Quality</span>
-          <select class="quality-select" id="qualityBm" onchange="saveFlipAdvPrefs();fetchBlackmarket()">
-            <option value="1">Normal</option>
-            <option value="2">Good</option>
-            <option value="3">Outstanding</option>
-            <option value="4">Excellent</option>
-            <option value="5">Masterpiece</option>
-          </select>
-        </div>
-        <div class="filter-toggle" id="filterBm">
-          <div class="filter-btn" data-val="all" onclick="setFilterBm('all')">Semua Item</div>
-          <div class="filter-btn" data-val="has_data" onclick="setFilterBm('has_data')">Ada Data</div>
-          <div class="filter-btn active" data-val="profitable" onclick="setFilterBm('profitable')">Profit</div>
-        </div>
-      </div>
-      <div class="opp-list" id="oppListBm"></div>
-    </div>
-  </div>
-</div>
-
-{{-- POPUP: rincian semua pasangan kota buat 1 item (khusus Flip Kota) --}}
-<div class="pair-overlay" id="pairOverlay" onclick="closePairOnBg(event)">
-  <div class="pair-box">
-    <div class="pair-head">
-      <img id="pairImg" src="" alt="">
-      <div class="pair-head-name" id="pairName"></div>
-      <button class="pair-close" onclick="closePairPopup()">✕</button>
-    </div>
-    <div id="pairList"></div>
   </div>
 </div>
 
@@ -374,247 +460,302 @@ function setFlipMode(mode) {
   // Baru fetch data pas pertama kali masuk Advance (hemat request kalau user gak pernah buka)
   if (mode === 'advance' && !advInitialized) {
     advInitialized = true;
-    initAdvance();
+    fmInit();
   }
 }
 
 // ============================================================
-// SUB-MODE (Flip Kota / Black Market)
+// MODE ADVANCE — Scan Opportunity Flip.
+// Kategori wajib dipilih sampai leaf (gak ada opsi "All"). Tier &
+// Enchant boleh "All". Compute jalan di server pas tombol Scan
+// diklik (endpoint /flip/scan, dengan cooldown per kombinasi
+// filter). Hasil scan dikirim penuh sekali, pagination di halaman
+// ini di-slice di client — gak ada request/hitung ulang per ganti
+// halaman.
 // ============================================================
-function setFlipSubMode(sub) {
-  document.getElementById('ctrlKota').closest('.panel').style.display = sub === 'kota' ? '' : 'none';
-  document.getElementById('panelBm').style.display = sub === 'blackmarket' ? '' : 'none';
-  document.getElementById('btnSubKota').classList.toggle('active', sub === 'kota');
-  document.getElementById('btnSubBm').classList.toggle('active', sub === 'blackmarket');
+let advInitialized = false;
+let FM_CATEGORIES = [];
+const FM_TIERS      = [1,2,3,4,5,6,7,8];
+const FM_TIER_LABEL = {1:'Tier 1',2:'Tier 2',3:'Tier 3',4:'Tier 4',5:'Tier 5',6:'Tier 6',7:'Tier 7',8:'Tier 8'};
+const FM_ENCS       = [0,1,2,3,4];
+const FM_CITIES = [
+  { id: 'Caerleon',      cls: 'fm-city-Caerleon'      },
+  { id: 'Bridgewatch',   cls: 'fm-city-Bridgewatch'   },
+  { id: 'Fort Sterling', cls: 'fm-city-Fort-Sterling' },
+  { id: 'Lymhurst',      cls: 'fm-city-Lymhurst'      },
+  { id: 'Martlock',      cls: 'fm-city-Martlock'      },
+  { id: 'Thetford',      cls: 'fm-city-Thetford'      },
+  { id: 'Brecilien',     cls: 'fm-city-Brecilien'     },
+];
 
-  if (sub === 'kota' && !kotaFetchedOnce) { kotaFetchedOnce = true; fetchOpportunities(); }
-  if (sub === 'blackmarket' && !bmFetchedOnce) { bmFetchedOnce = true; fetchBlackmarket(); }
+const FM_PER_PAGE = 15;
+
+let fmOpenDrop = null;
+let fmSelKat1 = null, fmSelKat2 = null, fmSelKat3 = null, fmSelCatId = null;
+let fmSelTier = null, fmSelEnc = null;
+let fmAllResults = [];
+let fmCurrentPage = 1;
+
+function fmInit() {
+  fetch('/api/market/categories')
+    .then(r => r.json())
+    .then(data => {
+      FM_CATEGORIES = data;
+      fmBuildTierDrop();
+      fmBuildEncDrop();
+      fmRefreshCols();
+      fmUpdateCatLabel();
+      fmUpdateScanBtn();
+    });
 }
 
-// ============================================================
-// STATE — Flip Kota
-// ============================================================
-const ALL_CITIES = ['Caerleon','Martlock','Bridgewatch','Lymhurst','Fort Sterling','Thetford','Brecilien'];
-let selectedCities = ['Caerleon','Martlock']; // default 2 kota biar langsung ada hasil
-let filterKota = 'profitable';
-let filterBm   = 'profitable';
-let advInitialized = false, kotaFetchedOnce = false, bmFetchedOnce = false;
+function fmCap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-const FLIP_ADV_PREFS_KEY = 'flip_adv_prefs';
+function fmToggleDrop(name) {
+  if (fmOpenDrop === name) { fmCloseDrop(); return; }
+  fmCloseDrop();
+  fmOpenDrop = name;
+  const btn  = document.getElementById('fmBtn'  + fmCap(name));
+  const drop = document.getElementById('fmDrop' + fmCap(name));
+  const rect = btn.getBoundingClientRect();
+  drop.style.top  = (rect.bottom + 3) + 'px';
+  drop.style.left = rect.left + 'px';
+  drop.classList.add('show');
+  btn.classList.add('open');
+}
 
-function saveFlipAdvPrefs() {
-  try {
-    localStorage.setItem(FLIP_ADV_PREFS_KEY, JSON.stringify({
-      selectedCities,
-      premium: document.getElementById('cbPremiumAdv').checked,
-      sellOrder: document.getElementById('cbSellOrder').checked,
-      qualityKota: document.getElementById('qualityKota').value,
-      qualityBm: document.getElementById('qualityBm').value,
-      filterKota, filterBm,
+function fmCloseDrop() {
+  if (!fmOpenDrop) return;
+  document.getElementById('fmDrop' + fmCap(fmOpenDrop)).classList.remove('show');
+  document.getElementById('fmBtn'  + fmCap(fmOpenDrop)).classList.remove('open');
+  fmOpenDrop = null;
+}
+
+document.addEventListener('click', e => {
+  if (fmOpenDrop && !e.target.closest('.fm-flt-wrap')) fmCloseDrop();
+});
+
+function fmSetFilterVal(lblId, valId, value) {
+  const lbl = document.getElementById(lblId);
+  const val = document.getElementById(valId);
+  if (value) { lbl.style.display = 'none'; val.style.display = ''; val.textContent = value; }
+  else       { lbl.style.display = '';     val.style.display = 'none'; }
+}
+
+function fmMakeItem(text, hasArrow, isActive, onClick) {
+  const el = document.createElement('div');
+  el.className = 'fm-drop-item' + (isActive ? ' active' : '');
+  el.innerHTML = text + (hasArrow ? '<span class="fm-di-arrow">▶</span>' : '');
+  el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return el;
+}
+
+function fmGetCatName(id, list) {
+  for (const c of list) {
+    if (c.id === id) return c.name;
+    if (c.children) { const found = fmGetCatName(id, c.children); if (found) return found; }
+  }
+  return null;
+}
+
+// --- CATEGORY: wajib dipilih sampai leaf, gak ada opsi "All" di level manapun ---
+
+function fmBuildCol1() {
+  const col = document.getElementById('fmColKat1');
+  col.innerHTML = '';
+  FM_CATEGORIES.forEach(cat => {
+    const hasSub = cat.children && cat.children.length > 0;
+    col.appendChild(fmMakeItem(cat.name, hasSub, fmSelKat1 === cat.id, () => {
+      fmSelKat1 = cat.id; fmSelKat2 = null; fmSelKat3 = null; fmSelCatId = null;
+      if (!hasSub) { fmSelCatId = cat.id; fmCloseDrop(); }
+      fmRefreshCols(); fmUpdateCatLabel(); fmUpdateScanBtn(); fmResetResults();
     }));
-  } catch (e) {}
+  });
 }
 
-function loadFlipAdvPrefs() {
-  try {
-    const raw = localStorage.getItem(FLIP_ADV_PREFS_KEY);
-    if (!raw) return;
-    const p = JSON.parse(raw);
-    if (Array.isArray(p.selectedCities) && p.selectedCities.length >= 2) selectedCities = p.selectedCities;
-    if (p.premium) document.getElementById('cbPremiumAdv').checked = true;
-    if (p.sellOrder) document.getElementById('cbSellOrder').checked = true;
-    if (p.qualityKota) document.getElementById('qualityKota').value = p.qualityKota;
-    if (p.qualityBm) document.getElementById('qualityBm').value = p.qualityBm;
-    if (p.filterKota) filterKota = p.filterKota;
-    if (p.filterBm) filterBm = p.filterBm;
-  } catch (e) {}
+function fmBuildCol2() {
+  const col2 = document.getElementById('fmColKat2');
+  const col3 = document.getElementById('fmColKat3');
+  if (!fmSelKat1) { col2.style.display = 'none'; col3.style.display = 'none'; return; }
+  const cat1 = FM_CATEGORIES.find(c => c.id === fmSelKat1);
+  if (!cat1 || !cat1.children || !cat1.children.length) { col2.style.display = 'none'; col3.style.display = 'none'; return; }
+  col2.style.display = ''; col2.innerHTML = '';
+  cat1.children.forEach(sub => {
+    const hasSub2 = sub.children && sub.children.length > 0;
+    col2.appendChild(fmMakeItem(sub.name, hasSub2, fmSelKat2 === sub.id, () => {
+      fmSelKat2 = sub.id; fmSelKat3 = null; fmSelCatId = null;
+      if (!hasSub2) { fmSelCatId = sub.id; fmCloseDrop(); }
+      fmRefreshCols(); fmUpdateCatLabel(); fmUpdateScanBtn(); fmResetResults();
+    }));
+  });
 }
 
-function buildCityGrid() {
-  const grid = document.getElementById('cityGrid');
-  grid.innerHTML = ALL_CITIES.map(c => `
-    <div class="city-chip ${selectedCities.includes(c) ? 'sel' : ''}" onclick="toggleCity('${c}')">${c}</div>
-  `).join('');
+function fmBuildCol3() {
+  const col3 = document.getElementById('fmColKat3');
+  if (!fmSelKat2) { col3.style.display = 'none'; return; }
+  const cat1 = FM_CATEGORIES.find(c => c.id === fmSelKat1);
+  const cat2 = cat1?.children?.find(c => c.id === fmSelKat2);
+  if (!cat2 || !cat2.children || !cat2.children.length) { col3.style.display = 'none'; return; }
+  col3.style.display = ''; col3.innerHTML = '';
+  cat2.children.forEach(leaf => {
+    col3.appendChild(fmMakeItem(leaf.name, false, fmSelKat3 === leaf.id, () => {
+      fmSelKat3 = leaf.id; fmSelCatId = leaf.id;
+      fmCloseDrop(); fmUpdateCatLabel(); fmUpdateScanBtn(); fmResetResults();
+    }));
+  });
 }
 
-function toggleCity(city) {
-  if (selectedCities.includes(city)) {
-    if (selectedCities.length <= 2) {
-      showFlipToast('Minimal pilih 2 kota.');
-      return;
-    }
-    selectedCities = selectedCities.filter(c => c !== city);
+function fmRefreshCols() { fmBuildCol1(); fmBuildCol2(); fmBuildCol3(); }
+
+function fmUpdateCatLabel() {
+  if (fmSelCatId) {
+    fmSetFilterVal('fmLblCategory', 'fmValCategory', fmGetCatName(fmSelCatId, FM_CATEGORIES));
+  } else if (fmSelKat1) {
+    fmSetFilterVal('fmLblCategory', 'fmValCategory', 'Pilih lagi…');
   } else {
-    selectedCities.push(city);
-  }
-  buildCityGrid();
-  saveFlipAdvPrefs();
-  fetchOpportunities();
-}
-
-function setFilterKota(val) {
-  filterKota = val;
-  document.querySelectorAll('#filterKota .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
-  saveFlipAdvPrefs();
-  fetchOpportunities();
-}
-
-function setFilterBm(val) {
-  filterBm = val;
-  document.querySelectorAll('#filterBm .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
-  saveFlipAdvPrefs();
-  fetchBlackmarket();
-}
-
-function initAdvance() {
-  buildCityGrid();
-  loadFlipAdvPrefs();
-  buildCityGrid(); // rebuild lagi setelah prefs kepulihkan
-  document.querySelectorAll('#filterKota .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.val === filterKota));
-  document.querySelectorAll('#filterBm .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.val === filterBm));
-  fetchOpportunities();
-  kotaFetchedOnce = true;
-}
-
-// ============================================================
-// FETCH & RENDER — Flip Kota
-// ============================================================
-function timeAgo(iso) {
-  if (!iso) return '-';
-  const diffMs = Date.now() - new Date(iso.replace(' ', 'T') + 'Z').getTime();
-  const min = Math.floor(diffMs / 60000);
-  if (min < 1) return 'baru saja';
-  if (min < 60) return `${min}m lalu`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}j lalu`;
-  return `${Math.floor(hr / 24)}h lalu`;
-}
-
-function tierLabel(tier, enc) {
-  if (!tier) return '';
-  return enc > 0 ? `T${tier}.${enc}` : `T${tier}`;
-}
-
-async function fetchOpportunities() {
-  const list = document.getElementById('oppListKota');
-  list.innerHTML = '<div class="empty-state">Memuat opportunity...</div>';
-
-  const params = new URLSearchParams({
-    cities: selectedCities.join(','),
-    quality: document.getElementById('qualityKota').value,
-    premium: document.getElementById('cbPremiumAdv').checked ? '1' : '0',
-    sell_order: document.getElementById('cbSellOrder').checked ? '1' : '0',
-    filter: filterKota,
-  });
-
-  try {
-    const res  = await fetch('/api/flip/opportunities?' + params.toString());
-    const data = await res.json();
-    if (data.error) { list.innerHTML = `<div class="empty-state">${data.error}</div>`; return; }
-    renderOppList(list, data, 'kota');
-  } catch (e) {
-    list.innerHTML = '<div class="empty-state">Gagal memuat data. Coba lagi.</div>';
+    fmSetFilterVal('fmLblCategory', 'fmValCategory', null);
   }
 }
 
-async function fetchBlackmarket() {
-  const list = document.getElementById('oppListBm');
-  list.innerHTML = '<div class="empty-state">Memuat opportunity...</div>';
+// --- TIER & ENCHANT: boleh "All" ---
 
-  const params = new URLSearchParams({
-    quality: document.getElementById('qualityBm').value,
-    filter: filterBm,
-  });
-
-  try {
-    const res  = await fetch('/api/flip/blackmarket?' + params.toString());
-    const data = await res.json();
-    renderOppList(list, data, 'bm');
-  } catch (e) {
-    list.innerHTML = '<div class="empty-state">Gagal memuat data. Coba lagi.</div>';
-  }
+function fmBuildTierDrop() {
+  const col = document.getElementById('fmColTier');
+  col.innerHTML = '';
+  col.appendChild(fmMakeItem('All', false, fmSelTier === null, () => {
+    fmSelTier = null; fmSetFilterVal('fmLblTier', 'fmValTier', null); fmCloseDrop(); fmResetResults();
+  }));
+  FM_TIERS.forEach(t => col.appendChild(fmMakeItem(FM_TIER_LABEL[t], false, fmSelTier === t, () => {
+    fmSelTier = t; fmSetFilterVal('fmLblTier', 'fmValTier', FM_TIER_LABEL[t]); fmCloseDrop(); fmResetResults();
+  })));
 }
 
-function renderOppList(container, items, kind) {
+function fmBuildEncDrop() {
+  const col = document.getElementById('fmColEnc');
+  col.innerHTML = '';
+  col.appendChild(fmMakeItem('All', false, fmSelEnc === null, () => {
+    fmSelEnc = null; fmSetFilterVal('fmLblEnc', 'fmValEnc', null); fmCloseDrop(); fmResetResults();
+  }));
+  FM_ENCS.forEach(e => col.appendChild(fmMakeItem('Enchantment ' + e, false, fmSelEnc === e, () => {
+    fmSelEnc = e; fmSetFilterVal('fmLblEnc', 'fmValEnc', 'Enc ' + e); fmCloseDrop(); fmResetResults();
+  })));
+}
+
+// --- SCAN ---
+
+function fmUpdateScanBtn() {
+  document.getElementById('fmScanBtn').disabled = !fmSelCatId;
+}
+
+function fmResetResults() {
+  fmAllResults = [];
+  fmCurrentPage = 1;
+  document.getElementById('fmScanStatus').textContent = '';
+  fmShowOppEmpty('Klik Scan buat lihat opportunity kombinasi ini 🗡️');
+}
+
+function fmShowOppEmpty(msg) {
+  document.getElementById('fmOppRows').style.display = 'none';
+  document.getElementById('fmPagination').style.display = 'none';
+  const el = document.getElementById('fmEmptyMsg');
+  el.style.display = ''; el.textContent = msg;
+}
+
+function fmGetCsrf() {
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+}
+
+function fmFormatTime(iso) {
+  try { return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); }
+  catch (e) { return ''; }
+}
+
+function fmRunScan() {
+  if (!fmSelCatId) return;
+  const btn    = document.getElementById('fmScanBtn');
+  const status = document.getElementById('fmScanStatus');
+  btn.disabled = true;
+  status.textContent = 'Sedang scan…';
+  fmShowOppEmpty('Sedang scan harga…');
+
+  const payload = { sub_category_id: fmSelCatId };
+  if (fmSelTier !== null) payload.tier = fmSelTier;
+  if (fmSelEnc  !== null) payload.enchant = fmSelEnc;
+
+  fetch('/flip/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': fmGetCsrf() },
+    body: JSON.stringify(payload),
+  })
+    .then(r => r.json())
+    .then(res => {
+      fmAllResults = res.results || [];
+      status.textContent = (res.from_cache ? 'Hasil cache — ' : 'Baru discan — ')
+        + 'scan berikutnya bisa mulai ' + fmFormatTime(res.next_scan_at);
+      fmSetOppPage(1);
+      fmUpdateScanBtn();
+    })
+    .catch(() => {
+      status.textContent = 'Gagal scan, coba lagi.';
+      fmShowOppEmpty('Gagal scan. Coba klik Scan lagi.');
+      fmUpdateScanBtn();
+    });
+}
+
+function fmCityCls(cityId) {
+  const c = FM_CITIES.find(c => c.id === cityId);
+  return c ? c.cls : '';
+}
+
+function fmRenderOppRows(items) {
+  const wrap = document.getElementById('fmOppRows');
   if (!items.length) {
-    container.innerHTML = '<div class="empty-state">Tidak ada opportunity ditemukan 😔</div>';
+    fmShowOppEmpty('Gak ada opportunity profit buat kombinasi ini 😔');
     return;
   }
-
-  container.innerHTML = items.map(it => {
-    const tier = tierLabel(it.tier, it.enc);
-    if (kind === 'kota') {
-      return `
-      <div class="opp-row" onclick="openPairPopup(${it.item_id})">
-        <img class="opp-icon" src="${it.img_url ?? ''}" onerror="this.style.opacity=0.3">
-        <div class="opp-info">
-          <span class="opp-name">${it.item_name}</span><span class="opp-tier">${tier}</span>
-          <div class="opp-route"><b>${it.origin_city}</b> ${fmtSilver(it.origin_price)} → <b>${it.dest_city}</b> ${fmtSilver(it.dest_price_net)}</div>
+  document.getElementById('fmEmptyMsg').style.display = 'none';
+  wrap.style.display = '';
+  wrap.innerHTML = items.map(it => `
+    <div class="fm-opp-row">
+      <img class="fm-opp-icon" src="${it.img_url}" alt="${it.name}" loading="lazy" onerror="this.style.opacity=0.3">
+      <div class="fm-opp-info">
+        <span class="fm-opp-name">${it.name}</span><span class="fm-opp-tier">T${it.tier}${it.enc > 0 ? '.' + it.enc : ''}</span>
+        <div class="fm-opp-route">
+          <span class="fm-opp-city-badge ${fmCityCls(it.city_from)}">${it.city_from}</span>
+          <span>${fmtSilver(it.price_from)}</span>
+          <span>→</span>
+          <span class="fm-opp-city-badge ${fmCityCls(it.city_to)}">${it.city_to}</span>
+          <span>${fmtSilver(it.price_to)}</span>
         </div>
-        <div class="opp-right">
-          <div class="opp-profit">${it.profit >= 0 ? '+' : ''}${fmtSilver(it.profit)}</div>
-          <div class="opp-meta">${it.margin_pct}% · ${timeAgo(it.dest_fetched_at)}</div>
-        </div>
-      </div>`;
-    }
-    // Black Market
-    const riskBadge = it.origin_is_caerleon ? '' : '<span class="opp-badge-risk">⚠ bukan dari Caerleon</span>';
-    return `
-      <div class="opp-row">
-        <img class="opp-icon" src="${it.img_url ?? ''}" onerror="this.style.opacity=0.3">
-        <div class="opp-info">
-          <span class="opp-name">${it.item_name}</span><span class="opp-tier">${tier}</span>
-          <div class="opp-route"><b>${it.origin_city}</b> ${fmtSilver(it.origin_price)} → <b>Black Market</b> ${fmtSilver(it.bm_price)} ${riskBadge}</div>
-        </div>
-        <div class="opp-right">
-          <div class="opp-profit">${it.profit >= 0 ? '+' : ''}${fmtSilver(it.profit)}</div>
-          <div class="opp-meta">${it.margin_pct}% · ${timeAgo(it.bm_fetched_at)}</div>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-// ============================================================
-// POPUP — semua pasangan kota buat 1 item (Flip Kota aja)
-// ============================================================
-async function openPairPopup(itemId) {
-  document.getElementById('pairOverlay').classList.add('show');
-  document.getElementById('pairList').innerHTML = '<div class="empty-state">Memuat...</div>';
-
-  const params = new URLSearchParams({
-    cities: selectedCities.join(','),
-    quality: document.getElementById('qualityKota').value,
-    premium: document.getElementById('cbPremiumAdv').checked ? '1' : '0',
-    sell_order: document.getElementById('cbSellOrder').checked ? '1' : '0',
-  });
-
-  try {
-    const res  = await fetch(`/api/flip/item/${itemId}/pairings?` + params.toString());
-    const data = await res.json();
-    document.getElementById('pairName').textContent = data.item_name;
-
-    if (!data.pairings.length) {
-      document.getElementById('pairList').innerHTML = '<div class="empty-state">Gak ada pasangan kota yang cocok.</div>';
-      return;
-    }
-
-    document.getElementById('pairList').innerHTML = data.pairings.map(p => `
-      <div class="pair-item">
-        <span class="pair-route"><b>${p.origin_city}</b> ${fmtSilver(p.origin_price)} → <b>${p.dest_city}</b> ${fmtSilver(p.dest_price_net)}</span>
-        <span class="pair-profit">${p.profit >= 0 ? '+' : ''}${fmtSilver(p.profit)}</span>
       </div>
-    `).join('');
-  } catch (e) {
-    document.getElementById('pairList').innerHTML = '<div class="empty-state">Gagal memuat data.</div>';
-  }
+      <div class="fm-opp-right">
+        <div class="fm-opp-profit">+${fmtSilver(it.profit)}</div>
+        <div class="fm-opp-meta">+${it.percent}%</div>
+      </div>
+    </div>`).join('');
 }
 
-function closePairPopup() {
-  document.getElementById('pairOverlay').classList.remove('show');
+function fmUpdatePaginationUI() {
+  const pag = document.getElementById('fmPagination');
+  const totalPages = Math.max(1, Math.ceil(fmAllResults.length / FM_PER_PAGE));
+  if (fmAllResults.length <= FM_PER_PAGE) { pag.style.display = 'none'; return; }
+  pag.style.display = 'flex';
+  document.getElementById('fmPgLabel').textContent = `Halaman ${fmCurrentPage} dari ${totalPages}`;
+  document.getElementById('fmPgPrev').disabled = fmCurrentPage <= 1;
+  document.getElementById('fmPgNext').disabled = fmCurrentPage >= totalPages;
 }
 
-function closePairOnBg(e) {
-  if (e.target === document.getElementById('pairOverlay')) closePairPopup();
+function fmSetOppPage(page) {
+  fmCurrentPage = page;
+  const start = (page - 1) * FM_PER_PAGE;
+  fmRenderOppRows(fmAllResults.slice(start, start + FM_PER_PAGE));
+  fmUpdatePaginationUI();
+}
+
+function fmGoToPage(page) {
+  const totalPages = Math.max(1, Math.ceil(fmAllResults.length / FM_PER_PAGE));
+  if (page < 1 || page > totalPages) return;
+  fmSetOppPage(page);
 }
 
 function showFlipToast(msg) {

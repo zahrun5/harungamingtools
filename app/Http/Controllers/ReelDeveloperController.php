@@ -8,6 +8,7 @@ use App\Services\YoutubeOembedService;
 use App\Services\YoutubeDataApiService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ReelDeveloperController extends Controller
@@ -21,15 +22,37 @@ class ReelDeveloperController extends Controller
     {
         $reels = Reel::with('addedBy')->latest()->paginate(20);
 
-        $pendingReels = Reel::where('review_status', 'pending_review')->latest()->get();
-        $pendingChannels = YoutubeChannel::where('status', 'pending')->get();
+        // Total pending (dipakai buat header count, gak kepengaruh pagination).
+        $pendingReelsCount = Reel::where('review_status', 'pending_review')->count();
 
-        // Kelompokkan reel pending berdasarkan channel-nya (biar bisa ditampilkan
-        // menyatu di view: 1 channel + thumbnail video-video pending-nya).
-        $pendingChannelIds = $pendingChannels->pluck('id');
-        $reelsByChannel = $pendingReels->whereIn('youtube_channel_id', $pendingChannelIds)
+        // ID SEMUA channel pending (bukan cuma yang tampil di halaman ini) —
+        // dipakai buat nentuin reel mana yang "orphan" (channel-nya gak
+        // terdeteksi/gak ada di daftar pending), jadi orphan detection tetap
+        // benar walau channel-nya lagi ada di halaman 2, 3, dst.
+        $allPendingChannelIds = YoutubeChannel::where('status', 'pending')->pluck('id');
+
+        // Channel pending, 5 per halaman. Page-name khusus (channels_page)
+        // biar gak bentrok sama pagination reel di bawahnya.
+        $pendingChannels = YoutubeChannel::where('status', 'pending')
+            ->latest()
+            ->paginate(5, ['*'], 'channels_page');
+
+        // Reel pending milik channel yang tampil di halaman channel SAAT INI
+        // aja (bukan semua channel pending) — biar konsisten sama channel
+        // yang lagi ditampilkan.
+        $currentPageChannelIds = $pendingChannels->pluck('id');
+        $reelsByChannel = Reel::where('review_status', 'pending_review')
+            ->whereIn('youtube_channel_id', $currentPageChannelIds)
+            ->latest()
+            ->get()
             ->groupBy('youtube_channel_id');
-        $orphanReels = $pendingReels->whereNotIn('youtube_channel_id', $pendingChannelIds)->values();
+
+        // Reel pending yang channel-nya gak ada di daftar pending sama sekali
+        // (orphan), 20 per halaman, page-name sendiri (reels_page).
+        $orphanReels = Reel::where('review_status', 'pending_review')
+            ->whereNotIn('youtube_channel_id', $allPendingChannelIds)
+            ->latest()
+            ->paginate(20, ['*'], 'reels_page');
 
         $channels = Reel::selectRaw('channel_name, count(*) as total, max(created_at) as last_imported_at')
             ->groupBy('channel_name')
@@ -37,7 +60,7 @@ class ReelDeveloperController extends Controller
             ->get();
 
         return view('dev.reels.index', compact(
-            'reels', 'channels', 'pendingReels', 'pendingChannels', 'reelsByChannel', 'orphanReels'
+            'reels', 'channels', 'pendingReelsCount', 'pendingChannels', 'reelsByChannel', 'orphanReels'
         ));
     }
 
@@ -163,6 +186,59 @@ class ReelDeveloperController extends Controller
             ->update(['review_status' => 'rejected']);
 
         return back()->with('success', "Channel {$channel->channel_title} ditolak.");
+    }
+
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $action   = $request->input('bulk_action');
+        $selected = $request->input('selected', []);
+
+        if (!in_array($action, ['approve', 'reject'], true) || empty($selected)) {
+            return back()->withErrors(['bulk' => 'Tidak ada item yang dipilih atau aksi tidak valid.']);
+        }
+
+        // Pisahkan value checkbox "channel:5" / "reel:12" jadi 2 kelompok ID.
+        $channelIds = [];
+        $reelIds    = [];
+
+        foreach ($selected as $item) {
+            [$type, $id] = explode(':', $item, 2) + [null, null];
+
+            if ($type === 'channel' && is_numeric($id)) {
+                $channelIds[] = (int) $id;
+            } elseif ($type === 'reel' && is_numeric($id)) {
+                $reelIds[] = (int) $id;
+            }
+        }
+
+        // Semua update digabung dalam 1 transaksi -> 1x write ke SQLite,
+        // walau jumlah channel/reel yang diproses banyak.
+        DB::transaction(function () use ($action, $channelIds, $reelIds) {
+            if (!empty($channelIds)) {
+                YoutubeChannel::whereIn('id', $channelIds)
+                    ->update(['status' => $action === 'approve' ? 'active' : 'rejected']);
+
+                Reel::whereIn('youtube_channel_id', $channelIds)
+                    ->where('review_status', 'pending_review')
+                    ->update($action === 'approve'
+                        ? ['review_status' => 'auto_approved', 'is_active' => true]
+                        : ['review_status' => 'rejected']);
+            }
+
+            if (!empty($reelIds)) {
+                if ($action === 'approve') {
+                    Reel::whereIn('id', $reelIds)
+                        ->update(['review_status' => 'auto_approved', 'is_active' => true]);
+                } else {
+                    Reel::whereIn('id', $reelIds)->delete();
+                }
+            }
+        });
+
+        $count = count($channelIds) + count($reelIds);
+        $verb  = $action === 'approve' ? 'disetujui' : 'ditolak';
+
+        return back()->with('success', "{$count} item berhasil {$verb}.");
     }
 
     public function destroy(Reel $reel): RedirectResponse

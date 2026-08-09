@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/css/kalkulator/refine.css',
+                'resources/css/kalkulator/crafting-mage-tower.css',
                 'resources/js/kalkulator/refine.js',
             ],            refresh: true,
             fonts: [

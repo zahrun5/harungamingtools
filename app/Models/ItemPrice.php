@@ -10,6 +10,7 @@ class ItemPrice extends Model
         'item_api_id',
         'enc',
         'city',
+        'server',
         'sell_price_min',
         'fetched_at',
     ];

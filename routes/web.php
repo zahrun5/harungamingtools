@@ -53,6 +53,10 @@ Route::get('/kalkulator/fishing', fn() => view('kalkulator.fishing'));
 Route::get('/kalkulator/flip',    fn() => view('kalkulator.flip'));
 Route::get('/kalkulator/refine',  fn() => view('kalkulator.refine'));
 
+// ─── flip ──────────────────────────────────────────────────────────
+Route::get('/flip/advance', [FlipController::class, 'advance'])->name('flip.advance');
+Route::post('/flip/scan', [FlipController::class, 'scan'])->name('flip.scan');
+Route::get('/flip/scan/results', [FlipController::class, 'results'])->name('flip.scan.results');
 // ─── Crafting ────────────────────────────────────────────────────────────
 Route::get('/crafting/{station}', [CraftingController::class, 'index'])->name('crafting.show');
 Route::get('/mages-tower', [CraftingController::class, 'index'])->name('mages-tower');
@@ -175,13 +179,15 @@ Route::middleware(['auth', 'daily.bonus'])->group(function () {
     Route::middleware('admin')->prefix('dev')->name('dev.')->group(function () {
         Route::get('/', fn () => view('dev.index'))->name('index');
         Route::get('/test', fn() => view('dev.test'))->name('test');
-
+	
 	Route::prefix('reels')->name('reels.')->group(function () {
 	    Route::get('/', [ReelDeveloperController::class, 'index'])->name('index');
 	    Route::post('/', [ReelDeveloperController::class, 'store'])->name('store');
 	    Route::post('/import', [ReelDeveloperController::class, 'importFromChannel'])->name('import');
 	    Route::patch('/{reel}/toggle', [ReelDeveloperController::class, 'toggleActive'])->name('toggle');
 	    Route::delete('/{reel}', [ReelDeveloperController::class, 'destroy'])->name('destroy');
+	
+	    Route::patch('/bulk-action', [ReelDeveloperController::class, 'bulkAction'])->name('bulk-action');
 	
 	    Route::patch('/{reel}/approve', [ReelDeveloperController::class, 'approveReel'])->name('approve');
 	    Route::patch('/channels/{channel}/approve', [ReelDeveloperController::class, 'approveChannel'])->name('channels.approve');

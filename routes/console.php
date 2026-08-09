@@ -24,18 +24,16 @@ Schedule::command('leaderboard:fetch-kill-events --range=week --pages=3')
     ->withoutOverlapping()
     ->onOneServer();
 
-Schedule::command('reels:import-keyword --limit=200')
-    ->dailyAt('03:30')
-    ->withoutOverlapping()
-    ->onOneServer();
-
-Schedule::command('reels:import-channels')
-    ->dailyAt('04:00')
-    ->withoutOverlapping()
-    ->onOneServer();
+// DIMATIKAN SEMENTARA (2026-08-09) — backlog approve reels masih banyak
+// (700+ channel, 11.000+ video pending). Uncomment lagi kalau backlog udah
+// beres & mau lanjut auto-import.
+// Schedule::command('reels:import-keyword --limit=200')
+//     ->dailyAt('03:30')
+//     ->withoutOverlapping()
+//     ->onOneServer();
+//
+// Schedule::command('reels:import-channels')
+//     ->dailyAt('04:00')
+//     ->withoutOverlapping()
+//     ->onOneServer();
     
- 
-Schedule::job(new \App\Jobs\RefreshFlipPricesJob)
-    ->everyFiveMinutes()
-    ->withoutOverlapping()
-    ->onOneServer();

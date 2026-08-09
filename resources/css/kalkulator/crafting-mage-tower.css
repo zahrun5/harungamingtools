@@ -1,0 +1,425 @@
+:root {
+  --parch-lt:  #dcc08a;
+  --panel-bd:  #6b4f1a;
+  --gold:      #f0c040;
+  --gold-dk:   #b8860b;
+  --text-lt:   #e8d5a3;
+  --text-dim:  #a08040;
+  --slot-bg:   #1a1208;
+  --slot-bd:   #4a3510;
+}
+.app { padding: 0 0 40px; }
+.panel {
+  background: linear-gradient(180deg, #2e2210 0%, #1e1608 100%);
+  border: 2px solid var(--panel-bd);
+  border-radius: 4px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+  overflow: visible;
+}
+.panel-header {
+  background: linear-gradient(180deg, #3d2e15 0%, #2a1f0e 100%);
+  border-bottom: 1px solid var(--panel-bd);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.panel-title { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; }
+.header-search {
+  margin-left: auto;
+  background: linear-gradient(180deg, #1a1208 0%, #110e05 100%);
+  border: 1px solid var(--slot-bd); border-radius: 3px;
+  color: var(--text-lt); font-family: 'Crimson Text', serif;
+  font-size: 13px; padding: 6px 10px; outline: none;
+  transition: border-color 0.15s; width: 180px;
+}
+.header-search:focus { border-color: var(--gold-dk); }
+.header-search::placeholder { color: var(--text-dim); }
+
+/* ====== FILTER BAR ====== */
+.filter-bar {
+  background: linear-gradient(180deg, #251a08 0%, #1a1005 100%);
+  border-bottom: 1px solid var(--panel-bd);
+  padding: 10px 12px;
+  display: flex; gap: 8px; flex-wrap: nowrap;
+  overflow-x: auto; overflow-y: visible; position: relative;
+}
+.flt-wrap { position: relative; }
+.flt-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+  border: 1px solid #8b6820; border-radius: 3px;
+  color: #2a1800; font-family: 'Cinzel', serif; font-size: 12px;
+  font-weight: 600; letter-spacing: 0.5px; padding: 7px 12px;
+  cursor: pointer; user-select: none; white-space: nowrap;
+  transition: all 0.1s; justify-content: space-between;
+}
+.flt-btn:hover { background: linear-gradient(180deg, #dabb5a 0%, #b88838 100%); border-color: var(--gold); }
+.flt-btn.open  { background: linear-gradient(180deg, #b89030 0%, #907020 100%); border-color: var(--gold); box-shadow: 0 0 8px rgba(240,192,64,0.3); }
+.flt-btn .flt-label { flex: 1; text-align: left; }
+.flt-btn .flt-val   { font-size: 10px; opacity: 0.75; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.flt-btn .flt-arrow { font-size: 8px; opacity: 0.7; margin-left: 2px; transition: transform 0.15s; }
+.flt-btn.open .flt-arrow { transform: rotate(180deg); }
+
+/* ====== DROPDOWN ====== */
+.drop-wrap {
+  position: fixed; z-index: 9999;
+  display: none; gap: 2px;
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.85));
+}
+.drop-wrap.show { display: flex; }
+.drop-col {
+  min-width: 175px; max-height: 370px; overflow-y: auto;
+  background: linear-gradient(180deg, #e8cf88 0%, #d4b468 100%);
+  border: 1px solid #8b6820; border-radius: 3px;
+  padding: 4px; display: flex; flex-direction: column; gap: 2px;
+}
+.drop-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; border-radius: 2px;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; font-family: 'Crimson Text', serif;
+  font-size: 14px; font-weight: 600; color: #2a1800;
+  transition: all 0.08s; white-space: nowrap;
+}
+.drop-item:hover  { background: linear-gradient(180deg, #f2dc9a 0%, #e2c878 100%); border-color: #a07828; }
+.drop-item.active { background: linear-gradient(180deg, #b88a28 0%, #906818 100%); border-color: #7a5010; color: #fff8e0; }
+.drop-item .di-arrow { font-size: 9px; color: #6b4f1a; margin-left: 8px; flex-shrink: 0; }
+.drop-item.active .di-arrow { color: #ffe090; }
+
+/* ====== ITEM LIST ====== */
+.item-list { min-height: 160px; padding: 0; position: relative; }
+.item-list-empty {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  font-style: italic; font-size: 14px; text-align: center;
+  font-family: 'Crimson Text', serif;
+}
+
+/* Scroll wrapper */
+.item-table-wrap { max-height: 480px; overflow-y: auto; }
+
+/* Tiap baris — gaya refine */
+.item-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(107,79,26,0.3);
+  cursor: pointer; transition: background 0.1s;
+}
+.item-row:hover { background: rgba(61,46,21,0.5); }
+
+/* Icon + badge */
+.item-icon-wrap { position: relative; flex-shrink: 0; }
+.item-icon {
+  width: 48px; height: 48px;
+  border: 1px solid var(--slot-bd); border-radius: 3px;
+  background: var(--slot-bg); object-fit: contain;
+  image-rendering: pixelated; display: block;
+}
+.tier-badge {
+  position: absolute; top: 1px; left: 1px;
+  width: 16px; height: 16px; border-radius: 2px;
+  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.78); border: 1px solid currentColor;
+  color: var(--gold);
+}
+.enc-badge {
+  position: absolute; bottom: 1px; right: 1px;
+  width: 14px; height: 14px; border-radius: 2px;
+  font-size: 8px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(140,80,0,0.85); color: #ffe090;
+}
+
+/* Info kanan: nama + badge harga */
+.item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.item-name { font-family: 'Crimson Text', serif; font-size: 15px; color: var(--parch-lt); font-weight: 600; }
+
+/* ====== SEARCH ====== */
+.search-bar { padding: 10px 12px 0; }
+.search-input {
+  width: 100%;
+  background: linear-gradient(180deg, #1a1208 0%, #110e05 100%);
+  border: 1px solid var(--slot-bd); border-radius: 3px;
+  color: var(--text-lt); font-family: 'Crimson Text', serif;
+  font-size: 14px; padding: 8px 12px; outline: none;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--gold-dk); }
+.search-input::placeholder { color: var(--text-dim); }
+
+/* ====== POPUP ====== */
+.popup-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.82);
+  z-index: 10000;
+  display: none; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.popup-overlay.show { display: flex; }
+.popup-box {
+  background: linear-gradient(180deg, #2e2210 0%, #1a1208 100%);
+  border: 2px solid var(--panel-bd); border-radius: 6px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.95);
+  width: 100%; max-width: 400px;
+  max-height: 88vh; overflow-y: auto;
+  position: relative;
+}
+.popup-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(180deg, #6b1a1a 0%, #4a1010 100%);
+  border: 1px solid #8b3030; color: #f0c0c0;
+  font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; z-index: 1;
+}
+.popup-close:hover { background: #8b2020; border-color: #c04040; }
+
+/* Popup head: gambar + nama */
+.popup-head {
+  display: flex; gap: 14px; padding: 16px 44px 16px 16px;
+  background: linear-gradient(180deg, #3d2e15 0%, #2a1f0e 100%);
+  border-bottom: 1px solid var(--panel-bd); align-items: center;
+}
+.popup-head img {
+  width: 72px; height: 72px;
+  border: 1px solid var(--slot-bd); border-radius: 4px;
+  background: var(--slot-bg); object-fit: contain; flex-shrink: 0;
+}
+.popup-item-name {
+  font-family: 'Cinzel', serif; font-size: 15px;
+  color: var(--gold); margin-bottom: 4px; line-height: 1.3;
+}
+.popup-item-sub {
+  font-family: 'Crimson Text', serif; font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Harga per kota */
+.popup-prices {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(107,79,26,0.4);
+}
+.popup-prices-label {
+  font-family: 'Cinzel', serif; font-size: 10px;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+.city-prices-grid {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.city-price-box {
+  width: 44px; height: 44px; border-radius: 4px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  font-weight: 700; cursor: default;
+  border: 1px solid rgba(0,0,0,0.3);
+  gap: 2px;
+}
+.city-price-box .cpb-val { font-size: 11px; font-weight: 700; }
+.city-price-box.loading  { opacity: 0.5; }
+.city-price-box.no-data  { opacity: 0.3; }
+
+/* Warna kota Albion */
+.city-Caerleon      { background: #7b1a1a; color: #ffd0d0; border-color: #c0392b; }
+.city-Bridgewatch   { background: #7a3a00; color: #ffe0b0; border-color: #e67e22; }
+.city-Fort-Sterling { background: #3a3a3a; color: #f0f0f0; border-color: #bdc3c7; }
+.city-Lymhurst      { background: #1a4a1a; color: #c0ffc0; border-color: #27ae60; }
+.city-Martlock      { background: #1a2a5a; color: #c0d0ff; border-color: #2980b9; }
+.city-Thetford      { background: #3a1a5a; color: #e0c0ff; border-color: #8e44ad; }
+.city-Brecilien     { background: #0a3a2a; color: #a0ffe0; border-color: #1abc9c; }
+
+/* Resources / bahan */
+.popup-resources {
+  padding: 12px 16px 16px;
+}
+.popup-resources-label {
+  font-family: 'Cinzel', serif; font-size: 10px;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+.resource-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); gap: 8px; }
+.resource-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; cursor: pointer; transition: opacity 0.12s;
+}
+.resource-item:hover { opacity: 0.8; }
+.resource-item img {
+  width: 48px; height: 48px; object-fit: contain;
+  border: 1px solid var(--slot-bd); border-radius: 3px;
+  background: var(--slot-bg);
+}
+.resource-count {
+  position: absolute; bottom: -5px; right: -5px;
+  font-family: 'Cinzel', serif; font-size: 11px;
+  color: var(--gold); font-weight: 700;
+  background: var(--dark-bg); border: 1px solid var(--gold);
+  border-radius: 3px; padding: 1px 3px;
+}
+.popup-loading {
+  padding: 40px; text-align: center;
+  color: var(--text-dim); font-style: italic;
+  font-family: 'Crimson Text', serif; font-size: 14px;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: #8b6820; border-radius: 3px; }
+
+/* ====== MODE TOGGLE (Simple / Advance) ====== */
+.mode-toggle { display:flex; gap:0; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:4px; padding:3px; margin-bottom:10px; }
+.mode-btn { flex:1; background:transparent; border:none; color:var(--text-dim); font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; border-radius:3px; text-transform:uppercase; transition:all .15s; }
+.mode-btn.active { background:linear-gradient(180deg,#4a3818,#2e2210); color:var(--gold); border:1px solid var(--panel-bd); }
+
+/* ====== WIZARD (MODE SIMPLE) ====== */
+.wiz-step { padding:14px 0; border-bottom:1px solid rgba(107,79,26,.3); }
+.wiz-step:last-child { border-bottom:none; }
+.wiz-label { font-family:'Cinzel',serif; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+.wiz-options { display:flex; flex-wrap:wrap; gap:7px; }
+.wiz-opt { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--panel-bd); border-radius:4px; color:var(--text-lt); font-family:'Crimson Text',serif; font-size:14px; padding:9px 15px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px; }
+.wiz-opt:hover { border-color:var(--gold); }
+.wiz-opt.sel { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
+.wiz-opt .wo-arrow { font-size:9px; opacity:.7; }
+.wiz-cat-crumb { font-family:'Crimson Text',serif; font-style:italic; font-size:12px; color:var(--text-dim); margin:12px 0 8px 16px; }
+.wiz-cat-crumb-3 { margin-left:32px; }
+.wiz-cat-lvl2 { margin-left:16px; padding-left:10px; border-left:2px solid rgba(240,192,64,.35); }
+.wiz-cat-lvl3 { margin-left:32px; padding-left:10px; border-left:2px solid rgba(240,192,64,.6); }
+.wiz-next-row { margin-top:10px; }
+.wiz-btn-lanjut { background:linear-gradient(180deg,#4a6b1a,#2e4210); border:1px solid #6b8b30; border-radius:3px; color:#d0f0a0; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1px; padding:9px 16px; cursor:pointer; text-transform:uppercase; }
+.wiz-btn-lanjut:hover { border-color:#8bc040; color:#fff; }
+.wiz-btn-lanjut:disabled { opacity:.4; cursor:not-allowed; }
+.wiz-item-list { max-height:360px; overflow-y:auto; border:1px solid var(--slot-bd); border-radius:3px; }
+.wiz-input-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.wiz-input-row label { font-size:12px; color:var(--text-dim); min-width:150px; }
+.wiz-input-row input[type=number] { background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-lt); font-size:14px; padding:8px 10px; outline:none; width:120px; }
+.wiz-input-row input:focus { border-color:var(--gold); }
+.wiz-btn-hitung { width:100%; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:12px; cursor:pointer; text-transform:uppercase; margin-top:4px; }
+.wiz-btn-hitung:hover { background:linear-gradient(180deg,#a05800,#703800); }
+.wiz-selected-item { display:flex; align-items:center; gap:10px; background:rgba(0,0,0,.25); border:1px solid var(--slot-bd); border-radius:4px; padding:8px 10px; margin-bottom:12px; }
+.wiz-selected-item img { width:40px; height:40px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); }
+.wiz-selected-item .wsi-name { flex:1; font-family:'Crimson Text',serif; font-size:14px; color:var(--gold); }
+.wiz-selected-item .wsi-change { background:none; border:1px solid var(--slot-bd); border-radius:3px; color:var(--text-dim); font-size:11px; padding:5px 9px; cursor:pointer; }
+.wiz-selected-item .wsi-change:hover { border-color:var(--gold); color:var(--gold); }
+.wiz-result { margin:14px 0; background:linear-gradient(180deg,#2e2210,#1e1608); border:2px solid var(--panel-bd); border-radius:4px; padding:16px; }
+.wiz-result-text { font-size:15px; line-height:1.7; color:var(--text-lt); }
+.wiz-result-text b { color:var(--gold); }
+.bahan-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+.bahan-slot { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.bahan-slot img { width:44px; height:44px; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); object-fit:contain; }
+.bahan-qty { font-family:'Cinzel',serif; font-size:11px; font-weight:700; text-align:center; }
+.bahan-qty .butuh { color:var(--gold); }
+.bahan-qty .punya { color:#6f8; }
+.bahan-name { font-size:9px; color:var(--text-dim); text-align:center; max-width:60px; line-height:1.2; }
+.bahan-arrow { font-size:16px; color:var(--text-dim); align-self:center; padding-bottom:18px; }
+.reset-btn { background:linear-gradient(180deg,#6b1a1a,#4a1010); border:1px solid #8b3030; border-radius:3px; color:#f0c0c0; font-size:12px; padding:9px 12px; cursor:pointer; }
+.reset-btn:hover { border-color:#c04040; }
+
+/* ====== CRAFT SLOTS ROW (Mode Advance) ====== */
+.craft-slots-row { padding:14px 16px; border-top:1px solid var(--panel-bd); display:flex; flex-direction:column; gap:10px; }
+.craft-slots-empty { color:var(--text-dim); font-style:italic; font-size:13px; font-family:'Crimson Text',serif; }
+.craft-recipe-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+.craft-tab { background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--panel-bd); border-radius:4px; color:var(--text-dim); font-family:'Cinzel',serif; font-size:11px; font-weight:700; letter-spacing:.5px; padding:7px 14px; cursor:pointer; text-transform:uppercase; transition:all .12s; }
+.craft-tab:hover { border-color:var(--gold-dk); color:var(--text-lt); }
+.craft-tab.active { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
+.craft-slots-grid { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.craft-slot { width:54px; height:54px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:4px; position:relative; flex-shrink:0; cursor:pointer; }
+.craft-slot img { width:100%; height:100%; object-fit:contain; display:block; }
+.craft-slot .cs-need { position:absolute; bottom:1px; right:2px; font-size:9px; font-weight:700; font-family:'Cinzel',serif; color:#f0c0c0; text-shadow:0 1px 2px #000; padding:0 1px; background:rgba(0,0,0,.55); border-radius:2px; }
+.craft-slot.ok { border-color:#6f8; }
+.craft-slot.ok .cs-need { color:#8fe0a0; }
+.craft-arrow { font-size:18px; color:var(--text-dim); }
+.craft-reset-row { padding:0 16px 14px; }
+
+/* ====== TABEL DIKUNCI SAAT ITEM SEDANG DIPILIH ====== */
+.item-row.ct-dim { opacity:.28; filter:grayscale(65%); pointer-events:none; }
+.item-row.ct-selected { border:1px solid var(--gold); background:rgba(240,192,64,.1); border-radius:3px; }
+#itemTableWrap.ct-locked { overflow:hidden; }
+
+/* ====== BOTTOM BAR: Return % + Tombol Craft ====== */
+.craft-bottom-bar { display:flex; gap:8px; align-items:center; padding:10px 16px; border-top:1px solid var(--panel-bd); background:rgba(0,0,0,.15); flex-wrap:wrap; }
+.craft-ret-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-ret-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-ret-inp { width:52px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.craft-modal-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-modal-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-modal-wrap span { font-family:'Cinzel',serif; font-size:14px; font-weight:700; color:var(--gold); }
+.craft-sell-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-sell-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-sell-inp { width:74px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.craft-qty-wrap { display:flex; align-items:center; gap:5px; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; padding:5px 9px; }
+.craft-qty-wrap label { font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-qty-inp { width:44px; background:transparent; border:none; color:var(--gold); font-size:14px; font-weight:600; text-align:right; outline:none; }
+.craft-qty-inp:disabled { opacity:.45; }
+.craft-max-chk { display:flex; align-items:center; gap:4px; cursor:pointer; font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.craft-max-chk input { cursor:pointer; }
+
+/* ====== JOURNAL PICKER (tombol, bukan checkbox/dropdown) ====== */
+.craft-journal-section { padding: 0 16px 14px; }
+.craft-journal-toggle-btn { display:inline-flex; align-items:center; gap:7px; background:linear-gradient(180deg,#3d2e15,#2a1f0e); border:1px solid var(--panel-bd); border-radius:4px; color:var(--text-dim); font-family:'Crimson Text',serif; font-size:13px; font-weight:600; padding:8px 14px; cursor:pointer; transition:all .12s; }
+.craft-journal-toggle-btn:hover { border-color:var(--gold-dk); color:var(--text-lt); }
+.craft-journal-toggle-btn.active { border-color:var(--gold); background:linear-gradient(180deg,#5a4520,#3a2c10); color:var(--gold); }
+.craft-journal-picker { display:flex; align-items:flex-start; gap:10px; margin-top:10px; background:rgba(0,0,0,.25); border:1px solid var(--slot-bd); border-radius:4px; padding:10px; }
+.craft-journal-picker img { width:40px; height:40px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); flex-shrink:0; }
+.craft-journal-picker-body { flex:1; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.craft-journal-dd-row { display:flex; gap:8px; flex-wrap:wrap; }
+.craft-result-panel { margin:0 16px 14px; background:linear-gradient(180deg,#2e2210 0%,#1e1608 100%); border:2px solid var(--panel-bd); border-radius:4px; padding:12px 14px; display:flex; flex-direction:column; gap:7px; }
+.crp-row { display:flex; justify-content:space-between; align-items:center; }
+.crp-label { font-family:'Cinzel',serif; font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+.crp-val { font-family:'Cinzel',serif; font-size:15px; font-weight:700; color:var(--gold); }
+.crp-val.positive { color:#8fe0a0; }
+.crp-val.negative { color:#f08080; }
+.crp-group-lbl { font-family:'Cinzel',serif; font-size:11px; color:var(--gold-dk); text-transform:uppercase; letter-spacing:1px; margin-top:4px; padding-bottom:3px; border-bottom:1px solid rgba(107,79,26,.4); }
+.crp-group-lbl:first-child { margin-top:0; }
+.crp-subtotal { margin-top:2px; padding-top:5px; border-top:1px dashed rgba(107,79,26,.5); }
+.crp-subtotal .crp-label { color:var(--text-lt); }
+.crp-total { margin-top:4px; padding-top:7px; border-top:1px solid var(--panel-bd); }
+.crp-total .crp-label { color:var(--text-lt); font-size:11px; }
+.crp-total .crp-val { font-size:17px; }
+
+.craft-btn { flex:1; background:linear-gradient(180deg,#8b4a00,#5a2e00); border:1px solid #c06010; border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:13px; font-weight:700; letter-spacing:1px; padding:10px; cursor:pointer; text-transform:uppercase; }
+.craft-btn:hover:not(:disabled) { background:linear-gradient(180deg,#a05800,#703800); }
+.craft-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+/* ====== STATUS JURNAL DI INVENTORY — muncul sebagai slot ikon SETELAH
+   crafting pertama dimulai, cuma yang relevan (penuh/sebagian/dua-duanya) ====== */
+.cinv-slot.journal-full,
+.cinv-slot.journal-partial { border-color:var(--gold-dk); background:rgba(240,192,64,.08); }
+.cinv-slot.journal-partial { opacity:.85; }
+.cinv-slot .cinv-qty-frac { position:absolute; bottom:1px; left:2px; right:2px; font-size:8px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; text-align:center; line-height:1.1; }
+
+/* ====== INVENTORY (Mode Advance Craft) ====== */
+.craft-inv-section { padding:12px 16px 16px; border-top:1px solid var(--panel-bd); }
+.craft-inv-lbl { font-family:'Cinzel',serif; font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.cinv-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+.cinv-slot { aspect-ratio:1; background:var(--slot-bg); border:1px solid var(--slot-bd); border-radius:3px; position:relative; cursor:pointer; overflow:hidden; }
+.cinv-slot.filled:hover { border-color:var(--gold); }
+.cinv-slot img { width:100%; height:100%; object-fit:contain; display:block; }
+.cinv-slot .cinv-qty { position:absolute; bottom:1px; right:2px; font-size:10px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; }
+
+/* ====== RECIPE POPUP (grouping Resep 1 / Resep 2) ====== */
+.craft-recipe-group { margin-bottom:16px; }
+.craft-recipe-group:last-child { margin-bottom:0; }
+.craft-recipe-title { font-family:'Cinzel',serif; font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.craft-recipe-items { display:flex; gap:10px; flex-wrap:wrap; }
+.craft-res-item { display:flex; flex-direction:column; align-items:center; gap:4px; width:64px; cursor:pointer; padding:6px; border-radius:4px; border:1px solid transparent; transition:all .12s; }
+.craft-res-item:hover { border-color:var(--gold-dk); background:rgba(240,192,64,.06); }
+.craft-res-item img { width:44px; height:44px; object-fit:contain; border:1px solid var(--slot-bd); border-radius:3px; background:var(--slot-bg); }
+.craft-res-item .cri-count { font-family:'Cinzel',serif; font-size:10px; font-weight:700; color:var(--text-dim); }
+.craft-res-item.ok .cri-count { color:#8fe0a0; }
+.craft-res-item .cri-name { font-size:9px; color:var(--text-dim); text-align:center; line-height:1.2; }
+
+/* ====== TOAST ====== */
+.craft-toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:10001; white-space:nowrap; }
+.craft-toast.show { transform:translateX(-50%) translateY(0); }
+
+/* DESKTOP TWO-COLUMN LAYOUT — Mode Advance saja (item list kiri, slot resep+inventory+craft kanan) */
+#mtAdvanceWrap .rw-main { display:flex; flex-direction:column; }
+#mtAdvanceWrap .rw-col-left, #mtAdvanceWrap .rw-col-right { display:flex; flex-direction:column; min-width:0; }
+
+@media (min-width:960px) {
+  #mtAdvanceWrap { max-width:1180px; margin:0 auto; }
+  #mtAdvanceWrap .rw-main { flex-direction:row; align-items:flex-start; }
+  #mtAdvanceWrap .rw-col-left { flex:1 1 auto; border-right:1px solid var(--panel-bd); }
+  #mtAdvanceWrap .rw-col-right { flex:0 0 360px; }
+  #mtAdvanceWrap .item-list { max-height:600px; overflow-y:auto; }
+}

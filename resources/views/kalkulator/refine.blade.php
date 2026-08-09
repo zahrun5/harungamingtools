@@ -143,21 +143,28 @@
           <div class="item-list" id="itemList"></div>
 
           <div class="bot-bar">
-            <div class="ret-wrap">
-              <label>♻️ Return</label>
-              <input class="ret-inp" type="number" id="returnRate" value="36.7" min="0" max="100" step="0.1">
-              <span style="color:var(--dim);font-size:12px">%</span>
-            </div>
-            <div class="prem-wrap" onclick="document.getElementById('cbPrem').click()">
-              <input type="checkbox" id="cbPrem" onclick="event.stopPropagation()" onchange="updateFooter()">
-              <span>👑 Premium</span>
-            </div>
             <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
             <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
           </div>
         </div>
 
         <div class="rw-col-right">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <div class="ret-wrap">
+              <label>♻️ Return</label>
+              <input class="ret-inp" type="number" id="returnRate" value="36.7" min="0" max="100" step="0.1">
+              <span style="color:var(--dim);font-size:12px">%</span>
+            </div>
+            <div class="prem-wrap" onclick="document.getElementById('cbPrem').click()">
+              <input type="checkbox" id="cbPrem" onclick="event.stopPropagation()" onchange="renderRefineResultPanel()">
+              <span>👑 Premium</span>
+            </div>
+            <div class="prem-wrap" onclick="document.getElementById('cbOrderCost').click()">
+              <input type="checkbox" id="cbOrderCost" onclick="event.stopPropagation()" onchange="renderRefineResultPanel()">
+              <span>🧾 Pesanan Jual (2.5%)</span>
+            </div>
+          </div>
+
           <div class="inv-section" id="invSection">
             <div class="inv-lbl">📦 Inventory</div>
             <div class="inv-grid" id="invGrid"></div>
@@ -173,25 +180,35 @@
               <div class="coin-side">
                 <div class="coin-icon">🪙</div>
                 <div>
-                  <span class="coin-lbl">Modal Awal</span>
+                  <span class="coin-lbl">Modal Bahan</span>
                   <span class="coin-val" id="coinModal">0</span>
                 </div>
               </div>
-              <div class="coin-side">
+              <div class="coin-side" id="csHasil">
                 <div>
-                  <span class="coin-lbl" style="text-align:right;display:block">Nilai Sekarang</span>
-                  <span class="coin-val" id="coinNilai">0</span>
+                  <span class="coin-lbl" style="text-align:right;display:block">Nilai Hasil Refine</span>
+                  <span class="coin-val" id="coinHasil">0</span>
                 </div>
                 <div class="coin-icon">🪙</div>
               </div>
             </div>
-            <div class="tax-row">
+            <div class="tax-row" id="rowPajakSisa">
               <div class="tax-item">
                 <span class="tax-lbl" id="taxLbl">Pajak (8%)</span>
                 <span class="tax-val" id="taxVal">0</span>
               </div>
               <div class="tax-item right">
-                <span class="tax-lbl">Profit Bersih</span>
+                <span class="tax-lbl">Sisa Bahan Mentah</span>
+                <span class="tax-val" id="sisaBahanVal">0</span>
+              </div>
+            </div>
+            <div class="tax-row" id="rowHasilAkhir">
+              <div class="tax-item">
+                <span class="tax-lbl">Hasil Akhir</span>
+                <span class="tax-val" id="hasilAkhirVal">0</span>
+              </div>
+              <div class="tax-item right">
+                <span class="tax-lbl">Total Profit</span>
                 <span class="profit-val" id="profitVal">0</span>
               </div>
             </div>
@@ -538,9 +555,10 @@ const REFINE_STORAGE_KEY = 'ct_refine_inventory';
 
 function saveRefineInventory() {
   try {
-    localStorage.setItem(REFINE_STORAGE_KEY, JSON.stringify(
-      inventory.map(inv => ({ api: inv.item.api, qty: inv.qty, harga: inv.harga }))
-    ));
+    localStorage.setItem(REFINE_STORAGE_KEY, JSON.stringify({
+      inventory: inventory.map(inv => ({ api: inv.item.api, qty: inv.qty, harga: inv.harga })),
+      modalLock, // FIX: modal ikut disimpan, biar gak hilang begitu halaman di-refresh
+    }));
   } catch (e) {}
 }
 
@@ -549,13 +567,14 @@ function loadRefineInventory() {
     const raw = localStorage.getItem(REFINE_STORAGE_KEY);
     if (!raw) return;
     const saved = JSON.parse(raw);
-    if (!Array.isArray(saved)) return;
-    inventory = saved
+    if (!saved || !Array.isArray(saved.inventory)) return;
+    inventory = saved.inventory
       .map(s => {
         const item = ITEMS.find(it => it.api === s.api);
         return item ? { item, qty: s.qty, harga: s.harga } : null;
       })
       .filter(Boolean);
+    modalLock = (typeof saved.modalLock === 'number') ? saved.modalLock : null;
   } catch (e) {}
 }
 
@@ -705,12 +724,40 @@ function onSearchRefine() {
   clearTimeout(searchTimerRefine);
   searchTimerRefine = setTimeout(() => {
     fSearch = document.getElementById('searchInputRefine').value.trim();
+    saveFilterStateRefine();
     filterItems();
   }, 300);
 }
 
+// --- PERSISTENCE FILTER (Bug: filter reset tiap refresh) ---
+function filterStorageKeyRefine() { return 'ct_refine_filter'; }
+
+function saveFilterStateRefine() {
+  try {
+    localStorage.setItem(filterStorageKeyRefine(), JSON.stringify({
+      fJenis, fTipe, fTier, fEnc, fKota, fSearch
+    }));
+  } catch (e) {}
+}
+
+function restoreFilterStateRefine() {
+  try {
+    const raw = localStorage.getItem(filterStorageKeyRefine());
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (!s) return;
+    fJenis  = s.fJenis  ?? null;
+    fTipe   = s.fTipe   ?? null;
+    fTier   = s.fTier   ?? null;
+    fEnc    = (typeof s.fEnc === 'number') ? s.fEnc : null;
+    fKota   = s.fKota   || 'Caerleon';
+    fSearch = s.fSearch || '';
+  } catch (e) {}
+}
+
 // ===================== FILTER & RENDER LIST =====================
 function filterItems() {
+  saveFilterStateRefine(); // Bug fix: filter jangan reset tiap refresh
   const jenis = fJenis || '';
   const tipe  = fTipe  || '';
   const tier  = fTier  || '';
@@ -796,7 +843,7 @@ async function onKotaChange() {
     st.textContent=`✅ ${fetched} harga${fallback>0?` (${fallback} fallback)`:''}`;
 
     for (const inv of inventory) { const c=priceCache[inv.item.api]; if(c&&c>0) inv.harga=c; }
-    filterItems(); renderInventory(); updateFooter();
+    filterItems(); renderInventory(); renderRefineResultPanel();
   } catch(e) { st.className='api-status err'; st.textContent='⚠️ Gagal fetch'; }
 }
 
@@ -864,7 +911,7 @@ function doAdd() {
   }
   if (!invShown) toggleInv();
   closeOverlay('overlayItem');
-  renderInventory(); renderRefineBtns(); updateFooter();
+  renderInventory(); renderRefineBtns(); renderRefineResultPanel();
   saveRefineInventory();
 }
 
@@ -873,7 +920,7 @@ function doEdit() {
   inventory[popupInvIdx].qty   = Math.min(parseInt(document.getElementById('popQty').value)||1, 999999);
   inventory[popupInvIdx].harga = parseFloat(document.getElementById('popHarga').value)||0;
   closeOverlay('overlayItem');
-  renderInventory(); renderRefineBtns(); updateFooter();
+  renderInventory(); renderRefineBtns(); renderRefineResultPanel();
   saveRefineInventory();
   showToast('✏️ Diperbarui');
 }
@@ -882,7 +929,7 @@ function doEditHarga() {
   if (popupInvIdx===null) return;
   inventory[popupInvIdx].harga = parseFloat(document.getElementById('popHarga').value)||0;
   closeOverlay('overlayItem');
-  updateFooter();
+  renderRefineResultPanel();
   saveRefineInventory();
   showToast('💰 Harga diperbarui');
 }
@@ -892,7 +939,7 @@ function doHapus() {
   const nama = inventory[popupInvIdx].item.name;
   inventory.splice(popupInvIdx,1);
   closeOverlay('overlayItem');
-  renderInventory(); renderRefineBtns(); updateFooter();
+  renderInventory(); renderRefineBtns(); renderRefineResultPanel();
   saveRefineInventory();
   showToast(`🗑 ${nama} dihapus`);
 }
@@ -1104,10 +1151,13 @@ function doRefine() {
   const isBatu = b.jenis==='batu';
   const hasilEnc = isBatu ? 0 : b.enc;
 
-  // Snapshot modal awal SEBELUM bahan mentah dikurangi/dihapus
+  // Snapshot modal awal SEBELUM bahan mentah dikurangi/dihapus.
+  // FIX: sebelumnya cuma calcNilaiInventory('raw') -> material antara
+  // (bar/hasil tier sebelumnya, yg juga dipakai sbg bahan refine T4+)
+  // gak ikut ke-hitung sbg modal. Sekarang pakai 'all' biar kedua jenis
+  // bahan ke-hitung.
   if (modalLock === null) {
-    modalLock = calcNilaiInventory('raw');
-    document.getElementById('coinFooter').classList.add('show');
+    modalLock = calcNilaiInventory('all');
   }
 
   let totalOutput = 0;
@@ -1155,33 +1205,82 @@ function doRefine() {
   closeOverlay('overlayRefine');
   renderInventory();
   renderRefineBtns();
-  updateFooter();
+  renderRefineResultPanel();
   saveRefineInventory();
   showToast(`⚔️ Refine → ${outQty} ${b.hasilItem.name}`);
 
   if (!sudahCatat) { sudahCatat=true; catatAktivitas(); }
 }
 
-// ===================== FOOTER =====================
+// ===================== FOOTER / PANEL HASIL =====================
 function calcNilaiInventory(tipe) {
   return inventory.filter(i=>tipe==='all'||i.item.tipe===tipe).reduce((s,i)=>s+i.qty*(i.harga||0),0);
 }
 
-function updateFooter() {
-  if (modalLock===null) return; // belum refine pertama
-  const nilaiSekarang = calcNilaiInventory('all');
-  const premium = document.getElementById('cbPrem').checked;
-  const taxPct  = premium?4:8;
-  // Pajak hanya pada item hasil
-  const nilaiHasil = calcNilaiInventory('hasil');
-  const tax        = nilaiHasil * taxPct/100;
-  const nilaiNet   = nilaiSekarang - tax;
-  const profit     = nilaiNet - modalLock;
+// Pajak market (4% premium / 8% non-premium) + biaya Pesanan Jual 2.5%
+// (cuma kalau checkbox "Pesanan Jual" dicentang). Diterapkan ke nilai
+// hasil refine yang mau dijual — persis pola di halaman crafting.
+function getSellFeeMultiplierRefine() {
+  const premium    = document.getElementById('cbPrem').checked;
+  const pakaiOrder = document.getElementById('cbOrderCost').checked;
+  const taxPct   = premium ? 0.04 : 0.08;
+  const orderPct = pakaiOrder ? 0.025 : 0;
+  return (1 - taxPct) * (1 - orderPct);
+}
+
+// Dipanggil ulang tiap kali: abis Refine, checkbox Premium/Pesanan Jual
+// berubah, atau inventory berubah (tambah/edit/hapus item) — biar angka
+// selalu sinkron.
+//
+// MODAL: sebelum refine pertama -> preview dinamis (calcNilaiInventory('all')
+//        real-time, cuma baris Modal yang tampil). Setelah refine pertama
+//        -> snapshot terkunci (modalLock), baris Profit lengkap muncul.
+function renderRefineResultPanel() {
+  const footer = document.getElementById('coinFooter');
+  if (inventory.length === 0 && modalLock === null) {
+    footer.classList.remove('show');
+    return;
+  }
+  footer.classList.add('show');
+
+  if (modalLock === null) {
+    // Mode preview: belum pernah refine di sesi ini
+    document.getElementById('coinModal').textContent = fmt(calcNilaiInventory('all'));
+    document.getElementById('csHasil').style.display       = 'none';
+    document.getElementById('rowPajakSisa').style.display  = 'none';
+    document.getElementById('rowHasilAkhir').style.display = 'none';
+    return;
+  }
+
+  // Sudah pernah refine -> tampilkan panel lengkap
+  document.getElementById('csHasil').style.display       = '';
+  document.getElementById('rowPajakSisa').style.display   = '';
+  document.getElementById('rowHasilAkhir').style.display  = '';
 
   document.getElementById('coinModal').textContent = fmt(modalLock);
-  document.getElementById('coinNilai').textContent = fmt(nilaiSekarang);
-  document.getElementById('taxLbl').textContent    = `Pajak ${taxPct}% (hasil)`;
-  document.getElementById('taxVal').textContent    = fmt(tax);
+
+  const premium   = document.getElementById('cbPrem').checked;
+  const taxPct    = premium ? 4 : 8;
+  const feeMul    = getSellFeeMultiplierRefine();
+
+  // Nilai Hasil Refine = nilai semua bahan bertipe 'hasil' (netto, sudah
+  // dipotong pajak + biaya pesanan jual)
+  const hasilGross = calcNilaiInventory('hasil');
+  const hasilNet    = hasilGross * feeMul;
+  document.getElementById('coinHasil').textContent = fmt(hasilNet);
+  document.getElementById('taxLbl').textContent = `Pajak ${taxPct}% (hasil)`;
+  document.getElementById('taxVal').textContent = fmt(hasilGross - hasilNet);
+
+  // Sisa Bahan Mentah = nilai bahan 'raw' yang masih tersisa di inventory
+  const sisaBahan = calcNilaiInventory('raw');
+  document.getElementById('sisaBahanVal').textContent = fmt(sisaBahan);
+
+  // Hasil Akhir = subtotal Profit (sebelum dikurangi Modal)
+  const hasilAkhir = hasilNet + sisaBahan;
+  document.getElementById('hasilAkhirVal').textContent = fmt(hasilAkhir);
+
+  // Total Profit
+  const profit = hasilAkhir - modalLock;
   const pEl = document.getElementById('profitVal');
   pEl.textContent = (profit>=0?'+':'')+fmt(profit);
   pEl.className   = 'profit-val '+(profit>=0?'pos':'neg');
@@ -1193,8 +1292,9 @@ function doReset() {
   if (!confirm('Reset semua? Inventory dan data refine akan dihapus.')) return;
   inventory=[]; modalLock=null; sudahCatat=false;
   renderInventory(); renderRefineBtns();
-  document.getElementById('coinFooter').classList.remove('show');
+  renderRefineResultPanel();
   document.getElementById('refineBtns').classList.remove('show');
+  saveRefineInventory(); // FIX: simpan state kosong, biar gak balik lagi pas refresh
   showToast('🗑 Reset selesai');
 }
 
@@ -1230,15 +1330,22 @@ async function catatAktivitas() {
 }
 
 // ===================== INIT =====================
+restoreFilterStateRefine(); // Bug fix: pulihkan filter (material/tier/enchant/kota/search) sebelum build dropdown
 buildMatCol1();
 buildMatCol2();
 buildTierDropRefine();
 buildEncDropRefine();
 buildKotaDropRefine();
+updateMatLabel();
+if (fTier)          setFilterVal('lblTier', 'valTier', fTier);
+if (fEnc !== null)  setFilterVal('lblEnc', 'valEnc', 'Enchant .' + fEnc);
+setFilterVal('lblKota', 'valKota', fKota);
+if (fSearch)        document.getElementById('searchInputRefine').value = fSearch;
 filterItems();
-loadRefineInventory(); // pulihkan inventory dari sesi sebelumnya (kalau ada)
+loadRefineInventory(); // pulihkan inventory + modal dari sesi sebelumnya (kalau ada)
 renderInventory();
 renderRefineBtns();
+renderRefineResultPanel(); // tampilkan Modal preview langsung, gak nunggu fetch harga kelar
 onKotaChange();
 initWizard();
 applyUrlJenisAdvance();
