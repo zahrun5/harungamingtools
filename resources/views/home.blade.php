@@ -35,12 +35,14 @@
     <h2 class="section-title">{{ __('home.sections.crafting.title') }}</h2>
     <p class="section-sub">{{ __('home.sections.crafting.sub') }}</p>
 
-    <div class="station-grid">
-        @php
-            $craftingStations = \App\Models\CraftingStation::orderBy('id')->get();
-        @endphp
+    @php
+        $craftingStations = \App\Models\CraftingStation::orderBy('id')->get();
+        $mainStations = $craftingStations->take(3);
+        $extraStations = $craftingStations->skip(3);
+    @endphp
 
-        @foreach ($craftingStations as $cs)
+    <div class="station-grid">
+        @foreach ($mainStations as $cs)
             @php
                 $hasImage = file_exists(public_path('images/'.$cs->slug.'.jpg'));
                 $bg = 'linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15))' . ($hasImage ? ", url('".asset('images/'.$cs->slug.'.jpg')."')" : '');
@@ -61,6 +63,67 @@
             </a>
         @endforeach
     </div>
+
+    @if ($extraStations->isNotEmpty())
+        <button type="button" id="toggle-crafting-stations" class="toggle-stations-btn">
+            <span class="toggle-label-show">{{ __('home.crafting_toggle.show') }}</span>
+            <span class="toggle-label-hide">{{ __('home.crafting_toggle.hide') }}</span>
+        </button>
+
+        <div class="station-grid" id="extra-crafting-stations" hidden>
+            @foreach ($extraStations as $cs)
+                @php
+                    $hasImage = file_exists(public_path('images/'.$cs->slug.'.jpg'));
+                    $bg = 'linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15))' . ($hasImage ? ", url('".asset('images/'.$cs->slug.'.jpg')."')" : '');
+                    $name = \Illuminate\Support\Facades\Lang::has('home.crafting_stations.'.$cs->slug.'.name')
+                        ? __('home.crafting_stations.'.$cs->slug.'.name')
+                        : $cs->name;
+                    $desc = \Illuminate\Support\Facades\Lang::has('home.crafting_stations.'.$cs->slug.'.desc')
+                        ? __('home.crafting_stations.'.$cs->slug.'.desc')
+                        : null;
+                @endphp
+                <a href="/crafting/{{ $cs->slug }}" class="station-card" style="background-image:{{ $bg }};">
+                    <div class="station-body">
+                        <div class="station-name">{{ $name }}</div>
+                        @if ($desc)
+                            <div class="station-desc">{{ $desc }}</div>
+                        @endif
+                    </div>
+                </a>
+            @endforeach
+        </div>
+
+        <script>
+            (function () {
+                var btn = document.getElementById('toggle-crafting-stations');
+                var grid = document.getElementById('extra-crafting-stations');
+                var key = 'hgt_show_crafting_stations';
+
+                function apply(open) {
+                    grid.hidden = !open;
+                    btn.classList.toggle('open', open);
+                }
+
+                apply(localStorage.getItem(key) === '1');
+
+                btn.addEventListener('click', function () {
+                    var open = grid.hidden;
+                    localStorage.setItem(key, open ? '1' : '0');
+                    apply(open);
+                });
+            })();
+        </script>
+
+        <style>
+            .toggle-stations-btn{display:inline-flex;align-items:center;gap:6px;margin:10px 0 16px;font-size:0.85rem;font-weight:600;padding:8px 18px;border-radius:30px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);cursor:pointer;transition:border-color .2s,color .2s,transform .15s;}
+            .toggle-stations-btn:hover{transform:translateY(-2px);border-color:var(--gold);color:var(--gold);}
+            .toggle-stations-btn::after{content:'▾';transition:transform .2s;}
+            .toggle-stations-btn.open::after{transform:rotate(180deg);}
+            .toggle-label-hide{display:none;}
+            .toggle-stations-btn.open .toggle-label-hide{display:inline;}
+            .toggle-stations-btn.open .toggle-label-show{display:none;}
+        </style>
+    @endif
 
     {{-- ===== TOOLS LAINNYA ===== --}}
     <h2 class="section-title">{{ __('home.sections.tools.title') }}</h2>

@@ -26,6 +26,11 @@ return [
         'warriors-forge' => ['name' => "Warrior's Forge", 'desc' => 'Swords & Warrior armor'],
     ],
 
+    'crafting_toggle' => [
+        'show' => 'Show all crafting stations',
+        'hide' => 'Hide crafting stations',
+    ],
+
     'tools_list' => [
         'fishing'     => ['name' => 'Fishing Calculator',   'desc' => 'Sell fish or mince it — which pays more?'],
         'flip'        => ['name' => 'Flipping Calculator',  'desc' => "Calculate buy/sell limits so tax doesn't eat your profit."],

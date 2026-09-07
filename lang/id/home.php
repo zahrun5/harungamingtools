@@ -26,6 +26,11 @@ return [
         'warriors-forge' => ['name' => "Warrior's Forge", 'desc' => 'Pedang, Tameng & Zirah Prajurit'],
     ],
 
+    'crafting_toggle' => [
+        'show' => 'Tampilkan semua crafting station',
+        'hide' => 'Sembunyikan crafting station',
+    ],
+
     'tools_list' => [
         'fishing'     => ['name' => 'Kalkulator Mancing',   'desc' => 'Jual ikan atau dicincang, mana lebih untung?'],
         'flip'        => ['name' => 'Kalkulator Flipping',  'desc' => 'Hitung batas harga jual/beli biar gak rugi pajak.'],
