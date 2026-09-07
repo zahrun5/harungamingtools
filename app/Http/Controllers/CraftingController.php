@@ -46,7 +46,7 @@ class CraftingController extends Controller
         $craftingStation = \App\Models\CraftingStation::where('slug', $station)->first();
         $stationName = $craftingStation->name ?? ucwords(str_replace('-', ' ', $station));
 
-        return view('mage-tower', [
+        return view('kalkulator.crafting', [
             'station'     => $station,
             'stationName' => $stationName,
         ]);
@@ -172,7 +172,16 @@ class CraftingController extends Controller
 
         $items = $query->orderBy('tier')->orderBy('name')->get();
 
-        $items = $items->map(function ($item) {
+        // Nama item terlokalisasi (sumber resmi: tabel item_localizations,
+        // fallback EN-US lalu ke name di tabel items) — pola sama kayak
+        // MarketController::items().
+        $apiLocale = \App\Models\Item::currentApiLocale();
+        $localizedNames = \App\Models\ItemLocalization::namesFor(
+            $items->pluck('api_id')->filter()->unique()->values()->all(),
+            $apiLocale
+        );
+
+        $items = $items->map(function ($item) use ($localizedNames) {
             $enc = (int) ($item->enc ?? 0);
             $apiIdWithEnc = $item->api_id
                 ? ($enc > 0 ? "{$item->api_id}@{$enc}" : $item->api_id)
@@ -180,7 +189,7 @@ class CraftingController extends Controller
 
             return [
                 'id'       => $item->id,
-                'name'     => $item->name,
+                'name'     => $localizedNames[$item->api_id] ?? $item->name,
                 'api_id'   => $item->api_id,
                 'tier'     => $item->tier,
                 'enc'      => $item->enc,
@@ -423,6 +432,14 @@ class CraftingController extends Controller
         $resourceApiIds = $recipes->pluck('resource_api_id')->unique()->values();
         $resourceItems  = Item::whereIn('api_id', $resourceApiIds)->get()->keyBy('api_id');
 
+        // Nama terlokalisasi untuk item utama + semua resource resep sekaligus
+        // (bulk, hindari N+1) — pola sama kayak MarketController.
+        $apiLocale = \App\Models\Item::currentApiLocale();
+        $localizedNames = \App\Models\ItemLocalization::namesFor(
+            $resourceApiIds->push($item->api_id)->filter()->unique()->values()->all(),
+            $apiLocale
+        );
+
         // Resep 1 (grup pertama) dipakai sebagai default, konsisten sama
         // tab "Resep 1" yang aktif duluan di frontend.
         $recipeGroups = $this->groupRecipeResources($recipes);
@@ -431,14 +448,14 @@ class CraftingController extends Controller
         // Mapper resource dipakai bareng buat mainRecipe (backward-compat,
         // field 'resources') MAUPUN buat semua grup (field baru 'recipe_groups'
         // yang dipakai frontend buat render tab Resep 1/2/3).
-        $mapResource = function ($r) use ($resourceItems) {
+        $mapResource = function ($r) use ($resourceItems, $localizedNames) {
             $resItem   = $resourceItems->get($r->resource_api_id);
             $encSuffix = $r->resource_enchantment_level > 0 ? "@{$r->resource_enchantment_level}" : '';
             return [
                 'resource_api_id'            => $r->resource_api_id,
                 'resource_enchantment_level' => $r->resource_enchantment_level,
                 'count'   => $r->count,
-                'name'    => $resItem?->name ?? $r->resource_api_id,
+                'name'    => $localizedNames[$r->resource_api_id] ?? $resItem?->name ?? $r->resource_api_id,
                 'item_id' => $resItem?->id,
                 'img_url' => "https://render.albiononline.com/v1/item/{$r->resource_api_id}{$encSuffix}.png",
             ];
@@ -500,7 +517,7 @@ class CraftingController extends Controller
 
         return response()->json([
             'id'        => $item->id,
-            'name'      => $item->name,
+            'name'      => $localizedNames[$item->api_id] ?? $item->name,
             'api_id'    => $item->api_id,
             'tier'      => $item->tier,
             'enc'       => $encLevel,

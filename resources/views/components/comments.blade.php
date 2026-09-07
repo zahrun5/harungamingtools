@@ -50,7 +50,7 @@
                     {{-- Header --}}
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                         <img src="{{ $comment->user->display_avatar }}" style="width:28px;height:28px;border-radius:50%;background:var(--bg-panel);">
-                        <span style="font-weight:600;font-size:.88rem;">{{ $comment->user->display_name }}</span>
+                        <a href="{{ route('profile.public', $comment->user->username ?? $comment->user->id) }}" style="font-weight:600;font-size:.88rem;color:var(--text);text-decoration:none;">{{ $comment->user->display_name }}</a>
                         <span style="color:var(--text-muted);font-size:.78rem;margin-left:auto;">{{ $comment->created_at->diffForHumans() }}</span>
                         @if(auth()->check() && (auth()->id() === $comment->user_id || auth()->user()->role === 'admin'))
                             <form method="POST" action="/comments/{{ $comment->id }}" style="display:inline;">
@@ -78,7 +78,7 @@
                                 <div>
                                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                                         <img src="{{ $reply->user->display_avatar }}" style="width:22px;height:22px;border-radius:50%;background:var(--bg-panel);">
-                                        <span style="font-weight:600;font-size:.82rem;">{{ $reply->user->display_name }}</span>
+                                        <a href="{{ route('profile.public', $reply->user->username ?? $reply->user->id) }}" style="font-weight:600;font-size:.82rem;color:var(--text);text-decoration:none;">{{ $reply->user->display_name }}</a>
                                         <span style="color:var(--text-muted);font-size:.75rem;margin-left:auto;">{{ $reply->created_at->diffForHumans() }}</span>
                                         @if(auth()->check() && (auth()->id() === $reply->user_id || auth()->user()->role === 'admin'))
                                             <form method="POST" action="/comments/{{ $reply->id }}" style="display:inline;">

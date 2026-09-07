@@ -1,0 +1,77 @@
+<?php
+
+return [
+    'mode_simple' => 'Tryb prosty',
+    'mode_advance' => 'Tryb zaawansowany',
+    'search_placeholder' => 'Szukaj nazwy przedmiotu...',
+
+    'filter' => [
+        'category' => 'Kategoria',
+        'tier' => 'Tier',
+        'enchant' => 'Zaklęcie',
+        'all' => 'Wszystko',
+        'enchant_option' => 'Zaklęcie :n',
+        'enchant_short' => 'Zak :n',
+        'tier_label' => 'Tier :n',
+    ],
+
+    'empty_select_category' => 'Wybierz kategorię, aby zobaczyć broń i pancerze 🪄',
+    'select_item_to_start' => 'Wybierz przedmiot z listy powyżej, aby rozpocząć crafting 🪄',
+    'change_item' => 'Zmień przedmiot',
+    'use_journal' => 'Użyj dziennika',
+    'journal_type' => 'Rodzaj dziennika',
+
+    'inventory' => 'Ekwipunek',
+    'return_label' => 'Zwrot',
+    'quantity_label' => 'Ilość',
+    'craft_all_checkbox' => 'Craftuj wszystko',
+    'sell_price_label' => 'Cena sprzedaży',
+    'premium' => 'Premium',
+    'sell_order_label' => 'Zlecenie sprzedaży',
+    'craft_btn' => 'Wytwórz',
+
+    'modal_group' => 'Koszt',
+    'crafting_materials' => 'Materiały do craftingu',
+    'journal_needed' => 'Potrzebne dzienniki',
+    'total_modal' => 'Łączny koszt',
+    'profit_group' => 'Zysk',
+    'result_item' => 'Wytworzony przedmiot',
+    'tax_and_order_fee' => 'Podatek i opłata za zlecenie',
+    'remaining_materials' => 'Pozostałe materiały',
+    'journal_full' => 'Pełny dziennik',
+    'journal_partial' => 'Częściowo wypełniony dziennik',
+    'final_result' => 'Wynik końcowy',
+    'total_profit' => 'Całkowity zysk',
+
+    'advance_placeholder' => 'Tryb zaawansowany jest przebudowywany. Chwila cierpliwości!',
+
+    'price_per_unit_optional' => 'Cena za sztukę (opcjonalnie)',
+    'add_to_inventory' => 'Dodaj do ekwipunku',
+    'price_per_full_journal' => 'Cena za pełny dziennik',
+    'progress_label' => 'Postęp:',
+    'fame_unit' => 'sławy',
+    'progress_next_journal' => 'Postęp do następnego dziennika',
+
+    'loading' => 'Ładowanie...',
+    'loading_items' => 'Ładowanie przedmiotów...',
+    'no_items_found' => 'Nie znaleziono przedmiotów 😔',
+    'failed_load_items' => 'Nie udało się załadować przedmiotów. Spróbuj ponownie.',
+    'failed_load_data' => 'Nie udało się załadować danych.',
+    'failed_load_recipe_toast' => 'Nie udało się załadować przepisu.',
+    'failed_load_categories' => 'Nie udało się załadować kategorii. Odśwież stronę.',
+    'failed_load_categories_toast' => 'Nie udało się załadować kategorii, spróbuj odświeżyć.',
+
+    'price_per_city' => 'Ceny w miastach',
+    'no_recipe' => 'Brak dostępnego przepisu',
+    'resource_needed' => 'Potrzeba :count / craft',
+    'edit_price_or_delete' => 'Zmień cenę lub usuń',
+    'save_price' => 'Zapisz cenę',
+    'price_updated' => 'Cena zaktualizowana',
+    'deleted_toast' => 'Usunięto',
+
+    'journal_full_tooltip' => 'Pełny dziennik × :count — kliknij, aby ustawić cenę',
+    'journal_partial_tooltip' => 'Postęp :fame/:req sławy',
+    'switch_recipe_toast' => 'Przełączono na przepis :n',
+    'recipe_tab' => 'Przepis :n',
+    'craft_success_toast' => 'Pomyślnie wytworzono :qty× :name!',
+];

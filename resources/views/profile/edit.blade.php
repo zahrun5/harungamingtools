@@ -8,14 +8,14 @@
     <form method="POST" action="/profile/update">
         @csrf
 
-		{{-- Nama Custom --}}
+		{{-- Username --}}
 		<div style="margin-bottom:24px;">
 		    <label style="display:block;font-size:.85rem;color:var(--text-muted);margin-bottom:8px;">Nama Tampilan</label>
 		    <div style="display:flex;gap:8px;">
-		        <input type="text" name="custom_name" id="custom_name"
-		               value="{{ old('custom_name', $user->custom_name) }}"
+		        <input type="text" name="username" id="username"
+		               value="{{ old('username', $user->username) }}"
 		               placeholder="{{ $user->name }}"
-		               style="flex:1;background:var(--bg-panel);border:1px solid {{ $errors->has('custom_name') ? '#e63946' : 'var(--border)' }};color:var(--text);padding:10px 14px;border-radius:8px;font-size:.95rem;outline:none;"
+		               style="flex:1;background:var(--bg-panel);border:1px solid {{ $errors->has('username') ? '#e63946' : 'var(--border)' }};color:var(--text);padding:10px 14px;border-radius:8px;font-size:.95rem;outline:none;"
 		               maxlength="20"
 		               oninput="document.getElementById('char-count').textContent=this.value.length">
 		        <button type="button" onclick="randomName()"
@@ -24,14 +24,14 @@
 		        </button>
 		    </div>
 		    <div style="display:flex;justify-content:space-between;margin-top:6px;">
-		        <p style="color:{{ $errors->has('custom_name') ? '#e63946' : 'var(--text-muted)' }};font-size:.78rem;">
-		            @error('custom_name')
+		        <p style="color:{{ $errors->has('username') ? '#e63946' : 'var(--text-muted)' }};font-size:.78rem;">
+		            @error('username')
 		                {{ $message }}
 		            @else
 		                Kosongkan untuk pakai nama asli. Max 20 karakter.
 		            @enderror
 		        </p>
-		        <p style="color:var(--text-muted);font-size:.78rem;"><span id="char-count">{{ strlen(old('custom_name', $user->custom_name ?? '')) }}</span>/20</p>
+		        <p style="color:var(--text-muted);font-size:.78rem;"><span id="char-count">{{ strlen(old('username', $user->username ?? '')) }}</span>/20</p>
 		    </div>
 		</div>
 
@@ -71,7 +71,7 @@
                 <span>
                     <span style="display:block;color:var(--text);font-size:.9rem;font-weight:600;">Profil Publik</span>
                     <span style="display:block;color:var(--text-muted);font-size:.78rem;margin-top:2px;">
-                        Kalau dimatikan, halaman <code>/u/{{ $user->custom_name ?? $user->id }}</code> cuma bisa dilihat kamu sendiri
+                        Kalau dimatikan, halaman <code>/profile/{{ $user->username ?? $user->id }}</code> cuma bisa dilihat kamu sendiri
                     </span>
                 </span>
                 <input type="checkbox" name="is_public" value="1"
@@ -103,7 +103,7 @@ function randomName() {
     const p = prefixes[Math.floor(Math.random() * prefixes.length)];
     const s = suffixes[Math.floor(Math.random() * suffixes.length)];
     const name = p + s;
-    const input = document.getElementById('custom_name');
+    const input = document.getElementById('username');
     input.value = name;
     document.getElementById('char-count').textContent = name.length;
 }

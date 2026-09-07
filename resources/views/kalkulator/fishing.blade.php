@@ -1,8 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Kalkulator Mancing - Albion Online Tools')
+@section('title', __('fishing.title'))
 
 @section('content')
+@php
+    // Nama ikan + hasil cincang terlokalisasi dari item_localizations (fallback EN-US,
+    // terakhir ke nama hardcode ID di IKAN_DB). Key = uid (api id).
+    $fishUids = \App\Models\ItemLocalization::query()
+        ->where('api_id', 'like', '%_FISH_%')
+        ->distinct()
+        ->pluck('api_id')
+        ->push('T1_FISHCHOPS')
+        ->all();
+    $fishLocNames = array_filter(\App\Models\ItemLocalization::namesFor($fishUids, \App\Models\Item::currentApiLocale()));
+@endphp
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 .fish-wrap{
@@ -167,8 +178,8 @@
     <div class="panel">
       <div class="ph">
         <span>🎣</span>
-        <span class="ph-title">Kalkulator Mancing</span>
-        <input type="text" class="header-search" id="searchInputFish" placeholder="Cari nama ikan..." oninput="onSearchFish()">
+        <span class="ph-title">{{ __('fishing.panel_title') }}</span>
+        <input type="text" class="header-search" id="searchInputFish" placeholder="{{ __('fishing.search_placeholder') }}" oninput="onSearchFish()">
         <span class="api-status" id="apiStatus"></span>
       </div>
 
@@ -178,7 +189,7 @@
             <!-- TIER -->
             <div class="flt-wrap">
               <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
-                <span class="flt-label" id="lblTier">Tier</span>
+                <span class="flt-label" id="lblTier">{{ __('fishing.filter.tier') }}</span>
                 <span class="flt-val" id="valTier" style="display:none"></span>
                 <span class="flt-arrow">▼</span>
               </div>
@@ -189,7 +200,7 @@
             <!-- KOTA -->
             <div class="flt-wrap">
               <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
-                <span class="flt-label" id="lblKota" style="display:none">Kota</span>
+                <span class="flt-label" id="lblKota" style="display:none">{{ __('fishing.filter.city') }}</span>
                 <span class="flt-val" id="valKota">Thetford</span>
                 <span class="flt-arrow">▼</span>
               </div>
@@ -203,27 +214,27 @@
 
           <div class="bot-bar">
             <div class="ret-wrap">
-              <label>🥩 Cincang (T1)</label>
+              <label>{{ __('fishing.chops_label') }}</label>
               <input class="ret-inp" type="number" id="hargaCincang" value="336" min="1" onchange="renderInventory()">
             </div>
-            <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
-            <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
+            <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 {{ __('fishing.inventory') }} (<span id="invCount">0</span>)</button>
+            <button class="reset-btn" onclick="doReset()">🗑 {{ __('fishing.reset') }}</button>
           </div>
         </div>
 
         <div class="rw-col-right">
           <div class="inv-section" id="invSection">
-            <div class="inv-lbl">📦 Inventory</div>
+            <div class="inv-lbl">📦 {{ __('fishing.inventory') }}</div>
             <div class="inv-grid" id="invGrid"></div>
           </div>
 
           <div class="preview-section" id="previewSection">
-            <div class="inv-lbl">📊 Perbandingan (kalau diproses sekarang)</div>
+            <div class="inv-lbl">{{ __('fishing.comparison_title') }}</div>
             <div class="summary-grid" id="summaryGrid"></div>
           </div>
 
           <div class="hitung-wrap">
-            <button class="btn-hitung" onclick="prosesCincang()">🔪 Proses Cincang</button>
+            <button class="btn-hitung" onclick="prosesCincang()">{{ __('fishing.process_btn') }}</button>
           </div>
 
           <div class="coin-footer" id="coinFooter">
@@ -231,13 +242,13 @@
               <div class="coin-side">
                 <div class="coin-icon">🪙</div>
                 <div>
-                  <span class="coin-lbl">Modal (Ikan Sebelum Diproses)</span>
+                  <span class="coin-lbl">{{ __('fishing.raw_cost') }}</span>
                   <span class="coin-val" id="coinModal">0</span>
                 </div>
               </div>
               <div class="coin-side">
                 <div>
-                  <span class="coin-lbl" style="text-align:right;display:block">Nilai Sekarang</span>
+                  <span class="coin-lbl" style="text-align:right;display:block">{{ __('fishing.current_value') }}</span>
                   <span class="coin-val" id="coinNilai">0</span>
                 </div>
                 <div class="coin-icon">🪙</div>
@@ -245,7 +256,7 @@
             </div>
             <div class="profit-row">
               <div class="profit-item">
-                <span class="profit-lbl">Profit</span>
+                <span class="profit-lbl">{{ __('fishing.profit') }}</span>
                 <span class="profit-val" id="profitVal">0</span>
               </div>
             </div>
@@ -270,11 +281,11 @@
       </div>
       <div class="pop-body">
         <div class="pop-field">
-          <label>Harga per ekor (silver)</label>
+          <label>{{ __('fishing.price_per_fish') }}</label>
           <input type="number" id="popHarga" placeholder="0" min="0">
         </div>
         <div class="pop-field">
-          <label>Jumlah ekor</label>
+          <label>{{ __('fishing.quantity_fish') }}</label>
           <div class="slider-wrap">
             <input type="range" id="popSlider" min="1" max="999" value="10" oninput="syncQty('s')">
             <input class="slider-val" type="number" id="popQty" value="10" min="1" max="999999" oninput="syncQty('v')">
@@ -288,6 +299,16 @@
 </div>
 
 <script>
+// ===================== I18N =====================
+const FISHING_I18N = @json(__('fishing'), JSON_UNESCAPED_UNICODE);
+const FISH_LOC_NAMES = @json($fishLocNames, JSON_UNESCAPED_UNICODE);
+function t(key, rep = {}) {
+  let s = key.split('.').reduce((o, k) => (o == null ? undefined : o[k]), FISHING_I18N);
+  if (typeof s !== 'string') return key;
+  for (const k in rep) s = s.replace(':' + k, rep[k]);
+  return s;
+}
+
 // ===================== DATA =====================
 const IKAN_DB = [
   {uid:"T1_FISH_FRESHWATER_ALL_COMMON", id:"Rud Biasa", tier:"I", potong:1, def:273},
@@ -332,6 +353,10 @@ const IKAN_DB = [
 // Item hasil cincang — pseudo-item, gak muncul di item-list, cuma nongol di inventory
 const DAGING_UID = "T1_FISHCHOPS";
 IKAN_DB.push({uid:DAGING_UID, id:"Daging Cincang", tier:"I", potong:0, def:0});
+
+// Nama ikan terlokalisasi (dari item_localizations) — fallback ke hardcode ID di atas.
+// dicek saat init biar search & render pakai nama locale yang benar.
+IKAN_DB.forEach(i => { const n = FISH_LOC_NAMES[i.uid]; if (n) i.id = n; });
 
 const TIER_COL   = {I:'#ccc', II:'#aaa', III:'#6b8', IV:'#68f', V:'#c8f', VI:'#fa8', VII:'#f64', VIII:'#ff0'};
 const FISH_TIERS = ['I','II','III','IV','V','VI','VII','VIII'];
@@ -397,7 +422,7 @@ function makeItem(text, hasArrow, isActive, onClick){
 function buildTierDropFish(){
   const col = document.getElementById('colTier');
   col.innerHTML = '';
-  col.appendChild(makeItem('Semua', false, !fTier, () => {
+  col.appendChild(makeItem(t('filter.all'), false, !fTier, () => {
     fTier = null; setFilterVal('lblTier','valTier',null); closeDrop(); filterItems();
   }));
   FISH_TIERS.forEach(t => col.appendChild(makeItem(tierLabel(t), false, fTier === t, () => {
@@ -436,7 +461,7 @@ function filterItems(){
   });
   window._fl = filtered;
   const el = document.getElementById('itemList');
-  if (!filtered.length){ el.innerHTML = '<div class="empty-inv">Ikan tidak ditemukan.</div>'; return; }
+  if (!filtered.length){ el.innerHTML = '<div class="empty-inv">' + t('no_items_found') + '</div>'; return; }
   el.innerHTML = filtered.map((i, idx) => {
     const h = priceCache[i.uid];
     return `<div class="item-row" onclick="openAdd(${idx})">
@@ -463,7 +488,7 @@ async function onKotaChange(){
   const kota = fKota;
   if (!kota) return;
   const st = document.getElementById('apiStatus');
-  st.className = 'api-status loading'; st.textContent = '⏳ Mengambil harga...';
+  st.className = 'api-status loading'; st.textContent = '⏳ ' + t('fetching_prices');
 
   const allKeys = IKAN_DB.filter(i => i.uid !== DAGING_UID).map(i => i.uid);
   priceCache = {}; priceCityCache = {};
@@ -488,7 +513,7 @@ async function onKotaChange(){
     const fetched  = Object.keys(priceCache).length;
     const fallback = Object.values(priceCityCache).filter(v => v.kota !== kota).length;
     st.className = 'api-status ok';
-    st.textContent = `✅ ${fetched} harga${fallback > 0 ? ` (${fallback} fallback)` : ''}`;
+    st.textContent = `✅ ${t('prices_fetched', {count: fetched})}${fallback > 0 ? ` (${t('fallback_suffix', {count: fallback})})` : ''}`;
 
     for (const inv of inventory) {
       if (inv.uid === DAGING_UID) continue;
@@ -496,7 +521,7 @@ async function onKotaChange(){
       if (c && c > 0 && !inv.manual) inv.harga = c;
     }
     filterItems(); renderInventory();
-  } catch (e) { st.className = 'api-status err'; st.textContent = '⚠️ Gagal fetch'; }
+  } catch (e) { st.className = 'api-status err'; st.textContent = '⚠️ ' + t('fetch_failed'); }
 }
 
 // ===================== POPUP TAMBAH / EDIT =====================
@@ -505,13 +530,13 @@ function openAdd(idx){
   popupUid = i.uid; popupInvIdx = null;
   document.getElementById('popIcon').src = iconUrl(i.uid);
   document.getElementById('popName').textContent = i.id;
-  document.getElementById('popDesc').textContent = `Tier ${tierLabel(i.tier)} · ${i.potong} ptg cincang/ekor`;
+  document.getElementById('popDesc').textContent = t('chops_per_fish', {tier: tierLabel(i.tier), count: i.potong});
   const cached = priceCache[i.uid] || i.def || 0;
   document.getElementById('popHarga').value = cached;
   document.getElementById('popSlider').value = 10;
   document.getElementById('popQty').value = 10;
   document.getElementById('popSlider').closest('.pop-field').style.display = '';
-  document.getElementById('popBtnRow').innerHTML = `<button class="btn-add" onclick="doAdd()">➕ Tambah ke Inventory</button>`;
+  document.getElementById('popBtnRow').innerHTML = `<button class="btn-add" onclick="doAdd()">➕ ${t('add_to_inventory')}</button>`;
   openOverlay('overlayItem');
 }
 
@@ -523,14 +548,14 @@ function openEdit(i){
   document.getElementById('popIcon').src = iconUrl(inv.uid);
   document.getElementById('popName').textContent = d.id;
   document.getElementById('popDesc').textContent = inv.uid === DAGING_UID
-    ? 'Daging hasil cincang ikan'
-    : `Tier ${tierLabel(d.tier)} · ${d.potong} ptg cincang/ekor`;
+    ? t('chops_result_desc')
+    : t('chops_per_fish', {tier: tierLabel(d.tier), count: d.potong});
   document.getElementById('popHarga').value = inv.harga || 0;
   document.getElementById('popSlider').value = Math.min(inv.qty, 999);
   document.getElementById('popQty').value = inv.qty;
   document.getElementById('popSlider').closest('.pop-field').style.display = '';
   document.getElementById('popBtnRow').innerHTML = `
-    <button class="btn-add" onclick="doEdit()">💾 Simpan</button>
+    <button class="btn-add" onclick="doEdit()">💾 ${t('save')}</button>
     <button class="btn-del" onclick="doHapus()">🗑</button>`;
   openOverlay('overlayItem');
 }
@@ -567,7 +592,7 @@ function doEdit(){
   inventory[popupInvIdx].manual = true;
   closeOverlay('overlayItem');
   renderInventory();
-  showToast('✏️ Diperbarui');
+  showToast('✏️ ' + t('updated'));
 }
 
 function doHapus(){
@@ -576,7 +601,7 @@ function doHapus(){
   inventory.splice(popupInvIdx, 1);
   closeOverlay('overlayItem');
   renderInventory();
-  showToast(`🗑 ${d.id} dihapus`);
+  showToast('🗑 ' + t('item_deleted', {name: d.id}));
 }
 
 function doReset(){
@@ -584,7 +609,7 @@ function doReset(){
   modalLock = null;
   renderInventory();
   document.getElementById('coinFooter').classList.remove('show');
-  showToast('↺ Direset');
+  showToast('↺ ' + t('reset_done'));
 }
 
 // ===================== INVENTORY GRID (stack max 999/slot) =====================
@@ -664,9 +689,9 @@ function renderPreview(){
   wrap.classList.add('show');
   const { totalJual, totalCincang, totalOptimal } = calcPreview();
   document.getElementById('summaryGrid').innerHTML = `
-    <div class="summary-card"><div class="s-label">Semua Dijual</div><div class="s-val neutral">${fmt(totalJual)}</div></div>
-    <div class="summary-card"><div class="s-label">Semua Dicincang</div><div class="s-val accent">${fmt(totalCincang)}</div></div>
-    <div class="summary-card"><div class="s-label">Pilihan Terbaik</div><div class="s-val profit">${fmt(totalOptimal)}</div></div>`;
+    <div class="summary-card"><div class="s-label">${t('sell_all')}</div><div class="s-val neutral">${fmt(totalJual)}</div></div>
+    <div class="summary-card"><div class="s-label">${t('chop_all')}</div><div class="s-val accent">${fmt(totalCincang)}</div></div>
+    <div class="summary-card"><div class="s-label">${t('best_choice')}</div><div class="s-val profit">${fmt(totalOptimal)}</div></div>`;
 }
 
 function updateFooter(){
@@ -682,7 +707,7 @@ function updateFooter(){
 
 // ===================== PROSES CINCANG (otomatis, hasil masuk inventory) =====================
 function prosesCincang(){
-  if (!inventory.length){ alert('Tambahkan minimal satu ikan dulu.'); return; }
+  if (!inventory.length){ alert(t('add_fish_first')); return; }
   const hargaCincang = parseFloat(document.getElementById('hargaCincang').value) || 336;
 
   // Snapshot modal SEBELUM ikan dikonversi jadi daging (cuma sekali, pas proses pertama)
@@ -717,9 +742,9 @@ function prosesCincang(){
   if (!invShown) toggleInv();
 
   if (jumlahDicincang === 0) {
-    showToast('👍 Semua ikan lebih untung dijual, gak ada yang dicincang');
+    showToast('👍 ' + t('all_better_sold'));
   } else {
-    showToast(`🔪 ${jumlahDicincang} ekor dicincang → ${dagingTambahan} daging · ${jumlahDisimpan} ekor tetap disimpan`);
+    showToast(t('chop_result', {chopped: jumlahDicincang, chops: dagingTambahan, kept: jumlahDisimpan}));
   }
   catatAktivitas();
 }

@@ -140,14 +140,18 @@ Route::middleware(['auth', 'daily.bonus'])->group(function () {
     // Dashboard
     Route::get('/dashboard', fn() => view('dashboard'));
 
-    // Profile
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/u/{user}', [ProfileController::class, 'showPublic'])->name('profile.public');
-    Route::post('/profile/albion/submit', [ProfileController::class, 'submitAlbionVerification'])->name('profile.albion.submit');
-    Route::post('/profile/albion/confirm', [ProfileController::class, 'confirmAlbionVerification'])->name('profile.albion.confirm');
-
+	// Profile
+	Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+	Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+	Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+	Route::post('/profile/albion/submit', [ProfileController::class, 'submitAlbionVerification'])->name('profile.albion.submit');
+	Route::post('/profile/albion/confirm', [ProfileController::class, 'confirmAlbionVerification'])->name('profile.albion.confirm');
+	Route::get('/profile/{user}', [ProfileController::class, 'showPublic'])->name('profile.public');
+	
+	// Redirect alamat lama biar link yang udah kesebar gak mati
+	Route::get('/u/{user}', function ($user) {
+	    return redirect()->route('profile.public', ['user' => $user], 301);
+	});
     // Build
     // Catatan: middleware('auth') di sini sebelumnya di-nest lagi padahal
     // grup luar sudah 'auth' — redundan, jadi dihapus tanpa mengubah behavior.

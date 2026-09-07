@@ -26,10 +26,15 @@ class GoogleController extends Controller
 
 	            ]
 	        );
+
+	        if ($user->wasRecentlyCreated && !$user->username) {
+	            $user->username = 'user' . $user->id;
+	            $user->save();
+	        }
 	
 	        Auth::login($user, true);
 	        return redirect('/');
-	
+
 	    } catch (\Exception $e) {
 	        \Log::error('Google login error: ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine());
 	        return redirect('/login')->with('error', 'Login Google gagal.');

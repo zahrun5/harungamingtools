@@ -15,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
 
 
 #[Fillable([
-    'telegram_id', 'telegram_username', 'name', 'custom_name', 'avatar_seed',
+    'telegram_id', 'telegram_username', 'name', 'username', 'avatar_seed',
     'avatar_style', 'email', 'password', 'photo_url', 'role', 'last_login_at',
     'google_id', 'avatar', 'is_public',
     // Identitas Albion Online (Tahap 2 — planning-profil-publik.md)
@@ -37,7 +37,7 @@ class User extends Authenticatable
         return $this->where('id', $value)->firstOrFail();
     }
 
-    return $this->where('custom_name', $value)->firstOrFail();
+    return $this->where('username', $value)->firstOrFail();
 }
     
     
@@ -63,7 +63,7 @@ protected function casts(): array
 
 public function getDisplayNameAttribute(): string
 {
-    return $this->custom_name ?? $this->name;
+    return $this->username ?? $this->name;
 }
 
 public function getDisplayAvatarAttribute(): string

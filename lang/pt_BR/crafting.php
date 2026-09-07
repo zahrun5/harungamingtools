@@ -1,0 +1,77 @@
+<?php
+
+return [
+    'mode_simple' => 'Modo Simples',
+    'mode_advance' => 'Modo Avançado',
+    'search_placeholder' => 'Buscar nome do item...',
+
+    'filter' => [
+        'category' => 'Categoria',
+        'tier' => 'Tier',
+        'enchant' => 'Encantamento',
+        'all' => 'Todos',
+        'enchant_option' => 'Encantamento :n',
+        'enchant_short' => 'Enc :n',
+        'tier_label' => 'Tier :n',
+    ],
+
+    'empty_select_category' => 'Selecione uma categoria para ver armas e armaduras 🪄',
+    'select_item_to_start' => 'Selecione um item da lista acima para começar a fabricar 🪄',
+    'change_item' => 'Trocar Item',
+    'use_journal' => 'Usar Diário',
+    'journal_type' => 'Tipo de Diário',
+
+    'inventory' => 'Inventário',
+    'return_label' => 'Retorno',
+    'quantity_label' => 'Quantidade',
+    'craft_all_checkbox' => 'Fabricar Tudo',
+    'sell_price_label' => 'Preço de Venda',
+    'premium' => 'Premium',
+    'sell_order_label' => 'Ordem de Venda',
+    'craft_btn' => 'Fabricar',
+
+    'modal_group' => 'Custo',
+    'crafting_materials' => 'Materiais de Fabricação',
+    'journal_needed' => 'Diários Necessários',
+    'total_modal' => 'Custo Total',
+    'profit_group' => 'Lucro',
+    'result_item' => 'Item Fabricado',
+    'tax_and_order_fee' => 'Imposto e Taxa de Ordem',
+    'remaining_materials' => 'Materiais Restantes',
+    'journal_full' => 'Diário Cheio',
+    'journal_partial' => 'Diário Parcialmente Preenchido',
+    'final_result' => 'Resultado Final',
+    'total_profit' => 'Lucro Total',
+
+    'advance_placeholder' => 'O Modo Avançado está sendo reconstruído. Aguente firme!',
+
+    'price_per_unit_optional' => 'Preço por unidade (opcional)',
+    'add_to_inventory' => 'Adicionar ao Inventário',
+    'price_per_full_journal' => 'Preço por Diário Cheio',
+    'progress_label' => 'Progresso:',
+    'fame_unit' => 'fama',
+    'progress_next_journal' => 'Progresso para o próximo diário',
+
+    'loading' => 'Carregando...',
+    'loading_items' => 'Carregando itens...',
+    'no_items_found' => 'Nenhum item encontrado 😔',
+    'failed_load_items' => 'Falha ao carregar itens. Tente novamente.',
+    'failed_load_data' => 'Falha ao carregar dados.',
+    'failed_load_recipe_toast' => 'Falha ao carregar receita.',
+    'failed_load_categories' => 'Falha ao carregar categorias. Tente atualizar a página.',
+    'failed_load_categories_toast' => 'Falha ao carregar categorias, tente atualizar.',
+
+    'price_per_city' => 'Preço por Cidade',
+    'no_recipe' => 'Sem receita disponível',
+    'resource_needed' => 'Precisa de :count / fabricação',
+    'edit_price_or_delete' => 'Editar preço ou excluir',
+    'save_price' => 'Salvar Preço',
+    'price_updated' => 'Preço atualizado',
+    'deleted_toast' => 'Excluído',
+
+    'journal_full_tooltip' => 'Diário Cheio × :count — clique para definir o preço',
+    'journal_partial_tooltip' => 'Progresso :fame/:req fama',
+    'switch_recipe_toast' => 'Alterado para Receita :n',
+    'recipe_tab' => 'Receita :n',
+    'craft_success_toast' => 'Fabricado com sucesso :qty× :name!',
+];

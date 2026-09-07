@@ -1,0 +1,77 @@
+<?php
+
+return [
+    'mode_simple' => 'Einfacher Modus',
+    'mode_advance' => 'Erweiterter Modus',
+    'search_placeholder' => 'Item-Namen suchen...',
+
+    'filter' => [
+        'category' => 'Kategorie',
+        'tier' => 'Stufe',
+        'enchant' => 'Verzauberung',
+        'all' => 'Alle',
+        'enchant_option' => 'Verzauberung :n',
+        'enchant_short' => 'Verz. :n',
+        'tier_label' => 'Stufe :n',
+    ],
+
+    'empty_select_category' => 'Wähle eine Kategorie, um Waffen & Rüstungen zu sehen 🪄',
+    'select_item_to_start' => 'Wähle oben ein Item aus der Liste, um mit dem Crafting zu beginnen 🪄',
+    'change_item' => 'Item ändern',
+    'use_journal' => 'Journal verwenden',
+    'journal_type' => 'Journal-Typ',
+
+    'inventory' => 'Inventar',
+    'return_label' => 'Rückgabe',
+    'quantity_label' => 'Menge',
+    'craft_all_checkbox' => 'Alles craften',
+    'sell_price_label' => 'Verkaufspreis',
+    'premium' => 'Premium',
+    'sell_order_label' => 'Verkaufsauftrag',
+    'craft_btn' => 'Craften',
+
+    'modal_group' => 'Kosten',
+    'crafting_materials' => 'Crafting-Materialien',
+    'journal_needed' => 'Benötigte Journale',
+    'total_modal' => 'Gesamtkosten',
+    'profit_group' => 'Gewinn',
+    'result_item' => 'Gecraftetes Item',
+    'tax_and_order_fee' => 'Steuer & Auftragsgebühr',
+    'remaining_materials' => 'Verbleibende Materialien',
+    'journal_full' => 'Volles Journal',
+    'journal_partial' => 'Teilweise gefülltes Journal',
+    'final_result' => 'Endergebnis',
+    'total_profit' => 'Gesamtgewinn',
+
+    'advance_placeholder' => 'Der erweiterte Modus wird gerade neu aufgebaut. Bitte etwas Geduld!',
+
+    'price_per_unit_optional' => 'Preis pro Einheit (optional)',
+    'add_to_inventory' => 'Zum Inventar hinzufügen',
+    'price_per_full_journal' => 'Preis pro vollem Journal',
+    'progress_label' => 'Fortschritt:',
+    'fame_unit' => 'Ruhm',
+    'progress_next_journal' => 'Fortschritt zum nächsten Journal',
+
+    'loading' => 'Lädt...',
+    'loading_items' => 'Items werden geladen...',
+    'no_items_found' => 'Keine Items gefunden 😔',
+    'failed_load_items' => 'Items konnten nicht geladen werden. Erneut versuchen.',
+    'failed_load_data' => 'Daten konnten nicht geladen werden.',
+    'failed_load_recipe_toast' => 'Rezept konnte nicht geladen werden.',
+    'failed_load_categories' => 'Kategorien konnten nicht geladen werden. Seite neu laden.',
+    'failed_load_categories_toast' => 'Kategorien konnten nicht geladen werden, bitte neu laden.',
+
+    'price_per_city' => 'Preis pro Stadt',
+    'no_recipe' => 'Kein Rezept vorhanden',
+    'resource_needed' => 'Benötigt :count / Craft',
+    'edit_price_or_delete' => 'Preis bearbeiten oder löschen',
+    'save_price' => 'Preis speichern',
+    'price_updated' => 'Preis aktualisiert',
+    'deleted_toast' => 'Gelöscht',
+
+    'journal_full_tooltip' => 'Volles Journal × :count — klicken, um den Preis festzulegen',
+    'journal_partial_tooltip' => 'Fortschritt :fame/:req Ruhm',
+    'switch_recipe_toast' => 'Zu Rezept :n gewechselt',
+    'recipe_tab' => 'Rezept :n',
+    'craft_success_toast' => 'Erfolgreich :qty× :name gecraftet!',
+];

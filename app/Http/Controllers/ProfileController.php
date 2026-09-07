@@ -25,13 +25,13 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'custom_name' => 'nullable|string|max:20|alpha_dash|unique:users,custom_name,'.Auth::id().',id',
+            'username' => 'nullable|string|max:20|alpha_dash|unique:users,username,'.Auth::id().',id',
             'avatar_seed' => 'nullable|string|max:100',
             'avatar_style' => 'nullable|string|max:50',
             'is_public' => 'nullable|boolean',
         ]);
         Auth::user()->update([
-            'custom_name'  => $request->custom_name ?: null,
+            'username'     => $request->username ?: null,
             'avatar_seed'  => $request->avatar_seed ?: null,
             'avatar_style' => $request->avatar_style ?? 'pixel-art',
             'is_public'    => $request->boolean('is_public'),
@@ -180,4 +180,3 @@ class ProfileController extends Controller
         return "HGT-{$code}";
     }
 }
-

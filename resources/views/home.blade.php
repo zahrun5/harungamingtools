@@ -37,18 +37,26 @@
 
     <div class="station-grid">
         @php
-            $craftingStations = [
-                ['slug' => 'mage-tower'],
-                ['slug' => 'hunters-lodge'],
-                ['slug' => 'warriors-forge'],
-            ];
+            $craftingStations = \App\Models\CraftingStation::orderBy('id')->get();
         @endphp
 
         @foreach ($craftingStations as $cs)
-            <a href="/crafting/{{ $cs['slug'] }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$cs['slug'].'.jpg') }}');">
+            @php
+                $hasImage = file_exists(public_path('images/'.$cs->slug.'.jpg'));
+                $bg = 'linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15))' . ($hasImage ? ", url('".asset('images/'.$cs->slug.'.jpg')."')" : '');
+                $name = \Illuminate\Support\Facades\Lang::has('home.crafting_stations.'.$cs->slug.'.name')
+                    ? __('home.crafting_stations.'.$cs->slug.'.name')
+                    : $cs->name;
+                $desc = \Illuminate\Support\Facades\Lang::has('home.crafting_stations.'.$cs->slug.'.desc')
+                    ? __('home.crafting_stations.'.$cs->slug.'.desc')
+                    : null;
+            @endphp
+            <a href="/crafting/{{ $cs->slug }}" class="station-card" style="background-image:{{ $bg }};">
                 <div class="station-body">
-                    <div class="station-name">{{ __('home.crafting_stations.'.$cs['slug'].'.name') }}</div>
-                    <div class="station-desc">{{ __('home.crafting_stations.'.$cs['slug'].'.desc') }}</div>
+                    <div class="station-name">{{ $name }}</div>
+                    @if ($desc)
+                        <div class="station-desc">{{ $desc }}</div>
+                    @endif
                 </div>
             </a>
         @endforeach

@@ -1,92 +1,42 @@
 @extends('layouts.app')
 
-@section('title', 'Kalkulator Refine - Albion Online Tools')
+@section('title', __('refine.title'))
 
 @section('content')
 
 @vite(['resources/css/kalkulator/refine.css'])
+
+@php
+    // Nama item terlokalisasi (item_localizations, fallback EN-US). Lookup by api id
+    // dasar tanpa suffix _LEVELn@n — nama enchanted item sama dengan base-nya.
+    $locTiers = ['T2','T3','T4','T5','T6','T7','T8'];
+    $locSuffixes = [
+        'logam' => ['ORE', 'METALBAR'],
+        'kayu'  => ['WOOD', 'PLANKS'],
+        'serat' => ['FIBER', 'CLOTH'],
+        'kulit' => ['HIDE', 'LEATHER'],
+        'batu'  => ['ROCK', 'STONEBLOCK'],
+    ];
+    $locIds = [];
+    foreach ($locSuffixes as [$rawSuf, $hasilSuf]) {
+        foreach ($locTiers as $tr) {
+            $locIds[] = "{$tr}_{$rawSuf}";
+            $locIds[] = "{$tr}_{$hasilSuf}";
+        }
+    }
+    $locNames = array_filter(\App\Models\ItemLocalization::namesFor($locIds, \App\Models\Item::currentApiLocale()));
+@endphp
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
 <div class="rw">
   <div class="app">
 
-    <div class="mode-toggle">
-      <button id="btnModeSimple" class="mode-btn active" onclick="setMode('simple')">📝 Mode Simple</button>
-      <button id="btnModeAdvance" class="mode-btn" onclick="setMode('advance')">⚙️ Mode Advance</button>
-    </div>
-
-    <div id="modeSimpleWrap">
-      <div class="panel">
-        <div class="ph">
-          <span>📝</span>
-          <span class="ph-title">Refine — Mode Simple</span>
-        </div>
-        <div style="padding:16px;">
-
-          @php
-            $simpleStations = [
-                ['slug' => 'smelter',    'jenis' => 'logam', 'name' => 'Smelter',    'desc' => 'Olah bijih jadi batangan logam'],
-                ['slug' => 'lumbermill', 'jenis' => 'kayu',  'name' => 'Lumbermill', 'desc' => 'Olah kayu jadi papan kayu'],
-                ['slug' => 'stonemason', 'jenis' => 'batu',  'name' => 'Stonemason', 'desc' => 'Olah batu jadi batu bata'],
-                ['slug' => 'tanner',     'jenis' => 'kulit', 'name' => 'Tannery',    'desc' => 'Olah kulit jadi kulit samak'],
-                ['slug' => 'weaver',     'jenis' => 'serat', 'name' => 'Weaver',     'desc' => 'Olah serat jadi kain'],
-            ];
-          @endphp
-
-          <div class="wiz-step" id="wizNoJenis" style="display:none;">
-            <div class="wiz-label">Pilih Stasiun Refine</div>
-            <div class="station-grid" style="grid-template-columns:repeat(2,1fr);">
-              @foreach ($simpleStations as $s)
-                <a href="/kalkulator/refine?jenis={{ $s['jenis'] }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$s['slug'].'.jpg') }}');">
-                  <div class="station-body">
-                    <div class="station-name">{{ $s['name'] }}</div>
-                    <div class="station-desc">{{ $s['desc'] }}</div>
-                  </div>
-                </a>
-              @endforeach
-            </div>
-          </div>
-
-          <div class="wiz-step" id="wizStep2" style="display:none;">
-            <div class="wiz-label">1. Pilih Tier</div>
-            <div class="wiz-options" id="wizStep2Opts"></div>
-          </div>
-
-          <div class="wiz-step" id="wizStep3" style="display:none;">
-            <div class="wiz-label">2. Pilih Enchant</div>
-            <div class="wiz-options" id="wizStep3Opts"></div>
-          </div>
-
-          <div class="wiz-step" id="wizStep4" style="display:none;">
-            <div class="wiz-label">3. Jumlah &amp; Return Bonus</div>
-            <div class="wiz-input-row">
-              <label>Mau buat berapa?</label>
-              <input type="number" id="wizQty" value="100" min="1">
-            </div>
-            <div class="wiz-input-row">
-              <label>Return bonus (%)</label>
-              <input type="number" id="wizReturn" value="36.7" min="0" max="100" step="0.1">
-            </div>
-            <button class="wiz-btn-hitung" onclick="wizCompute()">⚔️ Refine</button>
-          </div>
-
-          <div class="wiz-result" id="wizResult" style="display:none;">
-            <div class="wiz-result-text" id="wizResultText"></div>
-            <div id="wizResultVisual" style="margin-top:12px;"></div>
-            <button class="reset-btn" style="margin-top:14px;width:100%;" onclick="wizReset()">🔄 Hitung Ulang</button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <div id="modeAdvanceWrap" style="display:none">
     <div class="panel">
       <div class="ph">
         <span>⚙️</span>
-        <span class="ph-title">Refine Calculator</span>
-        <input type="text" class="header-search" id="searchInputRefine" placeholder="Cari nama item..." oninput="onSearchRefine()">
+        <span class="ph-title">{{ __('refine.panel_title') }}</span>
+        <input type="text" class="header-search" id="searchInputRefine" placeholder="{{ __('refine.search_placeholder') }}" oninput="onSearchRefine()">
         <span class="api-status" id="apiStatus"></span>
       </div>
 
@@ -96,7 +46,7 @@
             <!-- MATERIAL (2 level: Jenis -> Mentah/Hasil) -->
             <div class="flt-wrap">
               <div class="flt-btn" id="btnMat" onclick="toggleDrop('mat')">
-                <span class="flt-label" id="lblMat">Material</span>
+                <span class="flt-label" id="lblMat">{{ __('refine.filter.material') }}</span>
                 <span class="flt-val" id="valMat" style="display:none"></span>
                 <span class="flt-arrow">▼</span>
               </div>
@@ -108,7 +58,7 @@
             <!-- TIER -->
             <div class="flt-wrap">
               <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
-                <span class="flt-label" id="lblTier">Tier</span>
+                <span class="flt-label" id="lblTier">{{ __('refine.filter.tier') }}</span>
                 <span class="flt-val" id="valTier" style="display:none"></span>
                 <span class="flt-arrow">▼</span>
               </div>
@@ -119,7 +69,7 @@
             <!-- ENCHANT -->
             <div class="flt-wrap">
               <div class="flt-btn" id="btnEnc" onclick="toggleDrop('enc')">
-                <span class="flt-label" id="lblEnc">Enchant</span>
+                <span class="flt-label" id="lblEnc">{{ __('refine.filter.enchant') }}</span>
                 <span class="flt-val" id="valEnc" style="display:none"></span>
                 <span class="flt-arrow">▼</span>
               </div>
@@ -130,7 +80,7 @@
             <!-- KOTA -->
             <div class="flt-wrap">
               <div class="flt-btn" id="btnKota" onclick="toggleDrop('kota')">
-                <span class="flt-label" id="lblKota" style="display:none">Kota</span>
+                <span class="flt-label" id="lblKota" style="display:none">{{ __('refine.filter.city') }}</span>
                 <span class="flt-val" id="valKota">Caerleon</span>
                 <span class="flt-arrow">▼</span>
               </div>
@@ -143,35 +93,35 @@
           <div class="item-list" id="itemList"></div>
 
           <div class="bot-bar">
-            <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 Inventory (<span id="invCount">0</span>)</button>
-            <button class="reset-btn" onclick="doReset()">🗑 Reset</button>
+            <button class="inv-btn" id="invBtn" onclick="toggleInv()">📦 {{ __('refine.inventory') }} (<span id="invCount">0</span>)</button>
+            <button class="reset-btn" onclick="doReset()">🗑 {{ __('refine.reset') }}</button>
           </div>
         </div>
 
         <div class="rw-col-right">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
             <div class="ret-wrap">
-              <label>♻️ Return</label>
+              <label>♻️ {{ __('refine.return_label') }}</label>
               <input class="ret-inp" type="number" id="returnRate" value="36.7" min="0" max="100" step="0.1">
               <span style="color:var(--dim);font-size:12px">%</span>
             </div>
             <div class="prem-wrap" onclick="document.getElementById('cbPrem').click()">
               <input type="checkbox" id="cbPrem" onclick="event.stopPropagation()" onchange="renderRefineResultPanel()">
-              <span>👑 Premium</span>
+              <span>👑 {{ __('refine.premium') }}</span>
             </div>
             <div class="prem-wrap" onclick="document.getElementById('cbOrderCost').click()">
               <input type="checkbox" id="cbOrderCost" onclick="event.stopPropagation()" onchange="renderRefineResultPanel()">
-              <span>🧾 Pesanan Jual (2.5%)</span>
+              <span>🧾 {{ __('refine.sell_order_fee') }}</span>
             </div>
           </div>
 
           <div class="inv-section" id="invSection">
-            <div class="inv-lbl">📦 Inventory</div>
+            <div class="inv-lbl">📦 {{ __('refine.inventory') }}</div>
             <div class="inv-grid" id="invGrid"></div>
           </div>
 
           <div class="refine-btns" id="refineBtns">
-            <div class="refine-btns-lbl">⚔️ Refine Tersedia</div>
+            <div class="refine-btns-lbl">⚔️ {{ __('refine.available_refines') }}</div>
             <div class="refine-btns-grid" id="refineBtnsGrid"></div>
           </div>
 
@@ -180,13 +130,13 @@
               <div class="coin-side">
                 <div class="coin-icon">🪙</div>
                 <div>
-                  <span class="coin-lbl">Modal Bahan</span>
+                  <span class="coin-lbl">{{ __('refine.raw_material_cost') }}</span>
                   <span class="coin-val" id="coinModal">0</span>
                 </div>
               </div>
               <div class="coin-side" id="csHasil">
                 <div>
-                  <span class="coin-lbl" style="text-align:right;display:block">Nilai Hasil Refine</span>
+                  <span class="coin-lbl" style="text-align:right;display:block">{{ __('refine.refine_result_value') }}</span>
                   <span class="coin-val" id="coinHasil">0</span>
                 </div>
                 <div class="coin-icon">🪙</div>
@@ -194,28 +144,27 @@
             </div>
             <div class="tax-row" id="rowPajakSisa">
               <div class="tax-item">
-                <span class="tax-lbl" id="taxLbl">Pajak (8%)</span>
+                <span class="tax-lbl" id="taxLbl">{{ __('refine.tax_label', ['pct' => 8]) }}</span>
                 <span class="tax-val" id="taxVal">0</span>
               </div>
               <div class="tax-item right">
-                <span class="tax-lbl">Sisa Bahan Mentah</span>
+                <span class="tax-lbl">{{ __('refine.remaining_raw_material') }}</span>
                 <span class="tax-val" id="sisaBahanVal">0</span>
               </div>
             </div>
             <div class="tax-row" id="rowHasilAkhir">
               <div class="tax-item">
-                <span class="tax-lbl">Hasil Akhir</span>
+                <span class="tax-lbl">{{ __('refine.final_result') }}</span>
                 <span class="tax-val" id="hasilAkhirVal">0</span>
               </div>
               <div class="tax-item right">
-                <span class="tax-lbl">Total Profit</span>
+                <span class="tax-lbl">{{ __('refine.total_profit') }}</span>
                 <span class="profit-val" id="profitVal">0</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   </div>
 </div>
@@ -234,11 +183,11 @@
       </div>
       <div class="pop-body">
         <div class="pop-field">
-          <label>Harga per unit (silver)</label>
+          <label>{{ __('refine.price_per_unit') }}</label>
           <input type="number" id="popHarga" placeholder="0" min="0">
         </div>
         <div class="pop-field">
-          <label>Jumlah (max 999.999)</label>
+          <label>{{ __('refine.quantity_max') }}</label>
           <div class="slider-wrap">
             <input type="range" id="popSlider" min="1" max="999" value="100" oninput="syncQty('s')">
             <input class="slider-val" type="number" id="popQty" value="100" min="1" max="999999" oninput="syncQty('v')">
@@ -263,11 +212,11 @@
       <div class="pop-body">
         <div class="pop-info" id="rPopInfo"></div>
         <div class="pop-field">
-          <label>Return Rate %</label>
+          <label>{{ __('refine.return_rate_pct') }}</label>
           <input type="number" id="rReturnRate" min="0" max="100" step="0.1" value="36.7">
         </div>
         <div class="pop-field" id="rQtyField">
-          <label>Jumlah yang di-refine</label>
+          <label>{{ __('refine.quantity_to_refine') }}</label>
           <div class="slider-wrap">
             <input type="range" id="rSlider" min="1" max="100" value="100" oninput="syncRQty('s')">
             <input class="slider-val" type="number" id="rQty" value="100" min="1" max="100" oninput="syncRQty('v')">
@@ -275,10 +224,10 @@
         </div>
         <label class="check-row">
           <input type="checkbox" id="rHabis" onchange="onRHabisChange()">
-          Refine Habis (gunakan semua bahan)
+          {{ __('refine.refine_all_checkbox') }}
         </label>
         <div class="pop-btn-row">
-          <button class="btn-refine" onclick="doRefine()">⚔️ Refine</button>
+          <button class="btn-refine" onclick="doRefine()">⚔️ {{ __('refine.refine_btn') }}</button>
         </div>
       </div>
     </div>
@@ -287,6 +236,16 @@
   <div class="toast" id="toast"></div>
 </div>
 <script>
+
+// ===================== I18N =====================
+const REFINE_I18N = @json(__('refine'), JSON_UNESCAPED_UNICODE);
+const LOC_NAMES = @json($locNames, JSON_UNESCAPED_UNICODE);
+function t(key, rep = {}) {
+  let s = key.split('.').reduce((o, k) => (o == null ? undefined : o[k]), REFINE_I18N);
+  if (typeof s !== 'string') return key;
+  for (const k in rep) s = s.replace(':' + k, rep[k]);
+  return s;
+}
 
 // ===================== DATA =====================
 const BATU_ENC_MULT = {0:1, 1:2, 2:4, 3:8};
@@ -303,13 +262,15 @@ function buildItems() {
   function api(base, enc) { return enc===0 ? base : `${base}_LEVEL${enc}@${enc}`; }
   function add(jenis, rawBase, rawName, hasilBase, hasilName, maxRaw, maxHasil) {
     const TIERS = ['T2','T3','T4','T5','T6','T7','T8'];
+    const rN = i => LOC_NAMES[rawBase[i]]   || rawName[i];
+    const hN = i => LOC_NAMES[hasilBase[i]] || hasilName[i];
     for (let ti=0; ti<7; ti++) {
       const tier = TIERS[ti];
       const mR = ti<2 ? 0 : maxRaw;
       const mH = ti<2 ? 0 : maxHasil;
-      for (let e=0; e<=mR; e++) its.push({jenis,tipe:'raw',tier,enc:e,name:rawName[ti]+(e>0?` .${e}`:''),api:api(rawBase[ti],e),desc:`${rawName[ti]}${e>0?' .'+e:''}`});
+      for (let e=0; e<=mR; e++) its.push({jenis,tipe:'raw',tier,enc:e,name:rN(ti)+(e>0?` .${e}`:''),api:api(rawBase[ti],e),desc:`${rN(ti)}${e>0?' .'+e:''}`});
       // T8 hasil tetap dibuat (dipakai utk proses refine & harga), tapi disembunyikan dari tabel di filterItems()
-      for (let e=0; e<=mH; e++) its.push({jenis,tipe:'hasil',tier,enc:e,name:hasilName[ti]+(e>0?` .${e}`:''),api:api(hasilBase[ti],e),desc:`${hasilName[ti]}${e>0?' .'+e:''}`});
+      for (let e=0; e<=mH; e++) its.push({jenis,tipe:'hasil',tier,enc:e,name:hN(ti)+(e>0?` .${e}`:''),api:api(hasilBase[ti],e),desc:`${hN(ti)}${e>0?' .'+e:''}`});
     }
   }
   add('logam',
@@ -349,183 +310,14 @@ const ITEMS = buildItems();
 // Jenis material yang dibawa dari homepage (klik card station), kalau ada
 const urlJenis = @json(request('jenis'));
 
-// ===================== MODE TOGGLE =====================
-function setMode(mode) {
-  localStorage.setItem('rw_mode', mode);
-  document.getElementById('modeSimpleWrap').style.display  = mode==='simple'  ? '' : 'none';
-  document.getElementById('modeAdvanceWrap').style.display = mode==='advance' ? '' : 'none';
-  document.getElementById('btnModeSimple').classList.toggle('active', mode==='simple');
-  document.getElementById('btnModeAdvance').classList.toggle('active', mode==='advance');
-}
-
-// ===================== WIZARD (MODE SIMPLE) =====================
 const JENIS_META = {
-  logam: {label:'Logam', emoji:'⚙️'},
-  kayu:  {label:'Kayu',  emoji:'🪵'},
-  serat: {label:'Serat', emoji:'🧵'},
-  kulit: {label:'Kulit', emoji:'🐾'},
-  batu:  {label:'Batu',  emoji:'🪨'},
+  logam: {label:t('material_tree.logam.label'), emoji:'⚙️'},
+  kayu:  {label:t('material_tree.kayu.label'),  emoji:'🪵'},
+  serat: {label:t('material_tree.serat.label'), emoji:'🧵'},
+  kulit: {label:t('material_tree.kulit.label'), emoji:'🐾'},
+  batu:  {label:t('material_tree.batu.label'),  emoji:'🪨'},
 };
 const SIMPLE_TIERS = ['T2','T3','T4','T5','T6','T7','T8'];
-let wiz = { jenis:null, tier:null, enc:0 };
-
-function initWizard() {
-  if (!urlJenis || !JENIS_META[urlJenis]) {
-    document.getElementById('wizNoJenis').style.display = '';
-    return;
-  }
-  wiz.jenis = urlJenis;
-  document.getElementById('wizStep2').style.display = '';
-  renderWizStep2();
-}
-
-// Semua enchant HASIL (bahan jadi) yang benar-benar ada untuk jenis+tier ini.
-// Balok batu otomatis cuma punya 1 opsi (enc 0) karena hasilnya emang gak ber-enchant.
-function getHasilEncOptions(jenis, tier) {
-  return ITEMS.filter(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===tier)
-              .map(i=>i.enc).sort((a,b)=>a-b);
-}
-
-function renderWizStep2() {
-  const el = document.getElementById('wizStep2Opts');
-  el.innerHTML = SIMPLE_TIERS.map(t => {
-    const rep = ITEMS.find(i=>i.jenis===wiz.jenis && i.tipe==='hasil' && i.tier===t && i.enc===0);
-    const img = rep ? `<img src="${iconUrl(rep.api)}" alt="">` : '';
-    return `<div class="wiz-opt ${wiz.tier===t?'sel':''}" onclick="wizSelectTier('${t}')">${img}${t}</div>`;
-  }).join('');
-}
-
-function wizSelectTier(t) {
-  wiz.tier = t; wiz.enc = 0;
-  renderWizStep2();
-  const encOptions = getHasilEncOptions(wiz.jenis, t);
-  if (encOptions.length <= 1) {
-    wiz.enc = encOptions[0] ?? 0;
-    document.getElementById('wizStep3').style.display = 'none';
-    document.getElementById('wizStep4').style.display = '';
-  } else {
-    document.getElementById('wizStep3').style.display = '';
-    renderWizStep3(encOptions);
-    document.getElementById('wizStep4').style.display = 'none';
-  }
-  document.getElementById('wizResult').style.display = 'none';
-}
-
-function renderWizStep3(encOptions) {
-  const el = document.getElementById('wizStep3Opts');
-  el.innerHTML = encOptions.map(e => {
-    const item = ITEMS.find(i=>i.jenis===wiz.jenis && i.tipe==='hasil' && i.tier===wiz.tier && i.enc===e);
-    const img  = item ? `<img src="${iconUrl(item.api)}" alt="">` : '';
-    return `<div class="wiz-opt ${wiz.enc===e?'sel':''}" onclick="wizSelectEnc(${e})">${img}${e===0?'Normal':'.'+e}</div>`;
-  }).join('');
-}
-
-function wizSelectEnc(e) {
-  wiz.enc = e;
-  renderWizStep3(getHasilEncOptions(wiz.jenis, wiz.tier));
-  document.getElementById('wizStep4').style.display = '';
-  document.getElementById('wizResult').style.display = 'none';
-}
-
-function bahanSlotHTML(item, qty, isHasil) {
-  return `<div class="bahan-slot">
-      <img src="${iconUrl(item.api)}" alt="">
-      <div class="bahan-qty"><span class="${isHasil?'punya':'butuh'}">${qty}</span></div>
-      <div class="bahan-name">${item.name}</div>
-    </div>`;
-}
-
-function wizCompute() {
-  const qty    = Math.max(1, parseInt(document.getElementById('wizQty').value) || 1);
-  const retPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('wizReturn').value) || 0));
-  const { jenis, tier, enc } = wiz;
-  if (!jenis || !tier) return;
-
-  const f        = FORMULA[tier];
-  const prevTier = TIER_ORDER[TIER_ORDER.indexOf(tier)-1];
-  const isBatu   = jenis === 'batu';
-  const hasilItem = ITEMS.find(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===tier && i.enc===enc);
-
-  // Balok batu: hasilnya cuma 1 varian, tapi bisa dicapai lewat beberapa
-  // enchant batu mentah (masing2 beda rasio efisiensi via BATU_ENC_MULT).
-  // Tampilkan semua opsi sekaligus sebagai alternatif.
-  if (isBatu) {
-    const maxRawEnc = (tier==='T2'||tier==='T3') ? 0 : 3;
-    const rows = [];
-    for (let e=0; e<=maxRawEnc; e++) {
-      const mult = BATU_ENC_MULT[e] || 1;
-      const ops  = Math.ceil(qty / mult);
-      const actualOutput = ops * mult;
-      const rawGross  = ops * f.raw;
-      const rawReturn = Math.round(rawGross * retPct/100);
-      const rawNeeded = rawGross - rawReturn;
-      let prevNeeded = 0, prevItem = null;
-      if (f.prev > 0 && prevTier) {
-        const prevGross  = ops * f.prev;
-        const prevReturn = Math.round(prevGross * retPct/100);
-        prevNeeded = prevGross - prevReturn;
-        prevItem   = ITEMS.find(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===prevTier && i.enc===0);
-      }
-      const rawItem = ITEMS.find(i=>i.jenis===jenis && i.tipe==='raw' && i.tier===tier && i.enc===e);
-      rows.push({ enc:e, rawItem, rawNeeded, prevItem, prevNeeded, actualOutput });
-    }
-
-    document.getElementById('wizResultText').innerHTML =
-      `Untuk membuat <b>${hasilItem.name}</b> sejumlah <b>${qty}</b>, dengan return <b>${retPct}%</b>, dibutuhkan salah satu dari opsi bahan mentah berikut:`;
-
-    document.getElementById('wizResultVisual').innerHTML = rows.map((r,idx) => {
-      let row = `<div class="bahan-row">`;
-      row += bahanSlotHTML(r.rawItem, r.rawNeeded, false);
-      if (r.prevItem) row += `<span class="bahan-arrow">+</span>` + bahanSlotHTML(r.prevItem, r.prevNeeded, false);
-      row += `<span class="bahan-arrow">→</span>` + bahanSlotHTML(hasilItem, r.actualOutput, true);
-      row += `</div>`;
-      if (idx < rows.length-1) {
-        row += `<div style="text-align:center;color:var(--dim);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;margin:8px 0;">— ATAU —</div>`;
-      }
-      return row;
-    }).join('');
-
-    document.getElementById('wizResult').style.display = '';
-    document.getElementById('wizResult').scrollIntoView({behavior:'smooth', block:'nearest'});
-    return;
-  }
-
-  // Jenis selain batu: 1 jalur lurus (enchant hasil = enchant bahan mentah)
-  const rawItem  = ITEMS.find(i=>i.jenis===jenis && i.tipe==='raw' && i.tier===tier && i.enc===enc);
-  const rawGross  = qty * f.raw;
-  const rawReturn = Math.round(rawGross * retPct/100);
-  const rawNeeded = rawGross - rawReturn;
-
-  let prevNeeded = 0, prevItem = null;
-  if (f.prev > 0 && prevTier) {
-    const prevEnc    = (tier==='T3'||tier==='T4') ? 0 : enc;
-    const prevGross  = qty * f.prev;
-    const prevReturn = Math.round(prevGross * retPct/100);
-    prevNeeded = prevGross - prevReturn;
-    prevItem   = ITEMS.find(i=>i.jenis===jenis && i.tipe==='hasil' && i.tier===prevTier && i.enc===prevEnc);
-  }
-
-  let kalimat = `Untuk membuat <b>${hasilItem.name}</b> sejumlah <b>${qty}</b>, dengan return <b>${retPct}%</b>, dibutuhkan <b>${rawItem.name}</b> sebanyak <b>${rawNeeded}</b>`;
-  if (prevItem) kalimat += ` dan <b>${prevItem.name}</b> sebanyak <b>${prevNeeded}</b>`;
-  kalimat += '.';
-
-  let visual = bahanSlotHTML(rawItem, rawNeeded, false);
-  if (prevItem) visual += `<span class="bahan-arrow">+</span>` + bahanSlotHTML(prevItem, prevNeeded, false);
-  visual += `<span class="bahan-arrow">→</span>` + bahanSlotHTML(hasilItem, qty, true);
-
-  document.getElementById('wizResultText').innerHTML   = kalimat;
-  document.getElementById('wizResultVisual').innerHTML = `<div class="bahan-row">${visual}</div>`;
-  document.getElementById('wizResult').style.display = '';
-  document.getElementById('wizResult').scrollIntoView({behavior:'smooth', block:'nearest'});
-}
-
-function wizReset() {
-  wiz.tier = null; wiz.enc = 0;
-  renderWizStep2();
-  document.getElementById('wizStep3').style.display = 'none';
-  document.getElementById('wizStep4').style.display = 'none';
-  document.getElementById('wizResult').style.display = 'none';
-}
 
 // ===================== ADVANCE: FILTER OTOMATIS DARI HOMEPAGE =====================
 function applyUrlJenisAdvance() {
@@ -586,11 +378,11 @@ function iconUrl(api) {
 // ===================== FILTER BAR (dropdown ala Market) =====================
 // Pohon material 2 level: Jenis -> Mentah/Hasil (subkategori)
 const MATERIAL_TREE = [
-  { id:'logam', name:'⚙️ Logam', children:[ {id:'raw', name:'Bijih Mentah'}, {id:'hasil', name:'Balok / Batang'} ] },
-  { id:'kayu',  name:'🪵 Kayu',  children:[ {id:'raw', name:'Kayu Mentah'},  {id:'hasil', name:'Papan Kayu'}    ] },
-  { id:'serat', name:'🧵 Serat', children:[ {id:'raw', name:'Serat Mentah'}, {id:'hasil', name:'Kain'}          ] },
-  { id:'kulit', name:'🐾 Kulit', children:[ {id:'raw', name:'Kulit Mentah'}, {id:'hasil', name:'Kulit Samak'}   ] },
-  { id:'batu',  name:'🪨 Batu',  children:[ {id:'raw', name:'Batu Mentah'},  {id:'hasil', name:'Batu Bata'}     ] },
+  { id:'logam', emoji:'⚙️', label:t('material_tree.logam.label'), children:[ {id:'raw', name:t('material_tree.logam.raw')}, {id:'hasil', name:t('material_tree.logam.hasil')} ] },
+  { id:'kayu',  emoji:'🪵', label:t('material_tree.kayu.label'),  children:[ {id:'raw', name:t('material_tree.kayu.raw')},  {id:'hasil', name:t('material_tree.kayu.hasil')}  ] },
+  { id:'serat', emoji:'🧵', label:t('material_tree.serat.label'), children:[ {id:'raw', name:t('material_tree.serat.raw')}, {id:'hasil', name:t('material_tree.serat.hasil')} ] },
+  { id:'kulit', emoji:'🐾', label:t('material_tree.kulit.label'), children:[ {id:'raw', name:t('material_tree.kulit.raw')}, {id:'hasil', name:t('material_tree.kulit.hasil')} ] },
+  { id:'batu',  emoji:'🪨', label:t('material_tree.batu.label'),  children:[ {id:'raw', name:t('material_tree.batu.raw')},  {id:'hasil', name:t('material_tree.batu.hasil')}  ] },
 ];
 const KOTA_LIST = ['Caerleon','Bridgewatch','Fort Sterling','Lymhurst','Martlock','Thetford','Brecilien'];
 
@@ -648,12 +440,12 @@ function makeItem(text, hasArrow, isActive, onClick) {
 function buildMatCol1() {
   const col = document.getElementById('colMat1');
   col.innerHTML = '';
-  col.appendChild(makeItem('Semua', false, !fJenis, () => {
+  col.appendChild(makeItem(t('filter.all'), false, !fJenis, () => {
     fJenis = null; fTipe = null;
     buildMatCol2(); updateMatLabel(); closeDrop(); filterItems();
   }));
   MATERIAL_TREE.forEach(j => {
-    col.appendChild(makeItem(j.name, true, fJenis === j.id, () => {
+    col.appendChild(makeItem(j.emoji + ' ' + j.label, true, fJenis === j.id, () => {
       fJenis = j.id; fTipe = null;
       buildMatCol2(); updateMatLabel(); filterItems();
     }));
@@ -665,7 +457,7 @@ function buildMatCol2() {
   if (!fJenis) { col2.style.display = 'none'; return; }
   const j = MATERIAL_TREE.find(x => x.id === fJenis);
   col2.style.display = ''; col2.innerHTML = '';
-  col2.appendChild(makeItem('Semua', false, !fTipe, () => {
+  col2.appendChild(makeItem(t('filter.all'), false, !fTipe, () => {
     fTipe = null; updateMatLabel(); closeDrop(); filterItems();
   }));
   j.children.forEach(c => {
@@ -679,7 +471,7 @@ function updateMatLabel() {
   let label = null;
   if (fJenis) {
     const j = MATERIAL_TREE.find(x => x.id === fJenis);
-    label = j.name.replace(/^\S+\s/, '') + (fTipe ? ' — ' + j.children.find(c => c.id === fTipe).name : '');
+    label = j.label + (fTipe ? ' — ' + j.children.find(c => c.id === fTipe).name : '');
   }
   setFilterVal('lblMat', 'valMat', label);
 }
@@ -688,7 +480,7 @@ function updateMatLabel() {
 function buildTierDropRefine() {
   const col = document.getElementById('colTier');
   col.innerHTML = '';
-  col.appendChild(makeItem('Semua', false, !fTier, () => {
+  col.appendChild(makeItem(t('filter.all'), false, !fTier, () => {
     fTier = null; setFilterVal('lblTier','valTier',null); closeDrop(); filterItems();
   }));
   SIMPLE_TIERS.forEach(t => col.appendChild(makeItem(t, false, fTier === t, () => {
@@ -701,10 +493,10 @@ const ENC_LIST_REFINE = [0,1,2,3,4];
 function buildEncDropRefine() {
   const col = document.getElementById('colEnc');
   col.innerHTML = '';
-  col.appendChild(makeItem('Semua', false, fEnc === null, () => {
+  col.appendChild(makeItem(t('filter.all'), false, fEnc === null, () => {
     fEnc = null; setFilterVal('lblEnc','valEnc',null); closeDrop(); filterItems();
   }));
-  ENC_LIST_REFINE.forEach(e => col.appendChild(makeItem('Enchant .' + e, false, fEnc === e, () => {
+  ENC_LIST_REFINE.forEach(e => col.appendChild(makeItem(t('filter.enchant_option', {n: e}), false, fEnc === e, () => {
     fEnc = e; setFilterVal('lblEnc','valEnc','.' + e); closeDrop(); filterItems();
   })));
 }
@@ -775,7 +567,7 @@ function filterItems() {
   }
   window._fl = filtered;
   const el = document.getElementById('itemList');
-  if (!filtered.length) { el.innerHTML='<div class="empty-inv">Tidak ada item yang cocok</div>'; return; }
+  if (!filtered.length) { el.innerHTML='<div class="empty-inv">' + t('no_items_found') + '</div>'; return; }
   el.innerHTML = filtered.map((it,i) => {
     const h = priceCache[it.api];
     return `<div class="item-row" onclick="openAdd(${i})">
@@ -803,7 +595,7 @@ async function onKotaChange() {
   const kota = fKota;
   if (!kota) return;
   const st = document.getElementById('apiStatus');
-  st.className='api-status loading'; st.textContent='⏳ Mengambil harga...';
+  st.className='api-status loading'; st.textContent='⏳ ' + t('fetching_prices');
 
   const allKeys = [...new Set(ITEMS.map(it=>it.api))];
   priceCache = {}; priceCityCache = {};
@@ -840,11 +632,11 @@ async function onKotaChange() {
     const fetched  = Object.keys(priceCache).length;
     const fallback = Object.values(priceCityCache).filter(v=>v.kota!==kota).length;
     st.className='api-status ok';
-    st.textContent=`✅ ${fetched} harga${fallback>0?` (${fallback} fallback)`:''}`;
+    st.textContent=`✅ ${t('prices_fetched',{count:fetched})}${fallback>0?` (${t('fallback_suffix',{count:fallback})})`:''}`;
 
     for (const inv of inventory) { const c=priceCache[inv.item.api]; if(c&&c>0) inv.harga=c; }
     filterItems(); renderInventory(); renderRefineResultPanel();
-  } catch(e) { st.className='api-status err'; st.textContent='⚠️ Gagal fetch'; }
+  } catch(e) { st.className='api-status err'; st.textContent='⚠️ ' + t('fetch_failed'); }
 }
 
 // ===================== POPUP TAMBAH / EDIT =====================
@@ -858,7 +650,7 @@ function openAdd(idx) {
   document.getElementById('popHarga').value = cached||'';
   document.getElementById('popSlider').value = 100;
   document.getElementById('popQty').value    = 100;
-  document.getElementById('popBtnRow').innerHTML = `<button class="btn-add" onclick="doAdd()">➕ Tambah ke Inventory</button>`;
+  document.getElementById('popBtnRow').innerHTML = `<button class="btn-add" onclick="doAdd()">➕ ${t('add_to_inventory')}</button>`;
   openOverlay('overlayItem');
 }
 
@@ -872,21 +664,12 @@ function openEdit(i) {
   document.getElementById('popHarga').value = inv.harga||'';
   document.getElementById('popSlider').value = inv.qty;
   document.getElementById('popQty').value    = inv.qty;
-  // Kalau sudah refine pertama & item ini hasil refine -> hanya edit harga
-  const isHasil = inv.item.tipe==='hasil';
-  const locked  = modalLock !== null;
-  if (locked && isHasil) {
-    document.getElementById('popBtnRow').innerHTML = `
-      <button class="btn-add" onclick="doEditHarga()">💾 Simpan Harga</button>
-      <button class="btn-del" onclick="doHapus()">🗑</button>`;
-    // Sembunyikan qty field - harga saja
-    document.getElementById('popSlider').closest('.pop-field').style.display='none';
-  } else {
-    document.getElementById('popSlider').closest('.pop-field').style.display='';
-    document.getElementById('popBtnRow').innerHTML = `
-      <button class="btn-add" onclick="doEdit()">💾 Simpan</button>
-      <button class="btn-del" onclick="doHapus()">🗑</button>`;
-  }
+  // Edit dari inventory cuma boleh ubah harga — jumlah cuma bisa nambah lewat tabel item,
+  // biar modal gampang dilacak.
+  document.getElementById('popSlider').closest('.pop-field').style.display='none';
+  document.getElementById('popBtnRow').innerHTML = `
+    <button class="btn-add" onclick="doEditHarga()">💾 ${t('save_price')}</button>
+    <button class="btn-del" onclick="doHapus()">🗑</button>`;
   openOverlay('overlayItem');
 }
 
@@ -915,23 +698,13 @@ function doAdd() {
   saveRefineInventory();
 }
 
-function doEdit() {
-  if (popupInvIdx===null) return;
-  inventory[popupInvIdx].qty   = Math.min(parseInt(document.getElementById('popQty').value)||1, 999999);
-  inventory[popupInvIdx].harga = parseFloat(document.getElementById('popHarga').value)||0;
-  closeOverlay('overlayItem');
-  renderInventory(); renderRefineBtns(); renderRefineResultPanel();
-  saveRefineInventory();
-  showToast('✏️ Diperbarui');
-}
-
 function doEditHarga() {
   if (popupInvIdx===null) return;
   inventory[popupInvIdx].harga = parseFloat(document.getElementById('popHarga').value)||0;
   closeOverlay('overlayItem');
   renderRefineResultPanel();
   saveRefineInventory();
-  showToast('💰 Harga diperbarui');
+  showToast('💰 ' + t('price_updated'));
 }
 
 function doHapus() {
@@ -941,7 +714,7 @@ function doHapus() {
   closeOverlay('overlayItem');
   renderInventory(); renderRefineBtns(); renderRefineResultPanel();
   saveRefineInventory();
-  showToast(`🗑 ${nama} dihapus`);
+  showToast('🗑 ' + t('item_deleted', {name: nama}));
 }
 
 // ===================== INVENTORY =====================
@@ -995,7 +768,7 @@ function renderRefineBtns() {
     <div class="rbtn" onclick="openRefinePopup(${i})">
       <img src="${iconUrl(b.hasilItem.api)}" alt="">
       <div class="rb-name">${b.hasilItem.name}</div>
-      <div class="rb-qty">max ${b.maxOutput}</div>
+      <div class="rb-qty">${t('max_label')} ${b.maxOutput}</div>
     </div>`).join('');
   window._refineBtns = btns;
 }
@@ -1090,7 +863,7 @@ function openRefinePopup(i) {
     <span class="bahan-arrow">→</span>
     <div class="bahan-slot">
       <img src="${iconUrl(b.hasilItem.api)}" alt="">
-      <div class="bahan-qty"><span class="punya">max ${b.maxOutput}</span></div>
+      <div class="bahan-qty"><span class="punya">${t('max_label')} ${b.maxOutput}</span></div>
       <div class="bahan-name">${b.hasilItem.name}</div>
     </div>`;
 
@@ -1268,7 +1041,7 @@ function renderRefineResultPanel() {
   const hasilGross = calcNilaiInventory('hasil');
   const hasilNet    = hasilGross * feeMul;
   document.getElementById('coinHasil').textContent = fmt(hasilNet);
-  document.getElementById('taxLbl').textContent = `Pajak ${taxPct}% (hasil)`;
+  document.getElementById('taxLbl').textContent = t('tax_label_result', {pct: taxPct});
   document.getElementById('taxVal').textContent = fmt(hasilGross - hasilNet);
 
   // Sisa Bahan Mentah = nilai bahan 'raw' yang masih tersisa di inventory
@@ -1289,13 +1062,13 @@ function renderRefineResultPanel() {
 // ===================== RESET =====================
 function doReset() {
   if (inventory.length===0 && modalLock===null) return;
-  if (!confirm('Reset semua? Inventory dan data refine akan dihapus.')) return;
+  if (!confirm(t('reset_confirm'))) return;
   inventory=[]; modalLock=null; sudahCatat=false;
   renderInventory(); renderRefineBtns();
   renderRefineResultPanel();
   document.getElementById('refineBtns').classList.remove('show');
   saveRefineInventory(); // FIX: simpan state kosong, biar gak balik lagi pas refresh
-  showToast('🗑 Reset selesai');
+  showToast('🗑 ' + t('reset_done'));
 }
 
 // ===================== UTILS =====================
@@ -1338,7 +1111,7 @@ buildEncDropRefine();
 buildKotaDropRefine();
 updateMatLabel();
 if (fTier)          setFilterVal('lblTier', 'valTier', fTier);
-if (fEnc !== null)  setFilterVal('lblEnc', 'valEnc', 'Enchant .' + fEnc);
+  if (fEnc !== null)  setFilterVal('lblEnc', 'valEnc', t('filter.enchant_option', {n: fEnc}));
 setFilterVal('lblKota', 'valKota', fKota);
 if (fSearch)        document.getElementById('searchInputRefine').value = fSearch;
 filterItems();
@@ -1347,9 +1120,7 @@ renderInventory();
 renderRefineBtns();
 renderRefineResultPanel(); // tampilkan Modal preview langsung, gak nunggu fetch harga kelar
 onKotaChange();
-initWizard();
 applyUrlJenisAdvance();
-setMode(localStorage.getItem('rw_mode') || 'simple');
 
 </script>
 

@@ -1,0 +1,77 @@
+<?php
+
+return [
+    'mode_simple' => 'Простой режим',
+    'mode_advance' => 'Расширенный режим',
+    'search_placeholder' => 'Поиск по названию предмета...',
+
+    'filter' => [
+        'category' => 'Категория',
+        'tier' => 'Уровень',
+        'enchant' => 'Зачарование',
+        'all' => 'Все',
+        'enchant_option' => 'Зачарование :n',
+        'enchant_short' => 'Зач :n',
+        'tier_label' => 'Уровень :n',
+    ],
+
+    'empty_select_category' => 'Выберите категорию, чтобы увидеть оружие и броню 🪄',
+    'select_item_to_start' => 'Выберите предмет из списка выше, чтобы начать крафт 🪄',
+    'change_item' => 'Сменить предмет',
+    'use_journal' => 'Использовать журнал',
+    'journal_type' => 'Тип журнала',
+
+    'inventory' => 'Инвентарь',
+    'return_label' => 'Возврат',
+    'quantity_label' => 'Количество',
+    'craft_all_checkbox' => 'Крафтить всё',
+    'sell_price_label' => 'Цена продажи',
+    'premium' => 'Премиум',
+    'sell_order_label' => 'Ордер на продажу',
+    'craft_btn' => 'Крафт',
+
+    'modal_group' => 'Затраты',
+    'crafting_materials' => 'Материалы для крафта',
+    'journal_needed' => 'Нужные журналы',
+    'total_modal' => 'Итоговые затраты',
+    'profit_group' => 'Прибыль',
+    'result_item' => 'Скрачченный предмет',
+    'tax_and_order_fee' => 'Налог и комиссия ордера',
+    'remaining_materials' => 'Оставшиеся материалы',
+    'journal_full' => 'Полный журнал',
+    'journal_partial' => 'Частично заполненный журнал',
+    'final_result' => 'Итоговый результат',
+    'total_profit' => 'Итоговая прибыль',
+
+    'advance_placeholder' => 'Расширенный режим перестраивается. Скоро!',
+
+    'price_per_unit_optional' => 'Цена за единицу (необязательно)',
+    'add_to_inventory' => 'Добавить в инвентарь',
+    'price_per_full_journal' => 'Цена за полный журнал',
+    'progress_label' => 'Прогресс:',
+    'fame_unit' => 'славы',
+    'progress_next_journal' => 'Прогресс до следующего журнала',
+
+    'loading' => 'Загрузка...',
+    'loading_items' => 'Загрузка предметов...',
+    'no_items_found' => 'Предметы не найдены 😔',
+    'failed_load_items' => 'Не удалось загрузить предметы. Попробуйте снова.',
+    'failed_load_data' => 'Не удалось загрузить данные.',
+    'failed_load_recipe_toast' => 'Не удалось загрузить рецепт.',
+    'failed_load_categories' => 'Не удалось загрузить категории. Обновите страницу.',
+    'failed_load_categories_toast' => 'Не удалось загрузить категории, попробуйте обновить.',
+
+    'price_per_city' => 'Цены по городам',
+    'no_recipe' => 'Рецепт недоступен',
+    'resource_needed' => 'Нужно :count / крафт',
+    'edit_price_or_delete' => 'Изменить цену или удалить',
+    'save_price' => 'Сохранить цену',
+    'price_updated' => 'Цена обновлена',
+    'deleted_toast' => 'Удалено',
+
+    'journal_full_tooltip' => 'Полный журнал × :count — нажмите, чтобы задать цену',
+    'journal_partial_tooltip' => 'Прогресс :fame/:req славы',
+    'switch_recipe_toast' => 'Переключено на рецепт :n',
+    'recipe_tab' => 'Рецепт :n',
+    'craft_success_toast' => 'Успешно создано :qty× :name!',
+];

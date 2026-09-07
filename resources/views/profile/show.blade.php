@@ -32,7 +32,7 @@
                 <div style="color:var(--gold);font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                     {{ $user->display_name }}
                 </div>
-                @if($user->custom_name)
+                @if($user->username)
                     <div style="color:var(--text-muted);font-size:.78rem;">{{ $user->name }}</div>
                 @endif
                 <div style="color:var(--text-muted);font-size:.82rem;margin-top:2px;">
