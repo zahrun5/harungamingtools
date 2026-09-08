@@ -87,7 +87,11 @@ class AlbionParseRecipes extends Command
                 $itemApiId = (string) $item['uniquename'];
                 if (!$itemApiId) continue;
 
-                // ── RECIPE NORMAL (enchantment 0) ──────────────────────────
+                // ── RECIPE NORMAL atau REFINED RESOURCE DENGAN ENCHANTMENT ──────────────────────────
+                // Untuk refined resource dengan enchantment (T4_PLANKS_LEVEL1, T5_METALBAR_LEVEL1),
+                // enchantmentlevel ada di atribut item, bukan di tag <enchantments>
+                $itemEnchantLevel = (int) ($item['enchantmentlevel'] ?? 0);
+                
                 // <craftingrequirements> langsung di dalam elemen item
                 foreach ($item->craftingrequirements as $req) {
                     $silverCost    = (int) ($req['silver'] ?? 0);
@@ -100,7 +104,7 @@ class AlbionParseRecipes extends Command
 
                         $batch[] = [
                             'item_api_id'               => $itemApiId,
-                            'enchantment_level'         => 0,
+                            'enchantment_level'         => $itemEnchantLevel, // gunakan enchant level dari item
                             'resource_api_id'           => $resourceId,
                             'resource_enchantment_level'=> (int) ($resource['enchantmentlevel'] ?? 0),
                             'count'                     => $count,
