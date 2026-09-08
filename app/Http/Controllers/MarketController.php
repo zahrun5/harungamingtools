@@ -432,17 +432,38 @@ public function itemDetail($id)
             ->where('enchantment_level', $encLevel)
             ->get();
 
-        $resourceApiIds = $recipes->pluck('resource_api_id')->unique()->values();
-        $resourceItems  = Item::whereIn('api_id', $resourceApiIds)->get()->keyBy('api_id');
+        // Kumpulkan semua kombinasi resource_api_id + resource_enchantment_level yang dibutuhkan
+        $resourcePairs = $recipes->map(fn($r) => [
+            'api_id' => $r->resource_api_id,
+            'enc'    => (int)($r->resource_enchantment_level ?? 0),
+        ])->unique(fn($pair) => $pair['api_id'] . '|' . $pair['enc']);
+
+        // Query items dengan kombinasi api_id + enc yang sesuai
+        $resourceItems = Item::where(function($query) use ($resourcePairs) {
+            foreach ($resourcePairs as $pair) {
+                $query->orWhere(function($q) use ($pair) {
+                    $q->where('api_id', $pair['api_id'])
+                      ->where('enc', $pair['enc']);
+                });
+            }
+        })->get()->keyBy(fn($item) => $item->api_id . '|' . ($item->enc ?? 0));
 
         $mainRecipe = $recipes->groupBy('silver_cost')->first() ?? collect();
 
         $resources = $mainRecipe->map(function ($r) use ($resourceItems) {
-            $resItem   = $resourceItems->get($r->resource_api_id);
-            $encSuffix = $r->resource_enchantment_level > 0 ? "@{$r->resource_enchantment_level}" : '';
+            $resEnc = (int)($r->resource_enchantment_level ?? 0);
+            $resKey = $r->resource_api_id . '|' . $resEnc;
+            $resItem = $resourceItems->get($resKey);
+            
+            // Untuk AODP image URL:
+            // - Resources (PLANKS, METALBAR, etc) yang punya enchantment sudah include "_LEVELx" di api_id-nya
+            // - Equipment pakai suffix "@enc"
+            $isResource = preg_match('/_LEVEL\d$/', $r->resource_api_id);
+            $encSuffix = (!$isResource && $resEnc > 0) ? "@{$resEnc}" : '';
+            
             return [
                 'resource_api_id'            => $r->resource_api_id,
-                'resource_enchantment_level' => $r->resource_enchantment_level,
+                'resource_enchantment_level' => $resEnc,
                 'count'   => $r->count,
                 'name'    => $resItem?->localized_name ?? $this->prettifyApiId($r->resource_api_id),
                 'item_id' => $resItem?->id,

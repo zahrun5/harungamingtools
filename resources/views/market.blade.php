@@ -916,11 +916,14 @@ function openPopup(itemId) {
   fetch('/api/market/item/' + itemId)
     .then(r => r.json())
     .then(item => {
+      console.log('Item data received:', item);
+      console.log('Resources:', item.resources);
       renderPopup(item);                       // instan, pakai harga cache DB yang sudah ada (kalau ada)
       fetchPopupPricesFromAodp(item); // lalu ambil harga REAL dari browser -> AODP (quality dari dropdown, via getAodpQualitiesParam()), timpa box
       silentlyRefreshBackendCache(itemId);  // diam-diam suruh backend refresh tabel item_prices, TIDAK dipakai buat UI
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error('Failed to fetch item:', err);
       document.getElementById('popupContent').innerHTML = '<div class="popup-loading">' + TRANS.popup.failedLoad + '</div>';
     });
 }
@@ -1024,14 +1027,20 @@ function renderPopup(item) {
 
   // Buat list resource — minimal design: cuma gambar + jumlah aja
   // Kalau ada 2 recipe berbeda bahan, dipisahin dengan jarak/line
+  console.log('Building resourcesHtml, item.resources:', item.resources);
   const resourcesHtml = item.resources && item.resources.length
-    ? item.resources.map((r, idx) => `
+    ? item.resources.map((r, idx) => {
+        console.log('Resource:', r);
+        return `
       <div class="resource-item" onclick="openPopup(${r.item_id ?? 'null'})" ${!r.item_id ? 'style="cursor:default;opacity:0.7"' : ''} title="${r.name}">
         <img src="${r.img_url}" alt="${r.name}" onerror="this.style.opacity=0.3">
         <div class="resource-count">×${r.count}</div>
       </div>
-    `).join('')
+    `;
+      }).join('')
     : '<div style="color:var(--text-dim);font-style:italic;font-size:13px">' + TRANS.popup.noRecipe + '</div>';
+  
+  console.log('resourcesHtml:', resourcesHtml);
 
   document.getElementById('popupContent').innerHTML = `
     <div class="popup-head">
