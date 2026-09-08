@@ -1,0 +1,77 @@
+<?php
+
+return [
+    'mode_simple' => '简单模式',
+    'mode_advance' => '高级模式',
+    'search_placeholder' => '搜索物品名称...',
+
+    'filter' => [
+        'category' => '类别',
+        'tier' => '等级',
+        'enchant' => '附魔',
+        'all' => '全部',
+        'enchant_option' => '附魔 :n',
+        'enchant_short' => '附魔 :n',
+        'tier_label' => '等级 :n',
+    ],
+
+    'empty_select_category' => '选择一个类别以查看武器和护甲 🪄',
+    'select_item_to_start' => '从上面的列表中选择一个物品开始制造 🪄',
+    'change_item' => '更换物品',
+    'use_journal' => '使用日志',
+    'journal_type' => '日志类型',
+
+    'inventory' => '库存',
+    'return_label' => '返还',
+    'quantity_label' => '数量',
+    'craft_all_checkbox' => '全部制造',
+    'sell_price_label' => '出售价格',
+    'premium' => '高级',
+    'sell_order_label' => '销售订单',
+    'craft_btn' => '制造',
+
+    'modal_group' => '成本',
+    'crafting_materials' => '制造材料',
+    'journal_needed' => '所需日志',
+    'total_modal' => '总成本',
+    'profit_group' => '利润',
+    'result_item' => '制造物品',
+    'tax_and_order_fee' => '税费和订单费',
+    'remaining_materials' => '剩余材料',
+    'journal_full' => '满日志',
+    'journal_partial' => '部分填充的日志',
+    'final_result' => '最终结果',
+    'total_profit' => '总利润',
+
+    'advance_placeholder' => '高级模式正在重建中，敬请期待！',
+
+    'price_per_unit_optional' => '单价 (可选)',
+    'add_to_inventory' => '添加到库存',
+    'price_per_full_journal' => '满日志单价',
+    'progress_label' => '进度:',
+    'fame_unit' => '声望',
+    'progress_next_journal' => '下一本日志的进度',
+
+    'loading' => '加载中...',
+    'loading_items' => '加载物品中...',
+    'no_items_found' => '未找到物品 😔',
+    'failed_load_items' => '加载物品失败，请重试。',
+    'failed_load_data' => '加载数据失败。',
+    'failed_load_recipe_toast' => '加载配方失败。',
+    'failed_load_categories' => '加载类别失败，请刷新页面。',
+    'failed_load_categories_toast' => '加载类别失败，请刷新。',
+
+    'price_per_city' => '各城市价格',
+    'no_recipe' => '无可用配方',
+    'resource_needed' => '需要 :count / 制造',
+    'edit_price_or_delete' => '编辑价格或删除',
+    'save_price' => '保存价格',
+    'price_updated' => '价格已更新',
+    'deleted_toast' => '已删除',
+
+    'journal_full_tooltip' => '满日志 × :count — 点击设置价格',
+    'journal_partial_tooltip' => '进度 :fame/:req 声望',
+    'switch_recipe_toast' => '已切换到配方 :n',
+    'recipe_tab' => '配方 :n',
+    'craft_success_toast' => '成功制造 :qty× :name！',
+];

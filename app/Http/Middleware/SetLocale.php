@@ -13,7 +13,7 @@ class SetLocale
      */
     protected string $default = 'id';
 
-    protected array $available = ['id', 'en', 'pt_BR', 'ru', 'de', 'pl'];
+    protected array $available = ['id', 'en', 'pt_BR', 'ru', 'de', 'pl', 'zh'];
 
     public function handle(Request $request, Closure $next)
     {

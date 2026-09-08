@@ -42,56 +42,140 @@ class FlipController extends Controller
     }
 
     /**
-     * Trigger scan profit untuk 1 kombinasi filter.
-     * sub_category_id WAJIB. tier & enchant opsional (null = "All").
+     * Get top opportunities (all categories, sorted by profit).
+     * Dipakai saat user gak pilih kategori spesifik.
+     */
+    public function topOpportunities(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'server' => ['nullable', 'string', 'in:americas,europe,asia'],
+            'cities' => ['nullable', 'string'], // Comma-separated city names
+            'limit'  => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $server = $validated['server'] ?? session('server', 'americas');
+        $limit  = $validated['limit'] ?? 10;
+        $allowedCities = isset($validated['cities']) 
+            ? explode(',', $validated['cities']) 
+            : self::CITIES;
+
+        // Ambil semua scan results dari server ini
+        $scans = FlipScan::where('server', $server)
+            ->whereNotNull('scanned_at')
+            ->get();
+
+        if ($scans->isEmpty()) {
+            return response()->json([
+                'message' => 'Belum ada data scan.',
+                'results' => [],
+                'last_update' => null,
+            ]);
+        }
+
+        // Aggregate semua results
+        $allResults = [];
+        $latestScan = null;
+
+        foreach ($scans as $scan) {
+            foreach ($scan->results as $result) {
+                // Filter by allowed cities
+                if (!in_array($result['city_from'], $allowedCities) || !in_array($result['city_to'], $allowedCities)) {
+                    continue;
+                }
+                
+                $allResults[] = $result;
+            }
+
+            if (!$latestScan || $scan->scanned_at->gt($latestScan)) {
+                $latestScan = $scan->scanned_at;
+            }
+        }
+
+        // Sort by profit dan ambil top N
+        usort($allResults, fn ($a, $b) => $b['profit'] <=> $a['profit']);
+        $topResults = array_slice($allResults, 0, $limit);
+
+        return response()->json([
+            'results' => $topResults,
+            'last_update' => $latestScan?->toIso8601String(),
+            'total_scanned' => $scans->count(),
+        ]);
+    }
+
+    /**
+     * Fetch hasil scan dari database untuk kategori level 1.
+     * Aggregate semua leaf categories di bawahnya.
      */
     public function scan(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'sub_category_id' => ['required', 'integer', 'exists:categories,id'],
-            'tier'            => ['nullable', 'integer', 'min:1', 'max:8'],
-            'enchant'         => ['nullable', 'integer', 'min:0', 'max:4'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'tier'        => ['nullable', 'integer', 'min:1', 'max:8'],
+            'enchant'     => ['nullable', 'integer', 'min:0', 'max:4'],
         ]);
 
-        $subCategoryId = $validated['sub_category_id'];
-        $tier          = $validated['tier'] ?? null;
-        $enchant       = $validated['enchant'] ?? null;
+        $categoryId = $validated['category_id'];
+        $tier       = $validated['tier'] ?? null;
+        $enchant    = $validated['enchant'] ?? null;
+        $server     = session('server', 'americas');
 
-        $filterHash = $this->buildFilterHash($subCategoryId, $tier, $enchant);
-
-        // Cek cache/cooldown dulu — kalau masih fresh, langsung balikin tanpa hitung ulang
-        $existing = FlipScan::where('filter_hash', $filterHash)->first();
-
-        if ($existing && $existing->scanned_at->gt(now()->subMinutes(self::COOLDOWN_MINUTES))) {
+        // Dapatkan semua leaf category IDs dari kategori yang dipilih
+        $category = Category::with('children.children')->find($categoryId);
+        
+        if (!$category) {
             return response()->json([
-                'from_cache'   => true,
-                'scanned_at'   => $existing->scanned_at,
-                'next_scan_at' => $existing->scanned_at->addMinutes(self::COOLDOWN_MINUTES),
-                'result_count' => $existing->result_count,
-                'results'      => $existing->results,
+                'message' => 'Category not found',
+                'results' => [],
+            ], 404);
+        }
+
+        $leafIds = $this->getLeafCategoryIds($category);
+
+        // Fetch hasil scan dari semua leaf categories
+        $scans = FlipScan::whereIn('sub_category_id', $leafIds)
+            ->where('server', $server)
+            ->whereNotNull('scanned_at')
+            ->get();
+
+        if ($scans->isEmpty()) {
+            return response()->json([
+                'message' => 'Belum ada data scan. Background job sedang berjalan, coba lagi nanti.',
+                'results' => [],
+                'scanned_at' => null,
             ]);
         }
 
-        $results = $this->computeProfitOpportunities($subCategoryId, $tier, $enchant);
+        // Aggregate semua results dari leaf categories
+        $allResults = [];
+        $oldestScan = null;
 
-        $scan = FlipScan::updateOrCreate(
-            ['filter_hash' => $filterHash],
-            [
-                'sub_category_id' => $subCategoryId,
-                'tier'            => $tier,
-                'enchant'         => $enchant,
-                'results'         => $results,
-                'result_count'    => count($results),
-                'scanned_at'      => now(),
-            ]
-        );
+        foreach ($scans as $scan) {
+            foreach ($scan->results as $result) {
+                // Filter by tier & enchant jika dipilih
+                if ($tier !== null && $result['tier'] != $tier) {
+                    continue;
+                }
+                if ($enchant !== null && $result['enc'] != $enchant) {
+                    continue;
+                }
+                
+                $allResults[] = $result;
+            }
+
+            if (!$oldestScan || $scan->scanned_at->lt($oldestScan)) {
+                $oldestScan = $scan->scanned_at;
+            }
+        }
+
+        // Sort by profit tertinggi
+        usort($allResults, fn ($a, $b) => $b['profit'] <=> $a['profit']);
 
         return response()->json([
-            'from_cache'   => false,
-            'scanned_at'   => $scan->scanned_at,
-            'next_scan_at' => $scan->scanned_at->addMinutes(self::COOLDOWN_MINUTES),
-            'result_count' => $scan->result_count,
-            'results'      => $scan->results,
+            'from_cache'   => true,
+            'scanned_at'   => $oldestScan,
+            'next_scan_at' => now()->addHours(6), // Next scheduled scan
+            'result_count' => count($allResults),
+            'results'      => $allResults,
         ]);
     }
 
@@ -102,15 +186,15 @@ class FlipController extends Controller
     public function results(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'sub_category_id' => ['required', 'integer', 'exists:categories,id'],
-            'tier'            => ['nullable', 'integer', 'min:1', 'max:8'],
-            'enchant'         => ['nullable', 'integer', 'min:0', 'max:4'],
-            'page'            => ['nullable', 'integer', 'min:1'],
-            'per_page'        => ['nullable', 'integer', 'min:1', 'max:15'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'tier'        => ['nullable', 'integer', 'min:1', 'max:8'],
+            'enchant'     => ['nullable', 'integer', 'min:0', 'max:4'],
+            'page'        => ['nullable', 'integer', 'min:1'],
+            'per_page'    => ['nullable', 'integer', 'min:1', 'max:15'],
         ]);
 
         $filterHash = $this->buildFilterHash(
-            $validated['sub_category_id'],
+            $validated['category_id'],
             $validated['tier'] ?? null,
             $validated['enchant'] ?? null
         );
@@ -140,22 +224,52 @@ class FlipController extends Controller
         ]);
     }
 
-    private function buildFilterHash(int $subCategoryId, ?int $tier, ?int $enchant): string
+    private function buildFilterHash(int $categoryId, ?int $tier, ?int $enchant): string
     {
         return hash('sha256', implode('|', [
-            $subCategoryId,
+            $categoryId,
             $tier ?? 'all',
             $enchant ?? 'all',
         ]));
     }
 
     /**
+     * Dapatkan semua leaf category IDs dari kategori (rekursif).
+     * Leaf = kategori yang tidak punya children.
+     */
+    private function getLeafCategoryIds(Category $category): array
+    {
+        $leafIds = [];
+
+        // Kalau kategori ini tidak punya children, dia adalah leaf
+        if ($category->children->isEmpty()) {
+            return [$category->id];
+        }
+
+        // Kalau punya children, rekursif cari leaf-nya
+        foreach ($category->children as $child) {
+            $leafIds = array_merge($leafIds, $this->getLeafCategoryIds($child));
+        }
+
+        return $leafIds;
+    }
+
+    /**
      * Ambil item dalam scope, fetch harga live ke AODP (batch), hitung selisih
      * harga termurah->termahal antar kota, filter profit>0, sort desc.
      */
-    private function computeProfitOpportunities(int $subCategoryId, ?int $tier, ?int $enchant): array
+    private function computeProfitOpportunities(int $categoryId, ?int $tier, ?int $enchant): array
     {
-        $query = Item::where('category_id', $subCategoryId);
+        // Dapatkan semua descendant IDs dari kategori yang dipilih
+        $category = Category::with('children.children')->find($categoryId);
+        
+        if (!$category) {
+            return [];
+        }
+        
+        $categoryIds = $category->getAllDescendantIds();
+        
+        $query = Item::whereIn('category_id', $categoryIds);
 
         if ($tier !== null) {
             $query->where('tier', $tier);

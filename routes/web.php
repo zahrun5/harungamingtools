@@ -15,6 +15,7 @@ use App\Http\Controllers\ReelDeveloperController;
 use App\Http\Controllers\ReelController;
 use App\Http\Controllers\BuildController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\FlipController;
 
 // ─── Server & Locale ────────────────────────────────────────────────────
 Route::get('/server/{server}', function (string $server) {
@@ -57,6 +58,7 @@ Route::get('/kalkulator/refine',  fn() => view('kalkulator.refine'));
 Route::get('/flip/advance', [FlipController::class, 'advance'])->name('flip.advance');
 Route::post('/flip/scan', [FlipController::class, 'scan'])->name('flip.scan');
 Route::get('/flip/scan/results', [FlipController::class, 'results'])->name('flip.scan.results');
+Route::get('/flip/top-opportunities', [FlipController::class, 'topOpportunities'])->name('flip.top');
 // ─── Crafting ────────────────────────────────────────────────────────────
 Route::get('/crafting/{station}', [CraftingController::class, 'index'])->name('crafting.show');
 Route::get('/mages-tower', [CraftingController::class, 'index'])->name('mages-tower');

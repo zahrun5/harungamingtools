@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Cek Harga Item — HGT')
+@section('title', __('market.title'))
 @section('content')
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -296,15 +296,15 @@
   <div class="panel">
     <div class="panel-header">
       <span>💰</span>
-      <span class="panel-title">Cek Harga Item</span>
-      <input type="text" class="header-search" id="searchInput" placeholder="Cari nama item..." oninput="onSearch()">
+      <span class="panel-title">{{ __('market.panel_title') }}</span>
+      <input type="text" class="header-search" id="searchInput" placeholder="{{ __('market.search_placeholder') }}" oninput="onSearch()">
     </div>
 
     <div class="filter-bar" id="filterBar">
       <!-- CATEGORY -->
       <div class="flt-wrap">
         <div class="flt-btn" id="btnCategory" onclick="toggleDrop('category')">
-          <span class="flt-label" id="lblCategory">Category</span>
+          <span class="flt-label" id="lblCategory">{{ __('market.filter.category') }}</span>
           <span class="flt-val"   id="valCategory" style="display:none"></span>
           <span class="flt-arrow">▼</span>
         </div>
@@ -317,7 +317,7 @@
       <!-- TIER -->
       <div class="flt-wrap">
         <div class="flt-btn" id="btnTier" onclick="toggleDrop('tier')">
-          <span class="flt-label" id="lblTier">Tier</span>
+          <span class="flt-label" id="lblTier">{{ __('market.filter.tier') }}</span>
           <span class="flt-val"   id="valTier" style="display:none"></span>
           <span class="flt-arrow">▼</span>
         </div>
@@ -328,7 +328,7 @@
       <!-- ENCHANTMENT -->
       <div class="flt-wrap">
         <div class="flt-btn" id="btnEnc" onclick="toggleDrop('enc')">
-          <span class="flt-label" id="lblEnc">Enchantment</span>
+          <span class="flt-label" id="lblEnc">{{ __('market.filter.enchantment') }}</span>
           <span class="flt-val"   id="valEnc" style="display:none"></span>
           <span class="flt-arrow">▼</span>
         </div>
@@ -339,7 +339,7 @@
       <!-- QUALITY -->
       <div class="flt-wrap">
         <div class="flt-btn" id="btnQuality" onclick="toggleDrop('quality')">
-          <span class="flt-label" id="lblQuality">Quality</span>
+          <span class="flt-label" id="lblQuality">{{ __('market.filter.quality') }}</span>
           <span class="flt-val"   id="valQuality" style="display:none"></span>
           <span class="flt-arrow">▼</span>
         </div>
@@ -352,7 +352,7 @@
 
     <!-- Item List -->
     <div class="item-list" id="itemList">
-      <div class="item-list-empty" id="emptyMsg">Pilih kategori untuk melihat item 🗡️</div>
+      <div class="item-list-empty" id="emptyMsg">{{ __('market.empty_select_category') }}</div>
       <div class="item-table-wrap" id="itemTableWrap" style="display:none">
         <div id="itemGrid"></div>
       </div>
@@ -365,13 +365,46 @@
   <div class="popup-box" id="popupBox">
     <button class="popup-close" onclick="closePopup()">✕</button>
     <div id="popupContent">
-      <div class="popup-loading">Memuat...</div>
+      <div class="popup-loading">{{ __('market.popup.loading') }}</div>
     </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 <script>
+// ============================================================
+// TRANSLATIONS
+// ============================================================
+const TRANS = {
+  filter: {
+    category: @json(__('market.filter.category')),
+    tier: @json(__('market.filter.tier')),
+    enchantment: @json(__('market.filter.enchantment')),
+    quality: @json(__('market.filter.quality')),
+    all: @json(__('market.filter.all')),
+  },
+  tierLabel: @json(__('market.tier_label')),
+  qualityLabel: @json(__('market.quality_label')),
+  enchantmentLabel: @json(__('market.enchantment_label')),
+  enchantmentShort: @json(__('market.enchantment_short')),
+  emptySelectCategory: @json(__('market.empty_select_category')),
+  loadingItems: @json(__('market.loading_items')),
+  noItemsFound: @json(__('market.no_items_found')),
+  failedLoadItems: @json(__('market.failed_load_items')),
+  popup: {
+    loading: @json(__('market.popup.loading')),
+    failedLoad: @json(__('market.popup.failed_load')),
+    pricePerCity: @json(__('market.popup.price_per_city')),
+    priceTrend30d: @json(__('market.popup.price_trend_30d')),
+    selectCityForTrend: @json(__('market.popup.select_city_for_trend')),
+    loadingTrend: @json(__('market.popup.loading_trend')),
+    notEnoughData: @json(__('market.popup.not_enough_data')),
+    failedLoadHistory: @json(__('market.popup.failed_load_history')),
+    craftingMaterials: @json(__('market.popup.crafting_materials')),
+    noRecipe: @json(__('market.popup.no_recipe')),
+  }
+};
+
 // ============================================================
 // KOTA & WARNA
 // ============================================================
@@ -428,7 +461,7 @@ function loadPriceHistory(city) {
   if (!currentPopupItem?.api_id) return;
 
   const wrap = document.getElementById('historyCanvasWrap');
-  wrap.innerHTML = '<div class="popup-history-loading">Memuat tren harga...</div>';
+  wrap.innerHTML = '<div class="popup-history-loading">' + TRANS.popup.loadingTrend + '</div>';
   destroyHistoryChart();
 
   const params = new URLSearchParams({
@@ -447,7 +480,7 @@ function loadPriceHistory(city) {
 
       const data = res.data ?? [];
       if (!data.length) {
-        wrap.innerHTML = '<div class="popup-history-empty">Data historis tidak cukup buat kota ini</div>';
+        wrap.innerHTML = '<div class="popup-history-empty">' + TRANS.popup.notEnoughData + '</div>';
         return;
       }
 
@@ -480,7 +513,7 @@ function loadPriceHistory(city) {
     })
     .catch(() => {
       if (currentHistoryCity !== city) return;
-      wrap.innerHTML = '<div class="popup-history-empty">Gagal memuat data histori</div>';
+      wrap.innerHTML = '<div class="popup-history-empty">' + TRANS.popup.failedLoadHistory + '</div>';
     });
 }
 
@@ -492,13 +525,13 @@ let priceCache = {}; // item.id -> harga terendah antar kota (client-side fetch 
 // PENTING: value-nya angka (1-8) biar nyambung sama kolom 'tier' di DB yang isinya
 // angka juga, bukan string "T1".."T8". TIER_LABEL cuma buat tampilan aja.
 const TIERS      = [1,2,3,4,5,6,7,8];
-const TIER_LABEL = {1:'Tier 1',2:'Tier 2',3:'Tier 3',4:'Tier 4',5:'Tier 5',6:'Tier 6',7:'Tier 7',8:'Tier 8'};
+const TIER_LABEL = TRANS.tierLabel;
 const ENCS       = [0,1,2,3,4];
 // Sinkron sama Item::QUALITY_MAP di backend (Normal=1 s.d. Masterpiece=5).
 // Ini murni buat pilih VARIAN gambar & harga yang di-cek (qualities= param ke AODP),
 // BUKAN filter tabel items() di backend (soalnya kolom quality di DB item selalu 'Normal').
 const QUALITIES       = [1,2,3,4,5];
-const QUALITY_LABEL   = {1:'Normal', 2:'Good', 3:'Outstanding', 4:'Excellent', 5:'Masterpiece'};
+const QUALITY_LABEL   = TRANS.qualityLabel;
 
 let openDrop = null;
 let selCatId = null;
@@ -600,7 +633,7 @@ let selKat1 = null, selKat2 = null, selKat3 = null;
 function buildCol1() {
   const col = document.getElementById('colKat1');
   col.innerHTML = '';
-  col.appendChild(makeItem('All', false, !selKat1, () => {
+  col.appendChild(makeItem(TRANS.filter.all, false, !selKat1, () => {
     selKat1 = null; selKat2 = null; selKat3 = null; selCatId = null;
     refreshCols(); updateCatLabel(); saveMarketFilters(); fetchItems();
   }));
@@ -624,7 +657,7 @@ function buildCol2() {
   const cat1 = CATEGORIES.find(c => c.id === selKat1);
   if (!cat1 || !cat1.children || !cat1.children.length) { col2.style.display = 'none'; col3.style.display = 'none'; return; }
   col2.style.display = ''; col2.innerHTML = '';
-  col2.appendChild(makeItem('All', false, !selKat2, () => {
+  col2.appendChild(makeItem(TRANS.filter.all, false, !selKat2, () => {
     selKat2 = null; selKat3 = null; selCatId = selKat1;
     refreshCols(); updateCatLabel(); saveMarketFilters(); fetchItems();
   }));
@@ -649,7 +682,7 @@ function buildCol3() {
   const cat2 = cat1 && cat1.children.find(c => c.id === selKat2);
   if (!cat2 || !cat2.children || !cat2.children.length) { col3.style.display = 'none'; return; }
   col3.style.display = ''; col3.innerHTML = '';
-  col3.appendChild(makeItem('All', false, !selKat3, () => {
+  col3.appendChild(makeItem(TRANS.filter.all, false, !selKat3, () => {
     selKat3 = null; selCatId = selKat2;
     buildCol3(); updateCatLabel(); saveMarketFilters(); fetchItems();
   }));
@@ -689,7 +722,7 @@ function updateCatLabel() {
 function buildTierDrop() {
   const col = document.getElementById('colTier');
   col.innerHTML = '';
-  col.appendChild(makeItem('All', false, !selTier, () => {
+  col.appendChild(makeItem(TRANS.filter.all, false, !selTier, () => {
     selTier = null; setFilterVal('lblTier','valTier',null); closeDrop(); saveMarketFilters(); fetchItems();
   }));
   TIERS.forEach(t => col.appendChild(makeItem(TIER_LABEL[t], false, selTier === t, () => {
@@ -700,11 +733,11 @@ function buildTierDrop() {
 function buildEncDrop() {
   const col = document.getElementById('colEnc');
   col.innerHTML = '';
-  col.appendChild(makeItem('All', false, selEnc === null, () => {
+  col.appendChild(makeItem(TRANS.filter.all, false, selEnc === null, () => {
     selEnc = null; setFilterVal('lblEnc','valEnc',null); closeDrop(); saveMarketFilters(); fetchItems();
   }));
-  ENCS.forEach(e => col.appendChild(makeItem('Enchantment ' + e, false, selEnc === e, () => {
-    selEnc = e; setFilterVal('lblEnc','valEnc','Enc '+e); closeDrop(); saveMarketFilters(); fetchItems();
+  ENCS.forEach(e => col.appendChild(makeItem(TRANS.enchantmentLabel.replace(':n', e), false, selEnc === e, () => {
+    selEnc = e; setFilterVal('lblEnc','valEnc', TRANS.enchantmentShort.replace(':n', e)); closeDrop(); saveMarketFilters(); fetchItems();
   })));
 }
 
@@ -751,7 +784,7 @@ function showEmpty(msg) {
 }
 
 function fetchItems() {
-  showEmpty('Memuat item...');
+  showEmpty(TRANS.loadingItems);
   const params = new URLSearchParams();
   if (selCatId) params.set('category_id', selCatId);
   if (selTier)  params.set('tier', selTier);
@@ -764,12 +797,12 @@ function fetchItems() {
         const q = searchQ.toLowerCase();
         filtered = items.filter(i => i.name.toLowerCase().includes(q));
       }
-      if (!filtered.length) { showEmpty('Tidak ada item ditemukan 😔'); return; }
+      if (!filtered.length) { showEmpty(TRANS.noItemsFound); return; }
       lastRenderedItems = filtered;
       renderItems(filtered);
       fetchMarketPrices(filtered); // ambil harga client-side (ala refine), lalu render ulang row begitu selesai
     })
-    .catch(() => showEmpty('Gagal memuat item. Coba lagi.'));
+    .catch(() => showEmpty(TRANS.failedLoadItems));
 }
 
 // ============================================================
@@ -877,7 +910,7 @@ function formatSilver(n) {
 // lain), hasilnya gak dipakai buat nampilin apa-apa di popup.
 // ============================================================
 function openPopup(itemId) {
-  document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Memuat...</div>';
+  document.getElementById('popupContent').innerHTML = '<div class="popup-loading">' + TRANS.popup.loading + '</div>';
   document.getElementById('popupOverlay').classList.add('show');
 
   fetch('/api/market/item/' + itemId)
@@ -888,7 +921,7 @@ function openPopup(itemId) {
       silentlyRefreshBackendCache(itemId);  // diam-diam suruh backend refresh tabel item_prices, TIDAK dipakai buat UI
     })
     .catch(() => {
-      document.getElementById('popupContent').innerHTML = '<div class="popup-loading">Gagal memuat data.</div>';
+      document.getElementById('popupContent').innerHTML = '<div class="popup-loading">' + TRANS.popup.failedLoad + '</div>';
     });
 }
 
@@ -998,7 +1031,7 @@ function renderPopup(item) {
         <div class="resource-count">×${r.count}</div>
       </div>
     `).join('')
-    : '<div style="color:var(--text-dim);font-style:italic;font-size:13px">Tidak ada recipe</div>';
+    : '<div style="color:var(--text-dim);font-style:italic;font-size:13px">' + TRANS.popup.noRecipe + '</div>';
 
   document.getElementById('popupContent').innerHTML = `
     <div class="popup-head">
@@ -1009,17 +1042,17 @@ function renderPopup(item) {
       </div>
     </div>
     <div class="popup-prices">
-      <div class="popup-prices-label">Harga per Kota</div>
+      <div class="popup-prices-label">${TRANS.popup.pricePerCity}</div>
       <div class="city-prices-grid">${cityBoxes}</div>
     </div>
     <div class="popup-history">
-      <div class="popup-history-label">Tren Harga (30 Hari) — <span id="historyCityLabel">-</span></div>
+      <div class="popup-history-label">${TRANS.popup.priceTrend30d} — <span id="historyCityLabel">-</span></div>
       <div class="popup-history-canvas-wrap" id="historyCanvasWrap">
-        <div class="popup-history-loading">Pilih kota di atas untuk lihat tren</div>
+        <div class="popup-history-loading">${TRANS.popup.selectCityForTrend}</div>
       </div>
     </div>
     <div class="popup-resources">
-      <div class="popup-resources-label">Bahan Crafting</div>
+      <div class="popup-resources-label">${TRANS.popup.craftingMaterials}</div>
       <div class="resource-list">${resourcesHtml}</div>
     </div>
   `;

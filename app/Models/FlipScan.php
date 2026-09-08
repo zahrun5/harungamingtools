@@ -11,6 +11,7 @@ class FlipScan extends Model
         'sub_category_id',
         'tier',
         'enchant',
+        'server',
         'results',
         'result_count',
         'scanned_at',

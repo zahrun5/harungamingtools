@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kalkulator Flip - Albion Online Tools')
+@section('title', __('flip.title'))
 
 @section('content')
 <style>
@@ -111,6 +111,16 @@
   .fm-drop-item .fm-di-arrow{font-size:9px;color:#6b4f1a;margin-left:8px;flex-shrink:0;}
   .fm-drop-item.active .fm-di-arrow{color:#ffe090;}
 
+  /* City checkbox items */
+  .fm-city-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:2px;cursor:pointer;transition:background .08s;}
+  .fm-city-item:hover{background:linear-gradient(180deg,#f2dc9a 0%,#e2c878 100%);}
+  .fm-city-item input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:#8b6820;}
+  .fm-city-item label{flex:1;cursor:pointer;font-family:'Crimson Text',serif;font-size:14px;font-weight:600;color:#2a1800;}
+
+  /* Reset button */
+  .fm-reset-btn{background:linear-gradient(180deg,#6b4f1a 0%,#5a3f10 100%);border:1px solid #4a3010;border-radius:3px;color:#e8d5a3;font-family:'Cinzel',serif;font-size:11px;font-weight:600;padding:7px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .fm-reset-btn:hover{background:linear-gradient(180deg,#7a5f2a 0%,#6a4f20 100%);border-color:#8b6820;}
+
   .fm-item-list{min-height:160px;padding:0;position:relative;}
   .fm-item-list-empty{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
@@ -175,13 +185,13 @@
 
 <div class="flip-wrap">
   <div class="flip-header">
-    <h1>📊 Kalkulator Flip</h1>
-    <p>Albion Online &middot; Hitung batas harga jual/beli, atau cari opportunity flip otomatis</p>
+    <h1>📊 {{ __('flip.panel_title') }}</h1>
+    <p>{{ __('flip.subtitle') }}</p>
   </div>
 
   <div class="mode-toggle">
-    <button id="btnModeSimple" class="mode-btn active" onclick="setFlipMode('simple')">📝 Mode Simple</button>
-    <button id="btnModeAdvance" class="mode-btn" onclick="setFlipMode('advance')">⚙️ Mode Advance</button>
+    <button id="btnModeSimple" class="mode-btn active" onclick="setFlipMode('simple')">📝 {{ __('flip.mode.simple') }}</button>
+    <button id="btnModeAdvance" class="mode-btn" onclick="setFlipMode('advance')">⚙️ {{ __('flip.mode.advance') }}</button>
   </div>
 
   {{-- ============================================================ --}}
@@ -190,46 +200,46 @@
   <div id="modeSimpleWrap">
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">📈 Cari Harga Jual Minimal</span>
-        <button class="add-row-btn" onclick="addRow('jual')">+ Tambah Baris</button>
+        <span class="panel-title">📈 {{ __('flip.simple.find_sell_min') }}</span>
+        <button class="add-row-btn" onclick="addRow('jual')">{{ __('flip.simple.add_row') }}</button>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th style="width:32px">#</th>
-              <th>Modal (Harga Beli)</th>
-              <th style="width:80px;text-align:center">Premium</th>
-              <th>Jual Minimal Supaya Tidak Rugi</th>
+              <th>{{ __('flip.simple.capital') }}</th>
+              <th style="width:80px;text-align:center">{{ __('flip.simple.premium') }}</th>
+              <th>{{ __('flip.simple.sell_min_result') }}</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
           <tbody id="tableJual"></tbody>
         </table>
       </div>
-      <div class="foot-note">Pajak market: <b>8%</b> tanpa premium, <b>4%</b> dengan premium. Isi kolom Modal, hasil otomatis muncul.</div>
+      <div class="foot-note">{!! __('flip.simple.tax_note') !!}</div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">📉 Cari Harga Beli Maksimal</span>
-        <button class="add-row-btn" onclick="addRow('beli')">+ Tambah Baris</button>
+        <span class="panel-title">📉 {{ __('flip.simple.find_buy_max') }}</span>
+        <button class="add-row-btn" onclick="addRow('beli')">{{ __('flip.simple.add_row') }}</button>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th style="width:32px">#</th>
-              <th>Target Harga Jual</th>
-              <th style="width:80px;text-align:center">Premium</th>
-              <th>Beli Maksimal Supaya Tidak Rugi</th>
+              <th>{{ __('flip.simple.target_sell') }}</th>
+              <th style="width:80px;text-align:center">{{ __('flip.simple.premium') }}</th>
+              <th>{{ __('flip.simple.buy_max_result') }}</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
           <tbody id="tableBeli"></tbody>
         </table>
       </div>
-      <div class="foot-note">Kebalikan dari tabel di atas &mdash; isi target harga jual, dapat batas harga beli supaya tetap untung.</div>
+      <div class="foot-note">{{ __('flip.simple.reverse_note') }}</div>
     </div>
   </div>
 
@@ -271,27 +281,36 @@
     <div class="fm-panel">
       <div class="fm-panel-header">
         <span>📊</span>
-        <span class="fm-panel-title">Scan Opportunity Flip</span>
+        <span class="fm-panel-title">{{ __('flip.advance.scan_opportunities') }}</span>
       </div>
 
       <div class="fm-filter-bar" id="fmFilterBar">
-        <!-- CATEGORY (wajib sampai leaf, tanpa opsi All) -->
+        <!-- CATEGORY (cuma level 1, tanpa drill-down) -->
         <div class="fm-flt-wrap">
           <div class="fm-flt-btn" id="fmBtnCategory" onclick="fmToggleDrop('category')">
-            <span class="fm-flt-label" id="fmLblCategory">Category</span>
+            <span class="fm-flt-label" id="fmLblCategory">{{ __('flip.advance.filter.category') }}</span>
             <span class="fm-flt-val" id="fmValCategory" style="display:none"></span>
             <span class="fm-flt-arrow">▼</span>
           </div>
           <div class="fm-drop-wrap" id="fmDropCategory">
             <div class="fm-drop-col" id="fmColKat1"></div>
-            <div class="fm-drop-col" id="fmColKat2" style="display:none"></div>
-            <div class="fm-drop-col" id="fmColKat3" style="display:none"></div>
+          </div>
+        </div>
+        <!-- CITY (checkbox, min 2 selected) -->
+        <div class="fm-flt-wrap">
+          <div class="fm-flt-btn" id="fmBtnCity" onclick="fmToggleDrop('city')">
+            <span class="fm-flt-label" id="fmLblCity">{{ __('flip.advance.filter.cities') }}</span>
+            <span class="fm-flt-val" id="fmValCity" style="display:none"></span>
+            <span class="fm-flt-arrow">▼</span>
+          </div>
+          <div class="fm-drop-wrap" id="fmDropCity">
+            <div class="fm-drop-col" id="fmColCity"></div>
           </div>
         </div>
         <!-- TIER (boleh All) -->
         <div class="fm-flt-wrap">
           <div class="fm-flt-btn" id="fmBtnTier" onclick="fmToggleDrop('tier')">
-            <span class="fm-flt-label" id="fmLblTier">Tier</span>
+            <span class="fm-flt-label" id="fmLblTier">{{ __('flip.advance.filter.tier') }}</span>
             <span class="fm-flt-val" id="fmValTier" style="display:none"></span>
             <span class="fm-flt-arrow">▼</span>
           </div>
@@ -302,7 +321,7 @@
         <!-- ENCHANTMENT (boleh All) -->
         <div class="fm-flt-wrap">
           <div class="fm-flt-btn" id="fmBtnEnc" onclick="fmToggleDrop('enc')">
-            <span class="fm-flt-label" id="fmLblEnc">Enchantment</span>
+            <span class="fm-flt-label" id="fmLblEnc">{{ __('flip.advance.filter.enchantment') }}</span>
             <span class="fm-flt-val" id="fmValEnc" style="display:none"></span>
             <span class="fm-flt-arrow">▼</span>
           </div>
@@ -310,20 +329,22 @@
             <div class="fm-drop-col" id="fmColEnc"></div>
           </div>
         </div>
+        <!-- RESET BUTTON -->
+        <button class="fm-reset-btn" onclick="fmResetAllFilters()" title="Reset all filters">🔄 {{ __('flip.advance.reset') }}</button>
       </div>
 
       <div class="fm-scan-bar">
-        <button class="fm-scan-btn" id="fmScanBtn" onclick="fmRunScan()" disabled>🔍 Scan</button>
+        <button class="fm-scan-btn" id="fmScanBtn" onclick="fmRunScan()" disabled>🔍 {{ __('flip.advance.scan_btn') }}</button>
         <span class="fm-scan-status" id="fmScanStatus"></span>
       </div>
 
       <div class="fm-opp-list" id="fmOppList">
-        <div class="fm-item-list-empty" id="fmEmptyMsg">Pilih kategori sampai habis (leaf), lalu klik Scan 🗡️</div>
+        <div class="fm-item-list-empty" id="fmEmptyMsg">{{ __('flip.advance.empty.loading_top') }}</div>
         <div id="fmOppRows" style="display:none"></div>
         <div class="fm-opp-pagination" id="fmPagination" style="display:none">
-          <button class="fm-pg-btn" id="fmPgPrev" onclick="fmGoToPage(fmCurrentPage - 1)">‹ Sebelumnya</button>
+          <button class="fm-pg-btn" id="fmPgPrev" onclick="fmGoToPage(fmCurrentPage - 1)">{{ __('flip.advance.pagination.previous') }}</button>
           <span id="fmPgLabel"></span>
-          <button class="fm-pg-btn" id="fmPgNext" onclick="fmGoToPage(fmCurrentPage + 1)">Berikutnya ›</button>
+          <button class="fm-pg-btn" id="fmPgNext" onclick="fmGoToPage(fmCurrentPage + 1)">{{ __('flip.advance.pagination.next') }}</button>
         </div>
       </div>
     </div>
@@ -333,6 +354,26 @@
 <script>
 const TAX_NORMAL = 0.08;
 const TAX_PREMI  = 0.04;
+
+// Translations untuk JavaScript
+const FLIP_TRANS = {
+  cityMin2:       @json(__('flip.advance.city_min_2')),
+  cityExclude:    @json(__('flip.advance.city_exclude')),
+  scanning:       @json(__('flip.advance.status.scanning')),
+  loading:        @json(__('flip.advance.status.loading')),
+  topOpportunities: @json(__('flip.advance.status.top_opportunities')),
+  updated:        @json(__('flip.advance.status.updated')),
+  autoRefresh:    @json(__('flip.advance.status.auto_refresh')),
+  cache:          @json(__('flip.advance.status.cache')),
+  fresh:          @json(__('flip.advance.status.fresh')),
+  nextScan:       @json(__('flip.advance.status.next_scan')),
+  failed:         @json(__('flip.advance.status.failed')),
+  loadingTop:     @json(__('flip.advance.empty.loading_top')),
+  noData:         @json(__('flip.advance.empty.no_data')),
+  clickScan:      @json(__('flip.advance.empty.click_scan')),
+  pageOf:         @json(__('flip.advance.pagination.page_of')),
+  filterAll:      @json(__('flip.advance.filter.all')),
+};
 
 let jualRows = [{}, {}, {}];
 let beliRows = [{}, {}, {}];
@@ -491,21 +532,25 @@ const FM_CITIES = [
 const FM_PER_PAGE = 15;
 
 let fmOpenDrop = null;
-let fmSelKat1 = null, fmSelKat2 = null, fmSelKat3 = null, fmSelCatId = null;
+let fmSelCatId = null; // Cuma 1 level sekarang
 let fmSelTier = null, fmSelEnc = null;
+let fmSelCities = ['Caerleon', 'Bridgewatch', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien']; // Default all cities
 let fmAllResults = [];
 let fmCurrentPage = 1;
+let fmAutoRefreshInterval = null;
 
 function fmInit() {
   fetch('/api/market/categories')
     .then(r => r.json())
     .then(data => {
       FM_CATEGORIES = data;
+      fmBuildCategoryDrop();
+      fmBuildCityDrop();
       fmBuildTierDrop();
       fmBuildEncDrop();
-      fmRefreshCols();
-      fmUpdateCatLabel();
       fmUpdateScanBtn();
+      fmLoadTopOpportunities(); // Load top 10 saat pertama kali
+      fmStartAutoRefresh(); // Auto-refresh setiap 5 menit
     });
 }
 
@@ -558,63 +603,85 @@ function fmGetCatName(id, list) {
   return null;
 }
 
-// --- CATEGORY: wajib dipilih sampai leaf, gak ada opsi "All" di level manapun ---
+// --- CATEGORY: Cuma level 1 aja, tanpa drill-down ---
 
-function fmBuildCol1() {
+function fmBuildCategoryDrop() {
   const col = document.getElementById('fmColKat1');
   col.innerHTML = '';
   FM_CATEGORIES.forEach(cat => {
-    const hasSub = cat.children && cat.children.length > 0;
-    col.appendChild(fmMakeItem(cat.name, hasSub, fmSelKat1 === cat.id, () => {
-      fmSelKat1 = cat.id; fmSelKat2 = null; fmSelKat3 = null; fmSelCatId = null;
-      if (!hasSub) { fmSelCatId = cat.id; fmCloseDrop(); }
-      fmRefreshCols(); fmUpdateCatLabel(); fmUpdateScanBtn(); fmResetResults();
+    col.appendChild(fmMakeItem(cat.name, false, fmSelCatId === cat.id, () => {
+      fmSelCatId = cat.id;
+      fmSetFilterVal('fmLblCategory', 'fmValCategory', cat.name);
+      fmCloseDrop();
+      fmUpdateScanBtn();
+      fmResetResults();
     }));
   });
 }
 
-function fmBuildCol2() {
-  const col2 = document.getElementById('fmColKat2');
-  const col3 = document.getElementById('fmColKat3');
-  if (!fmSelKat1) { col2.style.display = 'none'; col3.style.display = 'none'; return; }
-  const cat1 = FM_CATEGORIES.find(c => c.id === fmSelKat1);
-  if (!cat1 || !cat1.children || !cat1.children.length) { col2.style.display = 'none'; col3.style.display = 'none'; return; }
-  col2.style.display = ''; col2.innerHTML = '';
-  cat1.children.forEach(sub => {
-    const hasSub2 = sub.children && sub.children.length > 0;
-    col2.appendChild(fmMakeItem(sub.name, hasSub2, fmSelKat2 === sub.id, () => {
-      fmSelKat2 = sub.id; fmSelKat3 = null; fmSelCatId = null;
-      if (!hasSub2) { fmSelCatId = sub.id; fmCloseDrop(); }
-      fmRefreshCols(); fmUpdateCatLabel(); fmUpdateScanBtn(); fmResetResults();
-    }));
+// --- CITY: Checkbox, min 2 selected ---
+
+function fmBuildCityDrop() {
+  const col = document.getElementById('fmColCity');
+  col.innerHTML = '';
+  
+  FM_CITIES.forEach(c => {
+    const checked = fmSelCities.includes(c.id);
+    const item = document.createElement('div');
+    item.className = 'fm-city-item';
+    item.innerHTML = `
+      <input type="checkbox" id="city-${c.id}" ${checked ? 'checked' : ''}>
+      <label for="city-${c.id}">${c.id}</label>
+    `;
+    
+    const checkbox = item.querySelector('input');
+    checkbox.addEventListener('change', (e) => {
+      e.stopPropagation();
+      if (e.target.checked) {
+        fmSelCities.push(c.id);
+      } else {
+        // Min 2 cities harus dipilih
+        if (fmSelCities.length <= 2) {
+          e.target.checked = true;
+          showFlipToast(FLIP_TRANS.cityMin2);
+          return;
+        }
+        fmSelCities = fmSelCities.filter(city => city !== c.id);
+      }
+      fmUpdateCityLabel();
+      fmResetResults();
+    });
+    
+    col.appendChild(item);
   });
 }
 
-function fmBuildCol3() {
-  const col3 = document.getElementById('fmColKat3');
-  if (!fmSelKat2) { col3.style.display = 'none'; return; }
-  const cat1 = FM_CATEGORIES.find(c => c.id === fmSelKat1);
-  const cat2 = cat1?.children?.find(c => c.id === fmSelKat2);
-  if (!cat2 || !cat2.children || !cat2.children.length) { col3.style.display = 'none'; return; }
-  col3.style.display = ''; col3.innerHTML = '';
-  cat2.children.forEach(leaf => {
-    col3.appendChild(fmMakeItem(leaf.name, false, fmSelKat3 === leaf.id, () => {
-      fmSelKat3 = leaf.id; fmSelCatId = leaf.id;
-      fmCloseDrop(); fmUpdateCatLabel(); fmUpdateScanBtn(); fmResetResults();
-    }));
-  });
-}
-
-function fmRefreshCols() { fmBuildCol1(); fmBuildCol2(); fmBuildCol3(); }
-
-function fmUpdateCatLabel() {
-  if (fmSelCatId) {
-    fmSetFilterVal('fmLblCategory', 'fmValCategory', fmGetCatName(fmSelCatId, FM_CATEGORIES));
-  } else if (fmSelKat1) {
-    fmSetFilterVal('fmLblCategory', 'fmValCategory', 'Pilih lagi…');
+function fmUpdateCityLabel() {
+  const excluded = FM_CITIES.filter(c => !fmSelCities.includes(c.id)).map(c => c.id);
+  if (excluded.length === 0) {
+    fmSetFilterVal('fmLblCity', 'fmValCity', null);
   } else {
-    fmSetFilterVal('fmLblCategory', 'fmValCategory', null);
+    fmSetFilterVal('fmLblCity', 'fmValCity', FLIP_TRANS.cityExclude + ': ' + excluded.join(', '));
   }
+}
+
+// --- RESET ALL FILTERS ---
+
+function fmResetAllFilters() {
+  fmSelCatId = null;
+  fmSelTier = null;
+  fmSelEnc = null;
+  fmSelCities = ['Caerleon', 'Bridgewatch', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
+  
+  fmSetFilterVal('fmLblCategory', 'fmValCategory', null);
+  fmSetFilterVal('fmLblCity', 'fmValCity', null);
+  fmSetFilterVal('fmLblTier', 'fmValTier', null);
+  fmSetFilterVal('fmLblEnc', 'fmValEnc', null);
+  
+  fmBuildCityDrop();
+  fmUpdateScanBtn();
+  fmResetResults();
+  fmLoadTopOpportunities();
 }
 
 // --- TIER & ENCHANT: boleh "All" ---
@@ -644,7 +711,8 @@ function fmBuildEncDrop() {
 // --- SCAN ---
 
 function fmUpdateScanBtn() {
-  document.getElementById('fmScanBtn').disabled = !fmSelCatId;
+  // Tombol scan selalu enabled (bisa reload top opportunities atau scan by category)
+  document.getElementById('fmScanBtn').disabled = false;
 }
 
 function fmResetResults() {
@@ -652,6 +720,44 @@ function fmResetResults() {
   fmCurrentPage = 1;
   document.getElementById('fmScanStatus').textContent = '';
   fmShowOppEmpty('Klik Scan buat lihat opportunity kombinasi ini 🗡️');
+}
+
+// --- LOAD TOP 10 OPPORTUNITIES (All Categories) ---
+
+function fmLoadTopOpportunities() {
+  const status = document.getElementById('fmScanStatus');
+  status.textContent = FLIP_TRANS.loading;
+  fmShowOppEmpty(FLIP_TRANS.loadingTop);
+
+  const server = @json(session('server', 'americas'));
+  
+  fetch(`/flip/top-opportunities?server=${server}&cities=${fmSelCities.join(',')}`)
+    .then(r => r.json())
+    .then(res => {
+      fmAllResults = res.results || [];
+      const lastUpdate = res.last_update ? new Date(res.last_update).toLocaleTimeString() : 'N/A';
+      status.textContent = `${FLIP_TRANS.topOpportunities} · ${FLIP_TRANS.updated}: ${lastUpdate} · ${FLIP_TRANS.autoRefresh}`;
+      fmSetOppPage(1);
+    })
+    .catch(() => {
+      status.textContent = FLIP_TRANS.failed;
+      fmShowOppEmpty(FLIP_TRANS.noData);
+    });
+}
+
+// --- AUTO REFRESH SETIAP 5 MENIT ---
+
+function fmStartAutoRefresh() {
+  if (fmAutoRefreshInterval) {
+    clearInterval(fmAutoRefreshInterval);
+  }
+  
+  fmAutoRefreshInterval = setInterval(() => {
+    if (!fmSelCatId) {
+      // Hanya auto-refresh kalau gak ada kategori dipilih
+      fmLoadTopOpportunities();
+    }
+  }, 5 * 60 * 1000); // 5 menit
 }
 
 function fmShowOppEmpty(msg) {
@@ -671,14 +777,19 @@ function fmFormatTime(iso) {
 }
 
 function fmRunScan() {
-  if (!fmSelCatId) return;
+  if (!fmSelCatId) {
+    // Kalau gak ada kategori dipilih, reload top opportunities
+    fmLoadTopOpportunities();
+    return;
+  }
+  
   const btn    = document.getElementById('fmScanBtn');
   const status = document.getElementById('fmScanStatus');
   btn.disabled = true;
-  status.textContent = 'Sedang scan…';
-  fmShowOppEmpty('Sedang scan harga…');
+  status.textContent = FLIP_TRANS.scanning;
+  fmShowOppEmpty(FLIP_TRANS.scanning);
 
-  const payload = { sub_category_id: fmSelCatId };
+  const payload = { category_id: fmSelCatId };
   if (fmSelTier !== null) payload.tier = fmSelTier;
   if (fmSelEnc  !== null) payload.enchant = fmSelEnc;
 
@@ -689,15 +800,20 @@ function fmRunScan() {
   })
     .then(r => r.json())
     .then(res => {
-      fmAllResults = res.results || [];
-      status.textContent = (res.from_cache ? 'Hasil cache — ' : 'Baru discan — ')
-        + 'scan berikutnya bisa mulai ' + fmFormatTime(res.next_scan_at);
+      // Filter results by selected cities
+      let filteredResults = (res.results || []).filter(r => 
+        fmSelCities.includes(r.city_from) && fmSelCities.includes(r.city_to)
+      );
+      
+      fmAllResults = filteredResults;
+      const lastScan = res.scanned_at ? new Date(res.scanned_at).toLocaleTimeString() : '';
+      status.textContent = `${FLIP_TRANS.cache} · ${FLIP_TRANS.nextScan} ${fmFormatTime(res.next_scan_at)}`;
       fmSetOppPage(1);
       fmUpdateScanBtn();
     })
     .catch(() => {
-      status.textContent = 'Gagal scan, coba lagi.';
-      fmShowOppEmpty('Gagal scan. Coba klik Scan lagi.');
+      status.textContent = FLIP_TRANS.failed;
+      fmShowOppEmpty(FLIP_TRANS.clickScan);
       fmUpdateScanBtn();
     });
 }
@@ -710,7 +826,7 @@ function fmCityCls(cityId) {
 function fmRenderOppRows(items) {
   const wrap = document.getElementById('fmOppRows');
   if (!items.length) {
-    fmShowOppEmpty('Gak ada opportunity profit buat kombinasi ini 😔');
+    fmShowOppEmpty(FLIP_TRANS.noData);
     return;
   }
   document.getElementById('fmEmptyMsg').style.display = 'none';
@@ -740,7 +856,9 @@ function fmUpdatePaginationUI() {
   const totalPages = Math.max(1, Math.ceil(fmAllResults.length / FM_PER_PAGE));
   if (fmAllResults.length <= FM_PER_PAGE) { pag.style.display = 'none'; return; }
   pag.style.display = 'flex';
-  document.getElementById('fmPgLabel').textContent = `Halaman ${fmCurrentPage} dari ${totalPages}`;
+  document.getElementById('fmPgLabel').textContent = FLIP_TRANS.pageOf
+    .replace(':current', fmCurrentPage)
+    .replace(':total', totalPages);
   document.getElementById('fmPgPrev').disabled = fmCurrentPage <= 1;
   document.getElementById('fmPgNext').disabled = fmCurrentPage >= totalPages;
 }

@@ -7,4 +7,5 @@ return [
     'ru'    => 'RU-RU',
     'de'    => 'DE-DE',
     'pl'    => 'PL-PL',
+    'zh'    => 'ZH-CN',
 ];

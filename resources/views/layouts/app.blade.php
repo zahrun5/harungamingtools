@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <link rel="manifest" href="/manifest.json">
@@ -152,6 +152,7 @@
           <a href="{{ route('lang.switch', 'ru') }}" class="{{ app()->getLocale() === 'ru' ? 'active' : '' }}">🇷🇺 Русский</a>
           <a href="{{ route('lang.switch', 'de') }}" class="{{ app()->getLocale() === 'de' ? 'active' : '' }}">🇩🇪 Deutsch</a>
           <a href="{{ route('lang.switch', 'pl') }}" class="{{ app()->getLocale() === 'pl' ? 'active' : '' }}">🇵🇱 Polski</a>
+          <a href="{{ route('lang.switch', 'zh') }}" class="{{ app()->getLocale() === 'zh' ? 'active' : '' }}">🇨🇳 中文</a>
         </div>
       </div>
 

@@ -8,7 +8,7 @@ class LocaleController extends Controller
      * Daftar locale yang didukung HGT.
      * Tambah di sini kalau nanti mau nambah bahasa lagi.
      */
-    protected array $available = ['id', 'en', 'pt_BR', 'ru', 'de', 'pl'];
+    protected array $available = ['id', 'en', 'pt_BR', 'ru', 'de', 'pl', 'zh'];
 
     public function switch(string $locale)
     {

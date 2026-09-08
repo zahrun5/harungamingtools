@@ -21,9 +21,24 @@ class Category extends Model
     {
         return $this->hasMany(Item::class);
     }
-   public function craftingStations(): BelongsToMany
+
+    public function craftingStations(): BelongsToMany
     {
         return $this->belongsToMany(CraftingStation::class, 'crafting_station_category');
+    }
+
+    /**
+     * Dapatkan semua ID kategori descendant (anak, cucu, dst) termasuk diri sendiri.
+     */
+    public function getAllDescendantIds(): array
+    {
+        $ids = [$this->id];
+        
+        foreach ($this->children as $child) {
+            $ids = array_merge($ids, $child->getAllDescendantIds());
+        }
+        
+        return $ids;
     }
 
 }
