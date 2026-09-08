@@ -533,6 +533,12 @@ const ENCS       = [0,1,2,3,4];
 const QUALITIES       = [1,2,3,4,5];
 const QUALITY_LABEL   = TRANS.qualityLabel;
 
+// Kategori ROOT yang support quality system (ID dari tabel categories)
+// - Weapons, Armor (chest/head/foot), Off-hands, Capes, Bags, Mounts
+// - Gathering equipment HANYA fishing rod yang punya quality, tapi kita include
+//   parent category-nya dan nanti filter di level item (api_id contains 'FISHINGROD')
+const QUALITY_SUPPORTED_ROOT_CATEGORIES = [1, 154, 186, 217, 248, 270, 286, 289, 371];
+
 let openDrop = null;
 let selCatId = null;
 let selTier  = null;
@@ -540,6 +546,32 @@ let selEnc   = null;
 let selQuality = 1; // default Normal
 let searchQ  = '';
 let lastRenderedItems = []; // simpen list terakhir biar quality bisa ganti gambar tanpa refetch backend
+
+// ============================================================
+// HELPER: Cek apakah kategori yang dipilih support quality
+// ============================================================
+function getRootCategoryId(id, tree) {
+  for (const root of tree) {
+    if (root.id === id) return root.id;
+    if (root.children) {
+      for (const sub of root.children) {
+        if (sub.id === id) return root.id;
+        if (sub.children) {
+          for (const leaf of sub.children) {
+            if (leaf.id === id) return root.id;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function isCategorySupportsQuality(catId) {
+  if (!catId) return false;
+  const rootId = getRootCategoryId(catId, CATEGORIES);
+  return QUALITY_SUPPORTED_ROOT_CATEGORIES.includes(rootId);
+}
 
 // ============================================================
 // PERSISTENCE — simpan filter kategori/tier/enchant ke localStorage
@@ -784,6 +816,12 @@ function showEmpty(msg) {
 }
 
 function fetchItems() {
+  // Cek apakah quality selain Normal dipilih tapi kategori tidak support quality
+  if (selQuality > 1 && selCatId && !isCategorySupportsQuality(selCatId)) {
+    showEmpty('Quality hanya berlaku untuk Weapons, Armor, Bags, Capes, Mounts, dan Fishing Rod');
+    return;
+  }
+  
   showEmpty(TRANS.loadingItems);
   const params = new URLSearchParams();
   if (selCatId) params.set('category_id', selCatId);
@@ -797,6 +835,19 @@ function fetchItems() {
         const q = searchQ.toLowerCase();
         filtered = items.filter(i => i.name.toLowerCase().includes(q));
       }
+      
+      // Filter khusus untuk gathering tools: hanya fishing rod dan gathering armor yang punya quality
+      if (selQuality > 1 && selCatId) {
+        const rootId = getRootCategoryId(selCatId, CATEGORIES);
+        if (rootId === 371) { // Gathering equipment
+          filtered = filtered.filter(i => {
+            if (!i.api_id) return false;
+            // Hanya fishing rod dan gathering armor/gear yang punya quality
+            return i.api_id.includes('FISHINGROD') || i.api_id.includes('GATHERER');
+          });
+        }
+      }
+      
       if (!filtered.length) { showEmpty(TRANS.noItemsFound); return; }
       lastRenderedItems = filtered;
       renderItems(filtered);
