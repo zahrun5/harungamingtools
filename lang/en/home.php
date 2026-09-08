@@ -13,11 +13,12 @@ return [
     ],
 
     'stations' => [
-        'smelter'    => ['name' => 'Smelter',    'desc' => 'Turn ore into metal bars'],
-        'lumbermill' => ['name' => 'Lumbermill', 'desc' => 'Turn logs into planks'],
-        'stonemason' => ['name' => 'Stonemason', 'desc' => 'Turn stone into bricks'],
-        'tanner'     => ['name' => 'Tannery',    'desc' => 'Turn hide into leather'],
-        'weaver'     => ['name' => 'Weaver',     'desc' => 'Turn fiber into cloth'],
+        'all-refining' => ['name' => 'All Refining Stations', 'desc' => 'Refine all resource types'],
+        'smelter'      => ['name' => 'Smelter',              'desc' => 'Turn ore into metal bars'],
+        'lumbermill'   => ['name' => 'Lumbermill',           'desc' => 'Turn logs into planks'],
+        'stonemason'   => ['name' => 'Stonemason',           'desc' => 'Turn stone into bricks'],
+        'tanner'       => ['name' => 'Tannery',              'desc' => 'Turn hide into leather'],
+        'weaver'       => ['name' => 'Weaver',               'desc' => 'Turn fiber into cloth'],
     ],
 
     'crafting_stations' => [

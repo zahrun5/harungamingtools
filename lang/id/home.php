@@ -13,11 +13,12 @@ return [
     ],
 
     'stations' => [
-        'smelter'    => ['name' => 'Smelter',    'desc' => 'Olah bijih jadi batangan logam'],
-        'lumbermill' => ['name' => 'Lumbermill', 'desc' => 'Olah kayu jadi papan kayu'],
-        'stonemason' => ['name' => 'Stonemason', 'desc' => 'Olah batu jadi batu bata'],
-        'tanner'     => ['name' => 'Tannery',    'desc' => 'Olah kulit jadi kulit samak'],
-        'weaver'     => ['name' => 'Weaver',     'desc' => 'Olah serat jadi kain'],
+        'all-refining' => ['name' => 'Semua Stasiun Refine', 'desc' => 'Olah semua jenis resource'],
+        'smelter'      => ['name' => 'Smelter',              'desc' => 'Olah bijih jadi batangan logam'],
+        'lumbermill'   => ['name' => 'Lumbermill',           'desc' => 'Olah kayu jadi papan kayu'],
+        'stonemason'   => ['name' => 'Stonemason',           'desc' => 'Olah batu jadi batu bata'],
+        'tanner'       => ['name' => 'Tannery',              'desc' => 'Olah kulit jadi kulit samak'],
+        'weaver'       => ['name' => 'Weaver',               'desc' => 'Olah serat jadi kain'],
     ],
 
     'crafting_stations' => [

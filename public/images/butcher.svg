@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#7a5a5a"/>
+  
+  <!-- Shop building -->
+  <rect x="55" y="90" width="90" height="90" fill="#4a3535" stroke="#2a1a1a" stroke-width="2"/>
+  <path d="M 50 90 L 100 60 L 150 90 Z" fill="#6a4545" stroke="#2a1a1a" stroke-width="2"/>
+  
+  <!-- Butcher block/table -->
+  <rect x="75" y="120" width="50" height="8" fill="#8b6f47" stroke="#2a1a1a" stroke-width="2"/>
+  <rect x="78" y="128" width="6" height="25" fill="#6b5437"/>
+  <rect x="116" y="128" width="6" height="25" fill="#6b5437"/>
+  
+  <!-- Meat on block -->
+  <ellipse cx="100" cy="115" rx="18" ry="10" fill="#c85a54" stroke="#8a3a34" stroke-width="2"/>
+  <ellipse cx="100" cy="115" rx="12" ry="6" fill="#d87a74"/>
+  
+  <!-- Hanging meat hooks -->
+  <line x1="70" y1="95" x2="70" y2="105" stroke="#5a5a5a" stroke-width="1.5"/>
+  <path d="M 70 105 Q 72 107 70 110" stroke="#5a5a5a" stroke-width="1.5" fill="none"/>
+  <ellipse cx="70" cy="113" rx="6" ry="9" fill="#a85a54" stroke="#7a3a34" stroke-width="1.5"/>
+  
+  <line x1="130" y1="95" x2="130" y2="105" stroke="#5a5a5a" stroke-width="1.5"/>
+  <path d="M 130 105 Q 132 107 130 110" stroke="#5a5a5a" stroke-width="1.5" fill="none"/>
+  <ellipse cx="130" cy="113" rx="6" ry="9" fill="#b86a64" stroke="#8a4a44" stroke-width="1.5"/>
+  
+  <!-- Cleaver (knife) -->
+  <rect x="105" y="108" width="15" height="4" fill="#8b6f47" stroke="#2a1a1a" stroke-width="1"/>
+  <path d="M 120 108 L 128 105 L 128 115 L 120 112 Z" fill="#d4d4d4" stroke="#2a1a1a" stroke-width="1.5"/>
+  <line x1="122" y1="107" x2="122" y2="113" stroke="#9a9a9a" stroke-width="0.5"/>
+  
+  <!-- Sausages -->
+  <ellipse cx="85" cy="155" rx="8" ry="4" fill="#c85a54" stroke="#8a3a34" stroke-width="1"/>
+  <ellipse cx="95" cy="155" rx="8" ry="4" fill="#c85a54" stroke="#8a3a34" stroke-width="1"/>
+  <ellipse cx="105" cy="155" rx="8" ry="4" fill="#c85a54" stroke="#8a3a34" stroke-width="1"/>
+  <ellipse cx="115" cy="155" rx="8" ry="4" fill="#c85a54" stroke="#8a3a34" stroke-width="1"/>
+  
+  <!-- Door -->
+  <rect x="88" y="155" width="24" height="25" rx="1" fill="#2a1a1a"/>
+  <circle cx="108" cy="167" r="1.5" fill="#8a8a8a"/>
+</svg>

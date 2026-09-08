@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#6b5d52"/>
+  
+  <!-- Workshop building -->
+  <rect x="60" y="100" width="80" height="80" fill="#4a3a2a" stroke="#2a1a0a" stroke-width="2"/>
+  <path d="M 55 100 L 100 70 L 145 100 Z" fill="#6a4a3a" stroke="#2a1a0a" stroke-width="2"/>
+  
+  <!-- Saddle (main focus) -->
+  <ellipse cx="100" cy="110" rx="35" ry="20" fill="#8b6f47" stroke="#2a1a0a" stroke-width="2"/>
+  <path d="M 70 110 Q 70 95 85 95 L 115 95 Q 130 95 130 110" fill="#a0824f" stroke="#2a1a0a" stroke-width="2"/>
+  
+  <!-- Saddle details -->
+  <ellipse cx="100" cy="110" rx="25" ry="12" fill="#6b5437"/>
+  <line x1="85" y1="110" x2="85" y2="125" stroke="#4a3a2a" stroke-width="2"/>
+  <line x1="115" y1="110" x2="115" y2="125" stroke="#4a3a2a" stroke-width="2"/>
+  
+  <!-- Stirrups -->
+  <rect x="80" y="125" width="8" height="3" fill="#3a3a3a"/>
+  <path d="M 84 128 L 84 140 M 78 140 L 90 140" stroke="#3a3a3a" stroke-width="2" fill="none"/>
+  <rect x="112" y="125" width="8" height="3" fill="#3a3a3a"/>
+  <path d="M 116 128 L 116 140 M 110 140 L 122 140" stroke="#3a3a3a" stroke-width="2" fill="none"/>
+  
+  <!-- Horse head silhouette (side) -->
+  <path d="M 140 80 Q 145 75 148 80 L 148 95 Q 145 100 140 98 Q 138 90 140 80" fill="#5a4a3a" stroke="#2a1a0a" stroke-width="1.5"/>
+  <circle cx="145" cy="82" r="1.5" fill="#ffd89a"/>
+  
+  <!-- Tools on wall -->
+  <line x1="70" y1="150" x2="70" y2="165" stroke="#8a8a8a" stroke-width="2"/>
+  <circle cx="70" cy="167" r="3" fill="#7a7a7a"/>
+  
+  <!-- Leather pieces -->
+  <rect x="120" y="155" width="15" height="20" rx="2" fill="#9b7f57" stroke="#2a1a0a" stroke-width="1"/>
+</svg>

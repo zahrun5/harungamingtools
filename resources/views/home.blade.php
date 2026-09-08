@@ -13,16 +13,22 @@
     <div class="station-grid">
         @php
             $stations = [
-                ['slug' => 'smelter',    'jenis' => 'logam'],
-                ['slug' => 'lumbermill', 'jenis' => 'kayu'],
-                ['slug' => 'stonemason', 'jenis' => 'batu'],
-                ['slug' => 'tanner',     'jenis' => 'kulit'],
-                ['slug' => 'weaver',     'jenis' => 'serat'],
+                ['slug' => 'all-refining', 'jenis' => null], // All resources
+                ['slug' => 'smelter',      'jenis' => 'logam'],
+                ['slug' => 'lumbermill',   'jenis' => 'kayu'],
+                ['slug' => 'stonemason',   'jenis' => 'batu'],
+                ['slug' => 'tanner',       'jenis' => 'kulit'],
+                ['slug' => 'weaver',       'jenis' => 'serat'],
             ];
         @endphp
 
         @foreach ($stations as $station)
-            <a href="/kalkulator/refine?jenis={{ $station['jenis'] }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$station['slug'].'.jpg') }}');">
+            @php
+                $href = $station['jenis'] 
+                    ? "/kalkulator/refine?jenis={$station['jenis']}" 
+                    : "/kalkulator/refine";
+            @endphp
+            <a href="{{ $href }}" class="station-card" style="background-image:linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15)), url('{{ asset('images/'.$station['slug'].'.jpg') }}');">
                 <div class="station-body">
                     <div class="station-name">{{ __('home.stations.'.$station['slug'].'.name') }}</div>
                     <div class="station-desc">{{ __('home.stations.'.$station['slug'].'.desc') }}</div>
@@ -44,8 +50,13 @@
     <div class="station-grid">
         @foreach ($mainStations as $cs)
             @php
-                $hasImage = file_exists(public_path('images/'.$cs->slug.'.jpg'));
-                $bg = 'linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15))' . ($hasImage ? ", url('".asset('images/'.$cs->slug.'.jpg')."')" : '');
+                $imageFile = null;
+                if (file_exists(public_path('images/'.$cs->slug.'.jpg'))) {
+                    $imageFile = 'images/'.$cs->slug.'.jpg';
+                } elseif (file_exists(public_path('images/'.$cs->slug.'.svg'))) {
+                    $imageFile = 'images/'.$cs->slug.'.svg';
+                }
+                $bg = 'linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15))' . ($imageFile ? ", url('".asset($imageFile)."')" : '');
                 $name = \Illuminate\Support\Facades\Lang::has('home.crafting_stations.'.$cs->slug.'.name')
                     ? __('home.crafting_stations.'.$cs->slug.'.name')
                     : $cs->name;
@@ -73,8 +84,13 @@
         <div class="station-grid" id="extra-crafting-stations" hidden>
             @foreach ($extraStations as $cs)
                 @php
-                    $hasImage = file_exists(public_path('images/'.$cs->slug.'.jpg'));
-                    $bg = 'linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15))' . ($hasImage ? ", url('".asset('images/'.$cs->slug.'.jpg')."')" : '');
+                    $imageFile = null;
+                    if (file_exists(public_path('images/'.$cs->slug.'.jpg'))) {
+                        $imageFile = 'images/'.$cs->slug.'.jpg';
+                    } elseif (file_exists(public_path('images/'.$cs->slug.'.svg'))) {
+                        $imageFile = 'images/'.$cs->slug.'.svg';
+                    }
+                    $bg = 'linear-gradient(rgba(10,8,6,0.15),rgba(10,8,6,0.15))' . ($imageFile ? ", url('".asset($imageFile)."')" : '');
                     $name = \Illuminate\Support\Facades\Lang::has('home.crafting_stations.'.$cs->slug.'.name')
                         ? __('home.crafting_stations.'.$cs->slug.'.name')
                         : $cs->name;

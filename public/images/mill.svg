@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#8B7355"/>
+  
+  <!-- Mill building base -->
+  <rect x="70" y="120" width="60" height="60" fill="#5a4a3a" stroke="#3a2a1a" stroke-width="2"/>
+  
+  <!-- Mill roof -->
+  <path d="M 65 120 L 100 90 L 135 120 Z" fill="#7a5a4a" stroke="#3a2a1a" stroke-width="2"/>
+  
+  <!-- Windmill blades center -->
+  <circle cx="100" cy="90" r="8" fill="#3a2a1a"/>
+  
+  <!-- Blade 1 (top) -->
+  <path d="M 100 90 L 95 40 L 100 45 L 105 40 Z" fill="#d4a574" stroke="#3a2a1a" stroke-width="1.5"/>
+  
+  <!-- Blade 2 (right) -->
+  <path d="M 100 90 L 150 95 L 145 90 L 150 85 Z" fill="#c49564" stroke="#3a2a1a" stroke-width="1.5"/>
+  
+  <!-- Blade 3 (bottom) -->
+  <path d="M 100 90 L 105 140 L 100 135 L 95 140 Z" fill="#b48554" stroke="#3a2a1a" stroke-width="1.5"/>
+  
+  <!-- Blade 4 (left) -->
+  <path d="M 100 90 L 50 85 L 55 90 L 50 95 Z" fill="#d4a574" stroke="#3a2a1a" stroke-width="1.5"/>
+  
+  <!-- Door -->
+  <rect x="85" y="150" width="30" height="30" rx="2" fill="#3a2a1a"/>
+  
+  <!-- Windows -->
+  <rect x="75" y="130" width="15" height="15" fill="#ffd89a" opacity="0.7"/>
+  <rect x="110" y="130" width="15" height="15" fill="#ffd89a" opacity="0.7"/>
+  
+  <!-- Grain sacks -->
+  <ellipse cx="50" cy="165" rx="12" ry="15" fill="#d4c4a4" stroke="#3a2a1a" stroke-width="1"/>
+  <ellipse cx="150" cy="165" rx="12" ry="15" fill="#d4c4a4" stroke="#3a2a1a" stroke-width="1"/>
+</svg>

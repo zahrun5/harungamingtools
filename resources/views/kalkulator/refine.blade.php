@@ -257,10 +257,13 @@ const TIER_ORDER = ['T2','T3','T4','T5','T6','T7','T8'];
 const TIER_COL   = {T2:'#aaa',T3:'#6b8',T4:'#68f',T5:'#c8f',T6:'#fa8',T7:'#f64',T8:'#ff0'};
 const ENC_COL    = ['#888','#4a9','#48f','#a5f','#fa0'];
 
-function buildItems() {
+function buildItems(jenisFilter = null) {
   const its = [];
   function api(base, enc) { return enc===0 ? base : `${base}_LEVEL${enc}@${enc}`; }
   function add(jenis, rawBase, rawName, hasilBase, hasilName, maxRaw, maxHasil) {
+    // Skip jika ada filter dan tidak match
+    if (jenisFilter && jenisFilter !== jenis) return;
+    
     const TIERS = ['T2','T3','T4','T5','T6','T7','T8'];
     const rN = i => LOC_NAMES[rawBase[i]]   || rawName[i];
     const hN = i => LOC_NAMES[hasilBase[i]] || hasilName[i];
@@ -305,10 +308,11 @@ function buildItems() {
     3, 0); // batu hasil selalu enc 0
   return its;
 }
-const ITEMS = buildItems();
 
 // Jenis material yang dibawa dari homepage (klik card station), kalau ada
 const urlJenis = @json(request('jenis'));
+
+const ITEMS = buildItems(urlJenis);
 
 const JENIS_META = {
   logam: {label:t('material_tree.logam.label'), emoji:'⚙️'},
@@ -318,14 +322,6 @@ const JENIS_META = {
   batu:  {label:t('material_tree.batu.label'),  emoji:'🪨'},
 };
 const SIMPLE_TIERS = ['T2','T3','T4','T5','T6','T7','T8'];
-
-// ===================== ADVANCE: FILTER OTOMATIS DARI HOMEPAGE =====================
-function applyUrlJenisAdvance() {
-  if (!urlJenis || !JENIS_META[urlJenis]) return;
-  fJenis = urlJenis; fTipe = null;
-  buildMatCol2(); updateMatLabel();
-  filterItems();
-}
 
 // ===================== STATE =====================
 let inventory  = [];   // [{item, qty, harga}]
@@ -440,11 +436,19 @@ function makeItem(text, hasArrow, isActive, onClick) {
 function buildMatCol1() {
   const col = document.getElementById('colMat1');
   col.innerHTML = '';
-  col.appendChild(makeItem(t('filter.all'), false, !fJenis, () => {
-    fJenis = null; fTipe = null;
-    buildMatCol2(); updateMatLabel(); closeDrop(); filterItems();
-  }));
-  MATERIAL_TREE.forEach(j => {
+  
+  // Jika urlJenis ada (dari homepage), filter hanya jenis tersebut
+  const availableJenis = urlJenis ? MATERIAL_TREE.filter(j => j.id === urlJenis) : MATERIAL_TREE;
+  
+  // Tombol "All" hanya muncul kalau tidak ada urlJenis
+  if (!urlJenis) {
+    col.appendChild(makeItem(t('filter.all'), false, !fJenis, () => {
+      fJenis = null; fTipe = null;
+      buildMatCol2(); updateMatLabel(); closeDrop(); filterItems();
+    }));
+  }
+  
+  availableJenis.forEach(j => {
     col.appendChild(makeItem(j.emoji + ' ' + j.label, true, fJenis === j.id, () => {
       fJenis = j.id; fTipe = null;
       buildMatCol2(); updateMatLabel(); filterItems();
@@ -527,7 +531,7 @@ function filterStorageKeyRefine() { return 'ct_refine_filter'; }
 function saveFilterStateRefine() {
   try {
     localStorage.setItem(filterStorageKeyRefine(), JSON.stringify({
-      fJenis, fTipe, fTier, fEnc, fKota, fSearch
+      fJenis, fTipe, fTier, fEnc, fKota, fSearch, urlJenis
     }));
   } catch (e) {}
 }
@@ -538,6 +542,18 @@ function restoreFilterStateRefine() {
     if (!raw) return;
     const s = JSON.parse(raw);
     if (!s) return;
+    
+    // Jika urlJenis berbeda dari yang tersimpan, reset filter (kecuali tier, enc, kota, search)
+    if (urlJenis !== s.urlJenis) {
+      // Reset hanya fJenis dan fTipe, tapi keep tier, enc, kota, search
+      fTier   = s.fTier   ?? null;
+      fEnc    = (typeof s.fEnc === 'number') ? s.fEnc : null;
+      fKota   = s.fKota   || 'Caerleon';
+      fSearch = s.fSearch || '';
+      return;
+    }
+    
+    // Restore semua filter jika urlJenis sama
     fJenis  = s.fJenis  ?? null;
     fTipe   = s.fTipe   ?? null;
     fTier   = s.fTier   ?? null;
@@ -550,9 +566,13 @@ function restoreFilterStateRefine() {
 // ===================== FILTER & RENDER LIST =====================
 function filterItems() {
   saveFilterStateRefine(); // Bug fix: filter jangan reset tiap refresh
-  const jenis = fJenis || '';
+  
+  // PENTING: Jika urlJenis ada, ITEMS sudah difilter di buildItems(), 
+  // jadi kita SKIP filter jenis di sini untuk menghindari double filtering
+  const jenis = urlJenis ? '' : (fJenis || '');
   const tipe  = fTipe  || '';
   const tier  = fTier  || '';
+  
   let filtered = ITEMS.filter(it => {
     if (it.tipe==='hasil' && it.tier==='T8') return false;
     if (jenis && it.jenis!==jenis) return false;
@@ -561,6 +581,7 @@ function filterItems() {
     if (fEnc!==null && it.enc!==fEnc) return false;
     return true;
   });
+  
   if (fSearch) {
     const q = fSearch.toLowerCase();
     filtered = filtered.filter(it => it.name.toLowerCase().includes(q));
@@ -1103,24 +1124,48 @@ async function catatAktivitas() {
 }
 
 // ===================== INIT =====================
-restoreFilterStateRefine(); // Bug fix: pulihkan filter (material/tier/enchant/kota/search) sebelum build dropdown
-buildMatCol1();
-buildMatCol2();
-buildTierDropRefine();
-buildEncDropRefine();
-buildKotaDropRefine();
-updateMatLabel();
-if (fTier)          setFilterVal('lblTier', 'valTier', fTier);
-  if (fEnc !== null)  setFilterVal('lblEnc', 'valEnc', t('filter.enchant_option', {n: fEnc}));
-setFilterVal('lblKota', 'valKota', fKota);
-if (fSearch)        document.getElementById('searchInputRefine').value = fSearch;
-filterItems();
-loadRefineInventory(); // pulihkan inventory + modal dari sesi sebelumnya (kalau ada)
-renderInventory();
-renderRefineBtns();
-renderRefineResultPanel(); // tampilkan Modal preview langsung, gak nunggu fetch harga kelar
-onKotaChange();
-applyUrlJenisAdvance();
+try {
+  console.log('Starting initialization...');
+  console.log('urlJenis:', urlJenis);
+  console.log('ITEMS count:', ITEMS.length);
+  
+  restoreFilterStateRefine(); // Bug fix: pulihkan filter (material/tier/enchant/kota/search) sebelum build dropdown
+
+  // Jika urlJenis ada, override fJenis dari localStorage (URL parameter lebih prioritas)
+  if (urlJenis) {
+    fJenis = urlJenis;
+  }
+
+  console.log('Building dropdowns...');
+  buildMatCol1();
+  buildMatCol2();
+  buildTierDropRefine();
+  buildEncDropRefine();
+  buildKotaDropRefine();
+  updateMatLabel();
+  if (fTier)         setFilterVal('lblTier', 'valTier', fTier);
+  if (fEnc !== null) setFilterVal('lblEnc', 'valEnc', t('filter.enchant_option', {n: fEnc}));
+  setFilterVal('lblKota', 'valKota', fKota);
+  if (fSearch)       document.getElementById('searchInputRefine').value = fSearch;
+  
+  console.log('Calling filterItems...');
+  filterItems();
+  
+  console.log('Loading inventory...');
+  loadRefineInventory(); // pulihkan inventory + modal dari sesi sebelumnya (kalau ada)
+  renderInventory();
+  renderRefineBtns();
+  renderRefineResultPanel(); // tampilkan Modal preview langsung, gak nunggu fetch harga kelar
+  
+  console.log('Fetching prices...');
+  onKotaChange();
+  
+  console.log('Initialization complete!');
+} catch (error) {
+  console.error('Initialization error:', error);
+  alert('Error: ' + error.message);
+  document.getElementById('itemList').innerHTML = '<div class="empty-inv">Error: ' + error.message + '</div>';
+}
 
 </script>
 
