@@ -175,6 +175,395 @@
   </div>
 </div>
 
+{{-- TUTORIAL MODAL --}}
+<div class="tutorial-overlay" id="tutorialOverlay" style="display:none">
+  <div class="tutorial-modal">
+    <button class="tutorial-close" onclick="closeTutorial()">&times;</button>
+    
+    <div class="tutorial-step" id="tutorialStep1">
+      <div class="tutorial-icon">🎓</div>
+      <h2 class="tutorial-title">{{ __('refine.tutorial.step1.title') }}</h2>
+      <p class="tutorial-text">{{ __('refine.tutorial.step1.text') }}</p>
+      <div class="tutorial-visual">
+        <div class="tutorial-demo-filters">
+          <div class="demo-filter">⚙️ {{ __('refine.filter.material') }}</div>
+          <div class="demo-filter">🎯 {{ __('refine.filter.tier') }}</div>
+          <div class="demo-filter">✨ {{ __('refine.filter.enchant') }}</div>
+        </div>
+      </div>
+      <div class="tutorial-progress">1 / 5</div>
+      <button class="tutorial-btn" onclick="nextTutorialStep(2)">{{ __('refine.tutorial.next') }}</button>
+    </div>
+
+    <div class="tutorial-step" id="tutorialStep2" style="display:none">
+      <div class="tutorial-icon">📦</div>
+      <h2 class="tutorial-title">{{ __('refine.tutorial.step2.title') }}</h2>
+      <p class="tutorial-text">{{ __('refine.tutorial.step2.text') }}</p>
+      <div class="tutorial-visual">
+        <div class="tutorial-demo-item">
+          <div class="demo-item-icon">🪨</div>
+          <div class="demo-item-info">
+            <div class="demo-item-name">T4 Rough Stone</div>
+            <div class="demo-item-price">💰 1,250</div>
+          </div>
+          <div class="demo-item-btn">+</div>
+        </div>
+      </div>
+      <div class="tutorial-progress">2 / 5</div>
+      <div class="tutorial-nav">
+        <button class="tutorial-btn-secondary" onclick="nextTutorialStep(1)">{{ __('refine.tutorial.back') }}</button>
+        <button class="tutorial-btn" onclick="nextTutorialStep(3)">{{ __('refine.tutorial.next') }}</button>
+      </div>
+    </div>
+
+    <div class="tutorial-step" id="tutorialStep3" style="display:none">
+      <div class="tutorial-icon">♻️</div>
+      <h2 class="tutorial-title">{{ __('refine.tutorial.step3.title') }}</h2>
+      <p class="tutorial-text">{{ __('refine.tutorial.step3.text') }}</p>
+      <div class="tutorial-visual">
+        <div class="tutorial-demo-return">
+          <label>♻️ {{ __('refine.return_label') }}</label>
+          <input type="text" value="36.7" readonly>
+          <span>%</span>
+        </div>
+      </div>
+      <div class="tutorial-progress">3 / 5</div>
+      <div class="tutorial-nav">
+        <button class="tutorial-btn-secondary" onclick="nextTutorialStep(2)">{{ __('refine.tutorial.back') }}</button>
+        <button class="tutorial-btn" onclick="nextTutorialStep(4)">{{ __('refine.tutorial.next') }}</button>
+      </div>
+    </div>
+
+    <div class="tutorial-step" id="tutorialStep4" style="display:none">
+      <div class="tutorial-icon">⚒️</div>
+      <h2 class="tutorial-title">{{ __('refine.tutorial.step4.title') }}</h2>
+      <p class="tutorial-text">{{ __('refine.tutorial.step4.text') }}</p>
+      <div class="tutorial-visual">
+        <div class="tutorial-demo-refine">
+          <div class="demo-refine-btn">🪨 → 🧱 Refine x100</div>
+        </div>
+      </div>
+      <div class="tutorial-progress">4 / 5</div>
+      <div class="tutorial-nav">
+        <button class="tutorial-btn-secondary" onclick="nextTutorialStep(3)">{{ __('refine.tutorial.back') }}</button>
+        <button class="tutorial-btn" onclick="nextTutorialStep(5)">{{ __('refine.tutorial.next') }}</button>
+      </div>
+    </div>
+
+    <div class="tutorial-step" id="tutorialStep5" style="display:none">
+      <div class="tutorial-icon">💰</div>
+      <h2 class="tutorial-title">{{ __('refine.tutorial.step5.title') }}</h2>
+      <p class="tutorial-text">{{ __('refine.tutorial.step5.text') }}</p>
+      <div class="tutorial-visual">
+        <div class="tutorial-demo-profit">
+          <div class="demo-profit-row">
+            <span>{{ __('refine.total_profit') }}:</span>
+            <span class="demo-profit-value positive">+125,000</span>
+          </div>
+        </div>
+      </div>
+      <div class="tutorial-progress">5 / 5</div>
+      <div class="tutorial-nav">
+        <button class="tutorial-btn-secondary" onclick="nextTutorialStep(4)">{{ __('refine.tutorial.back') }}</button>
+        <button class="tutorial-btn tutorial-btn-primary" onclick="closeTutorial()">{{ __('refine.tutorial.start') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 8, 6, 0.95);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.tutorial-modal {
+  background: linear-gradient(180deg, #e8cf88 0%, #d4b468 100%);
+  border: 3px solid #8b6820;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  padding: 40px 32px;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  font-family: 'Crimson Text', serif;
+}
+
+.tutorial-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+  color: #2a1800;
+  font-size: 24px;
+  font-weight: bold;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tutorial-close:hover {
+  background: linear-gradient(180deg, #b88a28 0%, #906818 100%);
+  transform: rotate(90deg);
+}
+
+.tutorial-step {
+  text-align: center;
+}
+
+.tutorial-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.tutorial-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.8rem;
+  color: #2a1800;
+  margin: 0 0 16px 0;
+  font-weight: 700;
+}
+
+.tutorial-text {
+  font-size: 1.15rem;
+  color: #3d2e15;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.tutorial-visual {
+  background: rgba(42, 24, 0, 0.1);
+  border: 2px solid #6b4f1a;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.tutorial-demo-filters {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.demo-filter {
+  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+  border: 1px solid #8b6820;
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: #2a1800;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.tutorial-demo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(226, 207, 136, 0.3);
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #8b6820;
+}
+
+.demo-item-icon {
+  font-size: 2.5rem;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(42, 24, 0, 0.2);
+  border-radius: 4px;
+}
+
+.demo-item-info {
+  flex: 1;
+  text-align: left;
+}
+
+.demo-item-name {
+  font-weight: 600;
+  color: #2a1800;
+  font-size: 1.1rem;
+}
+
+.demo-item-price {
+  color: #3d2e15;
+  font-size: 0.95rem;
+}
+
+.demo-item-btn {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #2a1800;
+  font-weight: bold;
+}
+
+.tutorial-demo-return {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  color: #2a1800;
+}
+
+.tutorial-demo-return input {
+  width: 80px;
+  padding: 8px;
+  border: 1px solid #8b6820;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.5);
+  color: #2a1800;
+}
+
+.tutorial-demo-refine {
+  display: flex;
+  justify-content: center;
+}
+
+.demo-refine-btn {
+  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+  border: 2px solid #8b6820;
+  padding: 12px 24px;
+  border-radius: 6px;
+  color: #2a1800;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.tutorial-demo-profit {
+  padding: 12px;
+}
+
+.demo-profit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  color: #2a1800;
+  font-weight: 600;
+}
+
+.demo-profit-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.demo-profit-value.positive {
+  color: #2d7a3e;
+}
+
+.tutorial-progress {
+  font-size: 0.9rem;
+  color: #6b4f1a;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.tutorial-nav {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.tutorial-btn,
+.tutorial-btn-secondary {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Cinzel', serif;
+}
+
+.tutorial-btn {
+  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+  color: #2a1800;
+  border: 2px solid #8b6820;
+}
+
+.tutorial-btn:hover {
+  background: linear-gradient(180deg, #b88a28 0%, #906818 100%);
+  transform: translateY(-2px);
+}
+
+.tutorial-btn-primary {
+  background: linear-gradient(180deg, #5fb3a8 0%, #4a8f86 100%);
+  color: #fff;
+}
+
+.tutorial-btn-primary:hover {
+  background: linear-gradient(180deg, #4a8f86 0%, #3d7a72 100%);
+}
+
+.tutorial-btn-secondary {
+  background: transparent;
+  color: #6b4f1a;
+  border: 2px solid #6b4f1a;
+}
+
+.tutorial-btn-secondary:hover {
+  background: rgba(107, 79, 26, 0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .tutorial-modal {
+    padding: 32px 24px;
+  }
+
+  .tutorial-icon {
+    font-size: 3rem;
+  }
+
+  .tutorial-title {
+    font-size: 1.4rem;
+  }
+
+  .tutorial-text {
+    font-size: 1rem;
+  }
+
+  .tutorial-demo-filters {
+    flex-direction: column;
+  }
+
+  .tutorial-nav {
+    flex-direction: column;
+  }
+
+  .tutorial-btn,
+  .tutorial-btn-secondary {
+    width: 100%;
+  }
+}
+</style>
+
 {{-- POPUP TAMBAH / EDIT ITEM --}}
 <div class="rw">
   <div class="overlay" id="overlayItem" onclick="closeOverlayOutside(event,'overlayItem')">
@@ -1172,6 +1561,51 @@ try {
   alert('Error: ' + error.message);
   document.getElementById('itemList').innerHTML = '<div class="empty-inv">Error: ' + error.message + '</div>';
 }
+
+// Tutorial Modal Functions
+function showTutorial() {
+  document.getElementById('tutorialOverlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTutorial() {
+  document.getElementById('tutorialOverlay').style.display = 'none';
+  document.body.style.overflow = 'auto';
+  localStorage.setItem('hgt_refine_tutorial_completed', 'true');
+}
+
+function nextTutorialStep(stepNumber) {
+  // Hide all steps
+  for (let i = 1; i <= 5; i++) {
+    const step = document.getElementById('tutorialStep' + i);
+    if (step) step.style.display = 'none';
+  }
+  // Show target step
+  const targetStep = document.getElementById('tutorialStep' + stepNumber);
+  if (targetStep) targetStep.style.display = 'block';
+}
+
+// Check if tutorial should be shown (first visit)
+window.addEventListener('load', function() {
+  const tutorialCompleted = localStorage.getItem('hgt_refine_tutorial_completed');
+  if (!tutorialCompleted) {
+    // Show tutorial after 1 second delay
+    setTimeout(showTutorial, 1000);
+  }
+});
+
+// Add help button to reopen tutorial
+document.addEventListener('DOMContentLoaded', function() {
+  const panelHeader = document.querySelector('.ph');
+  if (panelHeader) {
+    const helpBtn = document.createElement('button');
+    helpBtn.className = 'help-tutorial-btn';
+    helpBtn.innerHTML = '❓';
+    helpBtn.title = '{{ __("refine.tutorial.help_button") }}';
+    helpBtn.onclick = showTutorial;
+    panelHeader.appendChild(helpBtn);
+  }
+});
 
 </script>
 

@@ -58,4 +58,31 @@ return [
 
     'reset_confirm' => 'Reset everything? Inventory and refine data will be deleted.',
     'reset_done' => 'Reset done',
+
+    'tutorial' => [
+        'help_button' => 'Help Guide',
+        'next' => 'Next',
+        'back' => 'Back',
+        'start' => 'Start Calculating!',
+        'step1' => [
+            'title' => 'Welcome to Refining Calculator!',
+            'text' => 'Use filters to select material type, tier, and enchantment you want to refine.',
+        ],
+        'step2' => [
+            'title' => 'Add Items to Inventory',
+            'text' => 'Click items from the list to add to inventory. Enter the price and quantity of raw materials you have.',
+        ],
+        'step3' => [
+            'title' => 'Set Return Rate',
+            'text' => 'Enter the return rate from your refining station. Standard: 15.2% (no bonus), Max: 53.9% (max bonus + premium).',
+        ],
+        'step4' => [
+            'title' => 'Click Refine Button',
+            'text' => 'Choose available refine combinations. Calculator will compute how much material is needed.',
+        ],
+        'step5' => [
+            'title' => 'See Your Profit!',
+            'text' => 'Calculator will show capital, result value, tax, and total profit. Green = profit, red = loss.',
+        ],
+    ],
 ];

@@ -26,6 +26,10 @@
 .rw .api-status.ok { color:#6b8; }
 .rw .api-status.err { color:#f86; }
 
+/* HELP TUTORIAL BUTTON */
+.rw .help-tutorial-btn { width:28px; height:28px; background:linear-gradient(180deg,#c8a84a,#a07828); border:1px solid #8b6820; border-radius:50%; color:#2a1800; font-size:14px; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; margin-left:8px; }
+.rw .help-tutorial-btn:hover { background:linear-gradient(180deg,#dabb5a,#b88838); transform:scale(1.1); }
+
 /* HEADER SEARCH (ala Market) */
 .rw .header-search { margin-left:auto; background:linear-gradient(180deg,#1a1208,#110e05); border:1px solid var(--sbd); border-radius:3px; color:var(--lt); font-family:'Crimson Text',serif; font-size:13px; padding:6px 10px; outline:none; transition:border-color .15s; width:170px; }
 .rw .header-search:focus { border-color:var(--gold-dk); }

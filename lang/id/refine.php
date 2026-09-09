@@ -58,4 +58,31 @@ return [
 
     'reset_confirm' => 'Reset semua? Inventory dan data refine akan dihapus.',
     'reset_done' => 'Reset selesai',
+
+    'tutorial' => [
+        'help_button' => 'Panduan',
+        'next' => 'Lanjut',
+        'back' => 'Kembali',
+        'start' => 'Mulai Hitung!',
+        'step1' => [
+            'title' => 'Selamat Datang di Refining Calculator!',
+            'text' => 'Gunakan filter untuk memilih jenis material, tier, dan enchantment yang ingin kamu refine.',
+        ],
+        'step2' => [
+            'title' => 'Tambahkan Item ke Inventory',
+            'text' => 'Klik item dari daftar untuk menambahkan ke inventory. Masukkan harga dan jumlah bahan mentah yang kamu punya.',
+        ],
+        'step3' => [
+            'title' => 'Atur Return Rate',
+            'text' => 'Masukkan return rate dari stasiun refining kamu. Standar: 15.2% (no bonus), Max: 53.9% (max bonus + premium).',
+        ],
+        'step4' => [
+            'title' => 'Klik Tombol Refine',
+            'text' => 'Pilih kombinasi refine yang tersedia. Calculator akan menghitung berapa banyak bahan yang dibutuhkan.',
+        ],
+        'step5' => [
+            'title' => 'Lihat Profit Kamu!',
+            'text' => 'Calculator akan menunjukkan modal, nilai hasil, pajak, dan total profit. Warna hijau = untung, merah = rugi.',
+        ],
+    ],
 ];
