@@ -2,6 +2,12 @@
 
 @section('title', __('flip.title'))
 
+@section('meta_description', 'Find best market flipping opportunities in Albion Online. Automated scanner for buy low, sell high opportunities across all cities. Real-time profit calculations with tax calculator.')
+
+@section('meta_keywords', 'albion flip calculator, market flipping, trade opportunities albion, buy sell profit, flipping guide, market arbitrage')
+
+@section('og_description', 'Albion Online Flip Calculator: Automated opportunity scanner, city route optimizer, profit % calculator. Find profitable items to flip between cities.')
+
 @section('content')
 <style>
   .flip-wrap{

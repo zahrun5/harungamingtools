@@ -7,6 +7,13 @@
         : ($stationName ?? ucwords(str_replace('-', ' ', $station)));
 @endphp
 @section('title', $stationName . ' — Albion Online Tools')
+
+@section('meta_description', 'Calculate crafting costs and profit for ' . $stationName . ' items in Albion Online. Real-time material prices, recipe viewer, quality system, resource calculator.')
+
+@section('meta_keywords', 'albion crafting calculator, ' . strtolower($stationName) . ', crafting profit albion, recipe calculator, crafting cost')
+
+@section('og_description', 'Albion Online ' . $stationName . ' Calculator: Calculate crafting costs, material requirements, profit margins. Real-time prices from Albion Data API.')
+
 @section('content')
 @vite(['resources/css/kalkulator/crafting-mage-tower.css'])
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">

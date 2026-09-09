@@ -2,6 +2,12 @@
 
 @section('title', 'Reels — Albion Online Tools')
 
+@section('meta_description', 'Watch Albion Online gaming videos and shorts. Tips, tricks, PvP highlights, gathering guides. Vertical video feed optimized for mobile.')
+
+@section('meta_keywords', 'albion online videos, albion shorts, gaming videos, albion tips, pvp highlights, albion reels')
+
+@section('og_description', 'Albion Online Reels: Short gaming videos, tips & tricks, PvP content. TikTok-style vertical feed for mobile gamers.')
+
 @section('content')
 <div class="reels-feed" id="reels-feed">
     <div class="reel-player-overlay" id="reel-player-overlay"></div>

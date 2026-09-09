@@ -2,6 +2,12 @@
 
 @section('title', __('home.title'))
 
+@section('meta_description', 'Free Albion Online calculators and tools. Calculate refining profit, browse real-time market prices, find flip opportunities, plan crafting costs. Trusted by 1000+ players worldwide.')
+
+@section('meta_keywords', 'albion online calculator, refining profit calculator, market prices albion, crafting calculator, flip calculator, albion tools, albion data, free tools')
+
+@section('og_description', 'Free Albion Online tools: Refining calculator, market browser, flip scanner, crafting planner. Real-time prices from Albion Data API. 7 languages, 3 server regions.')
+
 @section('content')
     <h1>{{ __('home.welcome_title') }}</h1>
     <p>{{ __('home.welcome_sub') }}</p>

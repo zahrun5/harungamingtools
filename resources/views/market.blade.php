@@ -1,5 +1,13 @@
 @extends('layouts.app')
+
 @section('title', __('market.title'))
+
+@section('meta_description', 'Browse Albion Online market prices across all cities. Real-time price data, price history charts, crafting recipes, item comparison. Updated via Albion Data API.')
+
+@section('meta_keywords', 'albion market prices, price history, item prices albion, market data, albion online data, price tracker, market browser')
+
+@section('og_description', 'Albion Online Market Browser: Real-time prices from 7 cities, price history charts (1D/7D/30D), crafting recipes, quality comparison. Free market data tool.')
+
 @section('content')
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>

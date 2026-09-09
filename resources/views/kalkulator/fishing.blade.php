@@ -2,6 +2,12 @@
 
 @section('title', __('fishing.title'))
 
+@section('meta_description', 'Decide whether to sell fish whole or mince to chops in Albion Online. Compare prices for all fish tiers (T1-T8) and rare fish. Real-time market prices from all cities.')
+
+@section('meta_keywords', 'albion fishing calculator, fish prices, mince fish albion, fishing profit, fish vs chops, fishing guide')
+
+@section('og_description', 'Albion Online Fishing Calculator: Compare sell whole vs mince to chops profit. All fish types T1-T8, real-time prices, visual inventory tracker.')
+
 @section('content')
 @php
     // Nama ikan + hasil cincang terlokalisasi dari item_localizations (fallback EN-US,

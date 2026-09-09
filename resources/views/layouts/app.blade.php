@@ -8,6 +8,25 @@
 <meta charset="UTF-8">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="@yield('meta_description', 'Free Albion Online calculators and tools. Real-time market prices, refining calculator, crafting planner, flip scanner. Trusted by 1000+ players.')">
+<meta name="keywords" content="@yield('meta_keywords', 'albion online calculator, market prices, refining calculator, crafting calculator, flip calculator, albion tools')">
+<link rel="canonical" href="{{ url()->current() }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ url()->current() }}">
+<meta property="og:title" content="@yield('title', 'Albion Online Tools — Hitung, Catat, Naik Peringkat')">
+<meta property="og:description" content="@yield('og_description', 'Free Albion Online calculators: refining profit, market prices, crafting costs, flip opportunities. Real-time data, 7 languages.')">
+<meta property="og:image" content="@yield('og_image', asset('images/og-default.jpg'))">
+<meta property="og:site_name" content="HGT - Harun Gaming Tools">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="{{ url()->current() }}">
+<meta name="twitter:title" content="@yield('title', 'Albion Online Tools — Hitung, Catat, Naik Peringkat')">
+<meta name="twitter:description" content="@yield('og_description', 'Free Albion Online calculators: refining profit, market prices, crafting costs, flip opportunities. Real-time data, 7 languages.')">
+<meta name="twitter:image" content="@yield('og_image', asset('images/og-default.jpg'))">
+
 <link rel="icon" type="image/png" href="{{ asset('images/icons/page-icon.png') }}">
 @if(config('services.analytics.google_analytics_id') && app()->environment('production'))
 <!-- Google tag (gtag.js) -->
