@@ -22,6 +22,33 @@ return [
         ],
     ],
 
+    'featured' => [
+        'title' => 'Tools Terpopuler',
+        'subtitle' => 'Mulai dengan tools yang paling sering digunakan pemain Albion',
+        'tools' => [
+            'refining' => [
+                'name' => 'Kalkulator Refining',
+                'desc' => 'Hitung profit refining resource mentah jadi material siap pakai',
+                'badge' => 'Paling Populer',
+            ],
+            'market' => [
+                'name' => 'Cek Harga Market',
+                'desc' => 'Bandingkan harga item real-time di semua kota Albion',
+                'badge' => 'Real-Time',
+            ],
+            'flip' => [
+                'name' => 'Kalkulator Flipping',
+                'desc' => 'Temukan peluang profit dengan beli murah jual mahal',
+                'badge' => 'Cuan',
+            ],
+            'crafting' => [
+                'name' => 'Kalkulator Crafting',
+                'desc' => 'Hitung biaya craft equipment dan prediksi profit margin',
+                'badge' => 'Lengkap',
+            ],
+        ],
+    ],
+
     'sections' => [
         'refine'   => ['title' => '⚒️ Stasiun Refine', 'sub' => 'Pilih stasiun sesuai jenis resource yang mau kamu olah.'],
         'crafting' => ['title' => '🛠️ Crafting Station', 'sub' => 'Cari tahu berapa biaya craft equipment favoritmu.'],

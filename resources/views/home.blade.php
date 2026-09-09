@@ -249,8 +249,195 @@
         }
     </style>
 
+    {{-- ===== FEATURED TOOLS SECTION ===== --}}
+    <div id="tools" class="featured-tools-section">
+        <h2 class="featured-tools-title">{{ __('home.featured.title') }}</h2>
+        <p class="featured-tools-subtitle">{{ __('home.featured.subtitle') }}</p>
+        
+        <div class="featured-tools-grid">
+            {{-- Refining Calculator --}}
+            <a href="/kalkulator/refine" class="featured-tool-card">
+                <div class="featured-tool-icon">⚒️</div>
+                <div class="featured-tool-content">
+                    <h3 class="featured-tool-name">{{ __('home.featured.tools.refining.name') }}</h3>
+                    <p class="featured-tool-desc">{{ __('home.featured.tools.refining.desc') }}</p>
+                    <div class="featured-tool-badge">{{ __('home.featured.tools.refining.badge') }}</div>
+                </div>
+            </a>
+
+            {{-- Market Browser --}}
+            <a href="/market" class="featured-tool-card">
+                <div class="featured-tool-icon">📊</div>
+                <div class="featured-tool-content">
+                    <h3 class="featured-tool-name">{{ __('home.featured.tools.market.name') }}</h3>
+                    <p class="featured-tool-desc">{{ __('home.featured.tools.market.desc') }}</p>
+                    <div class="featured-tool-badge">{{ __('home.featured.tools.market.badge') }}</div>
+                </div>
+            </a>
+
+            {{-- Flip Calculator --}}
+            <a href="/kalkulator/flip" class="featured-tool-card">
+                <div class="featured-tool-icon">💰</div>
+                <div class="featured-tool-content">
+                    <h3 class="featured-tool-name">{{ __('home.featured.tools.flip.name') }}</h3>
+                    <p class="featured-tool-desc">{{ __('home.featured.tools.flip.desc') }}</p>
+                    <div class="featured-tool-badge">{{ __('home.featured.tools.flip.badge') }}</div>
+                </div>
+            </a>
+
+            {{-- Crafting Calculator --}}
+            <a href="/crafting/mage-tower" class="featured-tool-card">
+                <div class="featured-tool-icon">🛠️</div>
+                <div class="featured-tool-content">
+                    <h3 class="featured-tool-name">{{ __('home.featured.tools.crafting.name') }}</h3>
+                    <p class="featured-tool-desc">{{ __('home.featured.tools.crafting.desc') }}</p>
+                    <div class="featured-tool-badge">{{ __('home.featured.tools.crafting.badge') }}</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <style>
+        .featured-tools-section {
+            margin: 48px 0;
+            text-align: center;
+        }
+
+        .featured-tools-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin: 0 0 12px 0;
+        }
+
+        .featured-tools-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin: 0 0 32px 0;
+        }
+
+        .featured-tools-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            text-align: left;
+        }
+
+        .featured-tool-card {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+            text-decoration: none;
+        }
+
+        .featured-tool-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold);
+            box-shadow: 0 4px 16px rgba(217, 166, 83, 0.15);
+        }
+
+        .featured-tool-icon {
+            flex-shrink: 0;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background: linear-gradient(135deg, rgba(217, 166, 83, 0.1) 0%, rgba(217, 166, 83, 0.05) 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .featured-tool-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .featured-tool-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .featured-tool-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .featured-tool-badge {
+            display: inline-block;
+            align-self: flex-start;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gold);
+            background: rgba(217, 166, 83, 0.1);
+            border: 1px solid rgba(217, 166, 83, 0.3);
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (min-width: 640px) {
+            .featured-tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 960px) {
+            .featured-tools-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 639px) {
+            .featured-tools-section {
+                margin: 32px 0;
+            }
+
+            .featured-tools-title {
+                font-size: 1.5rem;
+            }
+
+            .featured-tools-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .featured-tool-card {
+                padding: 16px;
+            }
+
+            .featured-tool-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+
+            .featured-tool-name {
+                font-size: 1rem;
+            }
+
+            .featured-tool-desc {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+
     {{-- ===== STASIUN REFINE ===== --}}
-    <div id="tools"></div>
     <h2 class="section-title">{{ __('home.sections.refine.title') }}</h2>
     <p class="section-sub">{{ __('home.sections.refine.sub') }}</p>
 

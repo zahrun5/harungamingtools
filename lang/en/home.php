@@ -22,6 +22,33 @@ return [
         ],
     ],
 
+    'featured' => [
+        'title' => 'Popular Tools',
+        'subtitle' => 'Start with the most used tools by Albion players',
+        'tools' => [
+            'refining' => [
+                'name' => 'Refining Calculator',
+                'desc' => 'Calculate profit from refining raw resources into materials',
+                'badge' => 'Most Popular',
+            ],
+            'market' => [
+                'name' => 'Market Price Check',
+                'desc' => 'Compare real-time item prices across all Albion cities',
+                'badge' => 'Real-Time',
+            ],
+            'flip' => [
+                'name' => 'Flipping Calculator',
+                'desc' => 'Find profit opportunities by buying low and selling high',
+                'badge' => 'Profit',
+            ],
+            'crafting' => [
+                'name' => 'Crafting Calculator',
+                'desc' => 'Calculate equipment crafting costs and profit margins',
+                'badge' => 'Complete',
+            ],
+        ],
+    ],
+
     'sections' => [
         'refine'   => ['title' => '⚒️ Refining Stations', 'sub' => 'Pick a station based on the resource type you want to refine.'],
         'crafting' => ['title' => '🛠️ Crafting Station', 'sub' => 'Find out how much it costs to craft your favorite equipment.'],
