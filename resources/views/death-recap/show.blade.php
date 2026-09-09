@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', __('death.title'))
 
 @section('content')
 @php
@@ -42,12 +43,12 @@
 
 <div style="max-width:900px;margin:0 auto;padding:20px;">
 
-    <a href="javascript:history.back()" style="color:#4f7cff;font-size:14px;text-decoration:none;">&larr; Kembali</a>
+    <a href="javascript:history.back()" style="color:#4f7cff;font-size:14px;text-decoration:none;">&larr; {{ __('death.event_detail.back') }}</a>
 
     <div style="text-align:center;margin:20px 0;">
         <div style="color:#fff;font-size:22px;">
             <span style="font-weight:700;">{{ $killer['Name'] }}</span>
-            <span style="color:#e74c3c;font-style:italic;"> killed </span>
+            <span style="color:#e74c3c;font-style:italic;"> {{ __('death.event_detail.killed') }} </span>
             <span style="font-weight:700;">{{ $victim['Name'] }}</span>
         </div>
         <div style="color:#888;font-size:13px;margin-top:4px;">
@@ -114,7 +115,7 @@
     {{-- INVENTORY VICTIM --}}
     @if (!empty($victim['Inventory']) && count(array_filter($victim['Inventory'])) > 0)
         <div style="margin-top:24px;">
-            <div style="color:#fff;font-weight:700;margin-bottom:10px;">Inventory {{ $victim['Name'] }}</div>
+            <div style="color:#fff;font-weight:700;margin-bottom:10px;">{{ __('death.event_detail.inventory', ['name' => $victim['Name']]) }}</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
                 @foreach ($victim['Inventory'] as $item)
                     @if ($item)
@@ -133,12 +134,12 @@
     {{-- PARTICIPANTS (kill grup) --}}
     @if (count($participants) > 0)
         <div style="margin-top:24px;">
-            <div style="color:#fff;font-weight:700;margin-bottom:10px;">Participants</div>
+            <div style="color:#fff;font-weight:700;margin-bottom:10px;">{{ __('death.event_detail.participants') }}</div>
             <div style="display:flex;flex-direction:column;gap:8px;">
                 @foreach ($participants as $p)
                     <div style="background:#1a1d24;padding:10px 14px;border-radius:8px;">
                         <div style="color:#fff;font-size:14px;">{{ $p['Name'] }} <span style="color:#888;font-size:12px;">{{ round($p['AverageItemPower'] ?? 0) }} IP</span></div>
-                        <div style="color:#888;font-size:12px;">{{ $p['GuildName'] ?? '-' }} &middot; Damage: {{ number_format($p['DamageDone'] ?? 0) }}</div>
+                        <div style="color:#888;font-size:12px;">{{ $p['GuildName'] ?? '-' }} &middot; {{ __('death.event_detail.damage') }}: {{ number_format($p['DamageDone'] ?? 0) }}</div>
                     </div>
                 @endforeach
             </div>

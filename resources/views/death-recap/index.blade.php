@@ -1,20 +1,21 @@
 @extends('layouts.app')
+@section('title', __('death.title'))
 
 @section('content')
 <div style="max-width:700px;margin:0 auto;padding:20px;">
-    <h1 style="color:#fff;font-size:22px;margin-bottom:16px;">Rekap Kematian</h1>
+    <h1 style="color:#fff;font-size:22px;margin-bottom:16px;">{{ __('death.page_title') }}</h1>
 
     <div style="display:flex;gap:8px;margin-bottom:20px;">
         <input
             type="text"
             id="characterInput"
-            placeholder="Masukkan nama karakter..."
+            placeholder="{{ __('death.search_placeholder') }}"
             style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid #333;background:#1a1d24;color:#fff;font-size:15px;"
         >
         <button
             id="searchBtn"
             style="padding:10px 20px;border-radius:8px;border:none;background:#4f7cff;color:#fff;font-weight:600;cursor:pointer;"
-        >Cari</button>
+        >{{ __('death.search_button') }}</button>
     </div>
 
     <div id="statusMsg" style="color:#999;font-size:14px;margin-bottom:12px;"></div>
@@ -26,10 +27,21 @@
     <button
         id="loadMoreBtn"
         style="display:none;margin-top:16px;width:100%;padding:10px;border-radius:8px;border:1px solid #333;background:#1a1d24;color:#4f7cff;font-weight:600;cursor:pointer;"
-    >Cari Lebih Lama</button>
+    >{{ __('death.load_more') }}</button>
 </div>
 
 <script>
+const TRANS = {
+    searching: @json(__('death.searching')),
+    loading: @json(__('death.loading')),
+    loadMore: @json(__('death.load_more')),
+    statusError: @json(__('death.status.error')),
+    statusNoHistory: @json(__('death.status.no_history')),
+    statusServerError: @json(__('death.status.server_error')),
+    badgeKill: @json(__('death.badge.kill')),
+    badgeDeath: @json(__('death.badge.death')),
+};
+
 const searchBtn = document.getElementById('searchBtn');
 const characterInput = document.getElementById('characterInput');
 const statusMsg = document.getElementById('statusMsg');
@@ -48,17 +60,17 @@ function itemIconUrl(type) {
 function timeAgo(isoString) {
     const diffMs = Date.now() - new Date(isoString).getTime();
     const mins = Math.floor(diffMs / 60000);
-    if (mins < 60) return `${mins} menit lalu`;
+    if (mins < 60) return @json(__('death.time.minutes_ago')).replace(':count', mins);
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours} jam lalu`;
+    if (hours < 24) return @json(__('death.time.hours_ago')).replace(':count', hours);
     const days = Math.floor(hours / 24);
-    return `${days} hari lalu`;
+    return @json(__('death.time.days_ago')).replace(':count', days);
 }
 
 function renderRow(ev) {
     const isKill = ev.type === 'kill';
     const badgeColor = isKill ? '#2ecc71' : '#e74c3c';
-    const badgeText = isKill ? 'KILL' : 'DEATH';
+    const badgeText = isKill ? TRANS.badgeKill : TRANS.badgeDeath;
     const weaponIcon = itemIconUrl(ev.self_weapon_type);
 
     const row = document.createElement('div');
@@ -96,7 +108,7 @@ async function doSearch() {
     const name = characterInput.value.trim();
     if (!name) return;
 
-    statusMsg.textContent = 'Mencari...';
+    statusMsg.textContent = TRANS.searching;
     playerHeader.style.display = 'none';
     eventList.innerHTML = '';
     loadMoreBtn.style.display = 'none';
@@ -110,7 +122,7 @@ async function doSearch() {
 
         if (!res.ok) {
             const err = await res.json();
-            statusMsg.textContent = err.message || 'Terjadi kesalahan.';
+            statusMsg.textContent = err.message || TRANS.statusError;
             return;
         }
 
@@ -123,21 +135,21 @@ async function doSearch() {
         playerHeader.style.display = 'block';
 
         if (data.events.length === 0) {
-            statusMsg.textContent = 'Belum ada riwayat kill/death.';
+            statusMsg.textContent = TRANS.statusNoHistory;
             return;
         }
 
         data.events.forEach(ev => eventList.appendChild(renderRow(ev)));
         loadMoreBtn.style.display = 'block';
     } catch (e) {
-        statusMsg.textContent = 'Gagal menghubungi server, coba lagi.';
+        statusMsg.textContent = TRANS.statusServerError;
     }
 }
 
 async function doLoadMore() {
     if (!currentPlayer) return;
 
-    loadMoreBtn.textContent = 'Memuat...';
+    loadMoreBtn.textContent = TRANS.loading;
     loadMoreBtn.disabled = true;
 
     try {
@@ -157,14 +169,14 @@ async function doLoadMore() {
         data.events.forEach(ev => eventList.appendChild(renderRow(ev)));
 
         loadMoreBtn.disabled = false;
-        loadMoreBtn.textContent = 'Cari Lebih Lama';
+        loadMoreBtn.textContent = TRANS.loadMore;
         loadMoreBtn.style.display = data.has_more ? 'block' : 'none';
 
         if (data.events.length === 0) {
             loadMoreBtn.style.display = 'none';
         }
     } catch (e) {
-        loadMoreBtn.textContent = 'Cari Lebih Lama';
+        loadMoreBtn.textContent = TRANS.loadMore;
         loadMoreBtn.disabled = false;
     }
 }

@@ -52,5 +52,10 @@ return [
     'key' => env('YOUTUBE_API_KEY'),
 ],
 
+'analytics' => [
+    'google_analytics_id' => env('GOOGLE_ANALYTICS_ID'),
+    'sponsored_frequency' => env('SPONSORED_FREQUENCY', 25), // 1 sponsored setiap N organic reels
+],
+
 ];
 

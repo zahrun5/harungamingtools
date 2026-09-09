@@ -158,7 +158,7 @@
 /* ====== POPUP ====== */
 .popup-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.82);
+  background: rgba(0,0,0,0.45);
   z-index: 10000;
   display: none; align-items: center; justify-content: center;
   padding: 16px;
@@ -235,6 +235,26 @@
 .popup-history-label {
   font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--text-dim, #a89878); margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.history-period-buttons {
+  display: flex; gap: 4px;
+}
+.history-period-btn {
+  padding: 3px 8px; font-size: 10px; font-family: 'Cinzel', serif;
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: 1px solid #4a4a4a; border-radius: 3px;
+  color: var(--text-dim); cursor: pointer;
+  transition: all 0.15s;
+}
+.history-period-btn:hover {
+  background: linear-gradient(180deg, #4a4a4a 0%, #3a3a3a 100%);
+  border-color: #6a6a6a;
+}
+.history-period-btn.active {
+  background: linear-gradient(180deg, #c8a84a 0%, #a07828 100%);
+  border-color: #8b6820;
+  color: #2a1800;
 }
 .popup-history-canvas-wrap { position: relative; height: 160px; }
 .popup-history-empty {
@@ -436,12 +456,24 @@ const AODP_BASE = AODP_BASE_URL[CURRENT_SERVER] || AODP_BASE_URL.americas;
 // ============================================================
 let currentPopupItem  = null; // { api_id, enc } item yang lagi dibuka popup-nya
 let currentHistoryCity = null;
+let currentHistoryDays = 7; // default 7 days
 let historyChart = null; // instance Chart.js aktif, biar bisa di-destroy pas ganti kota/item
 
 function destroyHistoryChart() {
   if (historyChart) {
     historyChart.destroy();
     historyChart = null;
+  }
+}
+
+function selectHistoryPeriod(days) {
+  currentHistoryDays = days;
+  // Update button states
+  document.querySelectorAll('.history-period-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('period-' + days).classList.add('active');
+  // Reload chart dengan periode baru
+  if (currentHistoryCity) {
+    loadPriceHistory(currentHistoryCity);
   }
 }
 
@@ -467,7 +499,7 @@ function loadPriceHistory(city) {
   const params = new URLSearchParams({
     city,
     enc: currentPopupItem.enc || 0,
-    days: 30,
+    days: currentHistoryDays,
     quality: selQuality,
     server: CURRENT_SERVER,
   });
@@ -503,9 +535,58 @@ function loadPriceHistory(city) {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: { 
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: function(context) {
+                  const dateStr = context[0].label;
+                  if (!dateStr) return '';
+                  const date = new Date(dateStr);
+                  if (isNaN(date.getTime())) return dateStr;
+                  
+                  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+                  
+                  // Format sesuai periode: 1D -> jam:menit lengkap, 7D/30D -> tanggal lengkap
+                  if (currentHistoryDays === 1) {
+                    const h = date.getHours().toString().padStart(2, '0');
+                    const m = date.getMinutes().toString().padStart(2, '0');
+                    return h + ':' + m;
+                  } else {
+                    return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
+                  }
+                },
+                label: function(context) {
+                  return 'Harga: ' + formatSilver(context.parsed.y);
+                }
+              }
+            }
+          },
           scales: {
-            x: { ticks: { maxTicksLimit: 6, color: '#a89878' }, grid: { display: false } },
+            x: { 
+              ticks: { 
+                maxTicksLimit: 6, 
+                color: '#a89878',
+                callback: function(value, index) {
+                  const dateStr = this.getLabelForValue(value);
+                  if (!dateStr) return '';
+                  const date = new Date(dateStr);
+                  if (isNaN(date.getTime())) return dateStr;
+                  
+                  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+                  
+                  // Format sesuai periode: 1D -> jam:menit, 7D/30D -> tanggal bulan
+                  if (currentHistoryDays === 1) {
+                    const h = date.getHours().toString().padStart(2, '0');
+                    const m = date.getMinutes().toString().padStart(2, '0');
+                    return h + ':' + m;
+                  } else {
+                    return date.getDate() + ' ' + months[date.getMonth()];
+                  }
+                }
+              }, 
+              grid: { display: false } 
+            },
             y: { ticks: { color: '#a89878', callback: v => formatSilver(v) }, grid: { color: 'rgba(168,152,120,0.1)' } },
           },
         },
@@ -1074,20 +1155,33 @@ function renderPopup(item) {
   // Simpan konteks item aktif buat dipakai loadPriceHistory() pas user pencet kota
   currentPopupItem = { api_id: item.api_id, enc: enc };
   currentHistoryCity = null;
+  currentHistoryDays = 7; // reset ke default 7 days
   destroyHistoryChart();
 
-  // Buat list resource — minimal design: cuma gambar + jumlah aja
-  // Kalau ada 2 recipe berbeda bahan, dipisahin dengan jarak/line
+  // Group resources per recipe variant (seperti di halaman crafting)
+  const groupedResources = groupRecipeResources(item.resources || []);
+  
   console.log('Building resourcesHtml, item.resources:', item.resources);
-  const resourcesHtml = item.resources && item.resources.length
-    ? item.resources.map((r, idx) => {
-        console.log('Resource:', r);
-        return `
-      <div class="resource-item" onclick="openPopup(${r.item_id ?? 'null'})" ${!r.item_id ? 'style="cursor:default;opacity:0.7"' : ''} title="${r.name}">
-        <img src="${r.img_url}" alt="${r.name}" onerror="this.style.opacity=0.3">
-        <div class="resource-count">×${r.count}</div>
-      </div>
-    `;
+  console.log('Grouped resources:', groupedResources);
+  
+  const resourcesHtml = groupedResources.length
+    ? groupedResources.map((group, groupIdx) => {
+        const groupHtml = group.map(r => {
+          console.log('Resource:', r);
+          return `
+          <div class="resource-item" onclick="openPopup(${r.item_id ?? 'null'})" ${!r.item_id ? 'style="cursor:default;opacity:0.7"' : ''} title="${r.name}">
+            <img src="${r.img_url}" alt="${r.name}" onerror="this.style.opacity=0.3">
+            <div class="resource-count">×${r.count}</div>
+          </div>
+        `;
+        }).join('');
+        
+        // Separator antar recipe variant
+        const separator = groupIdx < groupedResources.length - 1 
+          ? '<div style="grid-column: 1/-1; height: 1px; background: rgba(107,79,26,0.3); margin: 4px 0;"></div>' 
+          : '';
+        
+        return groupHtml + separator;
       }).join('')
     : '<div style="color:var(--text-dim);font-style:italic;font-size:13px">' + TRANS.popup.noRecipe + '</div>';
   
@@ -1106,9 +1200,16 @@ function renderPopup(item) {
       <div class="city-prices-grid">${cityBoxes}</div>
     </div>
     <div class="popup-history">
-      <div class="popup-history-label">${TRANS.popup.priceTrend30d} — <span id="historyCityLabel">-</span></div>
+      <div class="popup-history-label">
+        <span>${TRANS.popup.priceTrend30d} — <span id="historyCityLabel">-</span></span>
+        <div class="history-period-buttons">
+          <button class="history-period-btn" id="period-1" onclick="selectHistoryPeriod(1)">1D</button>
+          <button class="history-period-btn active" id="period-7" onclick="selectHistoryPeriod(7)">7D</button>
+          <button class="history-period-btn" id="period-30" onclick="selectHistoryPeriod(30)">30D</button>
+        </div>
+      </div>
       <div class="popup-history-canvas-wrap" id="historyCanvasWrap">
-        <div class="popup-history-loading">${TRANS.popup.selectCityForTrend}</div>
+        <div class="popup-history-loading">${TRANS.popup.loadingTrend}</div>
       </div>
     </div>
     <div class="popup-resources">
@@ -1116,6 +1217,44 @@ function renderPopup(item) {
       <div class="resource-list">${resourcesHtml}</div>
     </div>
   `;
+  
+  // Auto-select kota dengan harga terendah untuk chart
+  setTimeout(() => {
+    const cityPrices = CITIES.map(c => ({
+      city: c.id,
+      price: item.prices?.[c.id] ?? 0,
+      box: document.getElementById('cpb-' + c.id.replace(' ', '-'))
+    })).filter(cp => cp.price > 0);
+    
+    if (cityPrices.length > 0) {
+      // Pilih kota dengan harga terendah
+      cityPrices.sort((a, b) => a.price - b.price);
+      const cheapest = cityPrices[0];
+      if (cheapest.box) {
+        selectHistoryCity(cheapest.city, cheapest.box);
+      }
+    }
+  }, 100);
+}
+
+// Helper: Group resources per recipe variant (copy dari crafting.blade.php)
+function groupRecipeResources(resources) {
+  if (!resources || !resources.length) return [];
+  const groups = [];
+  let current = [];
+  let seen = new Set();
+  resources.forEach(r => {
+    const key = r.item_id ?? r.name;
+    if (seen.has(key)) { 
+      groups.push(current); 
+      current = []; 
+      seen = new Set(); 
+    }
+    seen.add(key);
+    current.push(r);
+  });
+  if (current.length) groups.push(current);
+  return groups;
 }
 
 // ============================================================

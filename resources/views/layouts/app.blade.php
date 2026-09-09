@@ -9,14 +9,16 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="{{ asset('images/icons/page-icon.png') }}">
+@if(config('services.analytics.google_analytics_id') && app()->environment('production'))
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TV166ZJSCL"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.analytics.google_analytics_id') }}"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-TV166ZJSCL');
+  gtag('config', '{{ config('services.analytics.google_analytics_id') }}');
 </script>
+@endif
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js');
@@ -173,6 +175,11 @@
       <a href="https://t.me/HGTCommunity" target="_blank">{{ __("nav.footer_community") }}</a>
       <a href="https://saweria.co/Mamangharun" target="_blank">Saweria</a>
       <a href="https://trakteer.id/sahabat%20sambungng" target="_blank">Trakteer</a>
+    </div>
+    <div class="footer-sponsor" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">
+        💼 Tertarik jadi sponsor atau kerja sama? Hubungi kami di <a href="https://t.me/HarunGamingTools" target="_blank" style="color:var(--gold);text-decoration:underline;">Telegram</a>
+      </p>
     </div>
     <p class="footer-credit">{{ __("nav.footer_credit") }}</p>
   </div>

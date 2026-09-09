@@ -16,6 +16,7 @@ use App\Http\Controllers\ReelController;
 use App\Http\Controllers\BuildController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\FlipController;
+use App\Http\Controllers\SocialController;
 
 // ─── Server & Locale ────────────────────────────────────────────────────
 Route::get('/server/{server}', function (string $server) {
@@ -100,6 +101,7 @@ Route::get('/death-recap/event/{eventId}', [DeathRecapController::class, 'show']
 // ─── Reels ──────────────────────────────────────────────────────────────
 Route::get('/reels', [ReelController::class, 'index'])->name('reels.index');
 Route::post('/reels/more', [ReelController::class, 'more'])->name('reels.more');
+Route::post('/api/reels/track-impression', [\App\Http\Controllers\Api\ReelImpressionController::class, 'track'])->name('reels.track-impression');
 
 // ─── API Publik (bot & tracking) ───────────────────────────────────────
 Route::post('/api/catat-aktivitas', function (\Illuminate\Http\Request $request) {
@@ -174,9 +176,11 @@ Route::middleware(['auth', 'daily.bonus'])->group(function () {
     Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
-    // Social (placeholder — arsitektur penuh dibangun di sesi terpisah)
-    Route::get('/social', [PlaceholderController::class, 'social'])->name('social.index');
-    Route::get('/social/post/{id}', [PlaceholderController::class, 'socialPost'])->name('social.show');
+    // Social
+    Route::get('/social', [SocialController::class, 'index'])->name('social.index');
+    Route::post('/social', [SocialController::class, 'store'])->name('social.store');
+    Route::delete('/social/{status}', [SocialController::class, 'destroy'])->name('social.destroy');
+    Route::post('/social/{status}/like', [SocialController::class, 'like'])->name('social.like');
 
     // Notifikasi (placeholder — struktur data belum final, dibangun detail di sesi terpisah)
     Route::get('/notifikasi', [PlaceholderController::class, 'notifications'])->name('notifications.index');
@@ -191,6 +195,7 @@ Route::middleware(['auth', 'daily.bonus'])->group(function () {
 	    Route::post('/', [ReelDeveloperController::class, 'store'])->name('store');
 	    Route::post('/import', [ReelDeveloperController::class, 'importFromChannel'])->name('import');
 	    Route::patch('/{reel}/toggle', [ReelDeveloperController::class, 'toggleActive'])->name('toggle');
+	    Route::patch('/{reel}/sponsored', [ReelDeveloperController::class, 'updateSponsored'])->name('sponsored');
 	    Route::delete('/{reel}', [ReelDeveloperController::class, 'destroy'])->name('destroy');
 	
 	    Route::patch('/bulk-action', [ReelDeveloperController::class, 'bulkAction'])->name('bulk-action');

@@ -90,4 +90,14 @@ public function activeBuild(): HasOne
 {
     return $this->hasOne(Build::class)->where('is_active', true);
 }
+
+public function statuses(): HasMany
+{
+    return $this->hasMany(Status::class);
+}
+
+public function statusLikes(): HasMany
+{
+    return $this->hasMany(StatusLike::class);
+}
 }

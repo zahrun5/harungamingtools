@@ -15,38 +15,50 @@
     </button>
 
     @forelse ($reels as $reel)
-        <div class="reel-slide" data-youtube-id="{{ $reel->youtube_id }}" data-reel-id="{{ $reel->id }}">
+        <div class="reel-slide" data-youtube-id="{{ $reel->youtube_id }}" data-reel-id="{{ $reel->id }}" data-is-sponsored="{{ $reel->is_sponsored ? 'true' : 'false' }}">
             <div class="reel-player">
                 <img src="{{ $reel->thumbnail_url }}" alt="{{ $reel->title }}" class="reel-thumb">
                 <div class="reel-play-hint">▶</div>
             </div>
 
             <div class="reel-overlay">
-                <div class="reel-info">
-                    <div class="reel-title">{{ $reel->title ?? 'Tanpa judul' }}</div>
-                    <div class="reel-channel">{{ $reel->channel_name ?? '' }}</div>
+                @if($reel->is_sponsored)
+                <div class="reel-sponsored-badge">
+                    <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                    Sponsored
+                    @if($reel->sponsor_name)
+                        <span class="sponsor-name">· {{ $reel->sponsor_name }}</span>
+                    @endif
                 </div>
+                @endif
 
-                <div class="reel-actions">
-                    {{-- Like & Comment DITUNDA (trafik masih sepi) — jangan dihapus,
-                         tinggal un-comment blok ini + blok senada di buildSlideElement()
-                         (bagian JS infinite scroll di bawah) kalau mau diaktifkan lagi.
-                    @auth
-                        <button type="button" class="reel-action-btn" data-action="like" data-reel-id="{{ $reel->id }}">
-                            ❤️<span>Suka</span>
-                        </button>
-                        <button type="button" class="reel-action-btn" data-action="comment" data-reel-id="{{ $reel->id }}">
-                            💬<span>Komen</span>
-                        </button>
-                    @else
-                        <a href="{{ route('login') }}" class="reel-action-btn">
-                            ❤️<span>Suka</span>
-                        </a>
-                        <a href="{{ route('login') }}" class="reel-action-btn">
-                            💬<span>Komen</span>
-                        </a>
-                    @endauth
-                    --}}
+                <div class="reel-info-actions">
+                    <div class="reel-info">
+                        <div class="reel-title">{{ $reel->title ?? 'Tanpa judul' }}</div>
+                        <div class="reel-channel">{{ $reel->channel_name ?? '' }}</div>
+                    </div>
+
+                    <div class="reel-actions">
+                        {{-- Like & Comment DITUNDA (trafik masih sepi) — jangan dihapus,
+                             tinggal un-comment blok ini + blok senada di buildSlideElement()
+                             (bagian JS infinite scroll di bawah) kalau mau diaktifkan lagi.
+                        @auth
+                            <button type="button" class="reel-action-btn" data-action="like" data-reel-id="{{ $reel->id }}">
+                                ❤️<span>Suka</span>
+                            </button>
+                            <button type="button" class="reel-action-btn" data-action="comment" data-reel-id="{{ $reel->id }}">
+                                💬<span>Komen</span>
+                            </button>
+                        @else
+                            <a href="{{ route('login') }}" class="reel-action-btn">
+                                ❤️<span>Suka</span>
+                            </a>
+                            <a href="{{ route('login') }}" class="reel-action-btn">
+                                💬<span>Komen</span>
+                            </a>
+                        @endauth
+                        --}}
+                    </div>
                 </div>
             </div>
         </div>
@@ -218,12 +230,36 @@
         left:0;right:0;bottom:0;
         z-index:2;
         display:flex;
-        align-items:flex-end;
-        justify-content:space-between;
-        gap:14px;
+        flex-direction:column;
+        gap:10px;
         padding:18px 16px;
         background:linear-gradient(to top, rgba(0,0,0,0.75), transparent);
         pointer-events:none; /* biar tap di area caption tetap toggle play/pause */
+    }
+    .reel-sponsored-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:5px;
+        background:rgba(217,166,83,0.15);
+        border:1px solid rgba(217,166,83,0.4);
+        color:var(--gold);
+        padding:5px 10px;
+        border-radius:16px;
+        font-size:0.72rem;
+        font-weight:600;
+        align-self:flex-start;
+        backdrop-filter:blur(4px);
+    }
+    .reel-sponsored-badge svg{flex-shrink:0;}
+    .reel-sponsored-badge .sponsor-name{
+        color:rgba(255,255,255,0.85);
+        font-weight:500;
+    }
+    .reel-info-actions{
+        display:flex;
+        align-items:flex-end;
+        justify-content:space-between;
+        gap:14px;
     }
     .reel-info{color:#fff;pointer-events:none;max-width:75%;}
     .reel-title{font-weight:600;font-size:0.95rem;margin-bottom:3px;}
@@ -246,6 +282,8 @@
 window.reelsAuthenticated = @json(auth()->check());
 window.reelsLoginUrl = @json(route('login'));
 window.reelsMoreUrl = @json(route('reels.more'));
+window.reelsTrackImpressionUrl = @json(route('reels.track-impression'));
+window.reelsCsrfToken = @json(csrf_token());
 
 document.addEventListener('DOMContentLoaded', function () {
     const feed = document.getElementById('reels-feed');
@@ -258,6 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const navNextBtn = document.getElementById('reel-nav-next');
     let slides = Array.from(feed.querySelectorAll('.reel-slide'));
     if (slides.length === 0) return;
+
+    // Track yang udah di-impression (biar ga double-track)
+    const trackedImpressions = new Set();
 
     // ── 1. Hitung tinggi header & bottom-nav ASLI, sinkronkan ke feed & overlay ──
     function layoutFeed() {
@@ -352,6 +393,24 @@ document.addEventListener('DOMContentLoaded', function () {
         currentIndex = index;
         desiredVideoId = slides[index].dataset.youtubeId;
         markActiveSlide(index);
+
+        // Track impression untuk sponsored video
+        const slide = slides[index];
+        const reelId = slide.dataset.reelId;
+        const isSponsored = slide.dataset.isSponsored === 'true';
+        
+        if (isSponsored && !trackedImpressions.has(reelId)) {
+            trackedImpressions.add(reelId);
+            fetch(window.reelsTrackImpressionUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.reelsCsrfToken,
+                },
+                body: JSON.stringify({ reel_id: parseInt(reelId) }),
+            }).catch(() => {}); // Silent fail, ga ganggu UX
+        }
 
         // Udah mepet ke slide terakhir yang ke-load → ambil batch baru sebelum user kehabisan.
         if (index >= slides.length - 10) {
@@ -483,6 +542,7 @@ document.addEventListener('DOMContentLoaded', function () {
         slide.className = 'reel-slide';
         slide.dataset.youtubeId = reel.youtube_id;
         slide.dataset.reelId = reel.id;
+        slide.dataset.isSponsored = reel.is_sponsored ? 'true' : 'false';
 
         // Like & Comment DITUNDA (trafik masih sepi) — samain sama blok Blade di atas.
         // Tinggal un-comment baris di bawah + hapus `''` kalau mau diaktifkan lagi.
@@ -493,17 +553,28 @@ document.addEventListener('DOMContentLoaded', function () {
         //        <a href="${window.reelsLoginUrl}" class="reel-action-btn">💬<span>Komen</span></a>`;
         const actionsHtml = '';
 
+        const sponsoredBadge = reel.is_sponsored 
+            ? `<div class="reel-sponsored-badge">
+                <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                Sponsored
+                ${reel.sponsor_name ? `<span class="sponsor-name">· ${escapeHtml(reel.sponsor_name)}</span>` : ''}
+               </div>`
+            : '';
+
         slide.innerHTML = `
             <div class="reel-player">
                 <img src="${escapeHtml(reel.thumbnail_url)}" alt="${escapeHtml(reel.title)}" class="reel-thumb">
                 <div class="reel-play-hint">▶</div>
             </div>
             <div class="reel-overlay">
-                <div class="reel-info">
-                    <div class="reel-title">${escapeHtml(reel.title || 'Tanpa judul')}</div>
-                    <div class="reel-channel">${escapeHtml(reel.channel_name || '')}</div>
+                ${sponsoredBadge}
+                <div class="reel-info-actions">
+                    <div class="reel-info">
+                        <div class="reel-title">${escapeHtml(reel.title || 'Tanpa judul')}</div>
+                        <div class="reel-channel">${escapeHtml(reel.channel_name || '')}</div>
+                    </div>
+                    <div class="reel-actions">${actionsHtml}</div>
                 </div>
-                <div class="reel-actions">${actionsHtml}</div>
             </div>
         `;
 

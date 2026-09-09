@@ -22,10 +22,17 @@ class Reel extends Model
 	    "review_status",
 	    "found_via",
 	    "youtube_channel_id",
+	    "is_sponsored",
+	    "sponsor_name",
+	    "sponsor_url",
+	    "impressions",
+	    "sponsored_at",
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_sponsored' => 'boolean',
+        'sponsored_at' => 'datetime',
     ];
 
     public function addedBy(): BelongsTo
@@ -39,6 +46,22 @@ class Reel extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope: ambil reel sponsored yang aktif.
+     */
+    public function scopeSponsored(Builder $query): Builder
+    {
+        return $query->where('is_sponsored', true)->where('is_active', true);
+    }
+
+    /**
+     * Scope: ambil reel organic (non-sponsored) yang aktif.
+     */
+    public function scopeOrganic(Builder $query): Builder
+    {
+        return $query->where('is_sponsored', false)->where('is_active', true);
     }
 
     /**

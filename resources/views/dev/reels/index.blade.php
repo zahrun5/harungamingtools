@@ -238,21 +238,37 @@
                 <img src="{{ $reel->thumbnail_url ?? asset('images/icons/icon-192.png') }}" alt="" style="width:96px;height:54px;object-fit:cover;border-radius:6px;flex-shrink:0;">
 
                 <div style="flex:1;min-width:0;">
-                    <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                        {{ $reel->title ?? '(tanpa judul)' }}
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                        <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            {{ $reel->title ?? '(tanpa judul)' }}
+                        </div>
+                        @if($reel->is_sponsored)
+                            <span style="background:rgba(217,166,83,0.15);border:1px solid rgba(217,166,83,0.4);color:var(--gold);padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;flex-shrink:0;">
+                                Sponsored
+                            </span>
+                        @endif
                     </div>
                     <div style="font-size:0.78rem;color:var(--text-muted);">
                         {{ $reel->channel_name ?? '—' }} · ditambahkan oleh {{ $reel->addedBy->name ?? 'system' }}
+                        @if($reel->is_sponsored && $reel->sponsor_name)
+                            · {{ $reel->sponsor_name }}
+                        @endif
+                        @if($reel->is_sponsored && $reel->impressions > 0)
+                            · {{ number_format($reel->impressions) }} views
+                        @endif
                     </div>
                 </div>
 
-                <div style="display:flex;gap:6px;flex-shrink:0;">
+                <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
                     <form method="POST" action="{{ route('dev.reels.toggle', $reel) }}">
                         @csrf
                         <button type="submit" style="background:var(--bg-panel);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.78rem;cursor:pointer;">
                             {{ $reel->is_active ? 'Sembunyikan' : 'Aktifkan' }}
                         </button>
                     </form>
+                    <button type="button" onclick="toggleSponsoredModal({{ $reel->id }}, {{ $reel->is_sponsored ? 'true' : 'false' }}, '{{ addslashes($reel->sponsor_name ?? '') }}', '{{ addslashes($reel->sponsor_url ?? '') }}')" style="background:var(--bg-panel);border:1px solid var(--gold-dim);color:var(--gold);padding:6px 12px;border-radius:6px;font-size:0.78rem;cursor:pointer;">
+                        {{ $reel->is_sponsored ? '★ Edit Sponsor' : '☆ Jadikan Sponsor' }}
+                    </button>
                     <form method="POST" action="{{ route('dev.reels.destroy', $reel) }}" onsubmit="return confirm('Hapus reel ini?');">
                         @csrf
                         @method('DELETE')
@@ -407,5 +423,69 @@
         updateBar();
     });
 })();
+
+// ── Sponsored Modal ──
+function toggleSponsoredModal(reelId, isSponsored, sponsorName, sponsorUrl) {
+    var modal = document.getElementById('sponsored-modal');
+    if (!modal) {
+        // Create modal if it doesn't exist
+        modal = document.createElement('div');
+        modal.id = 'sponsored-modal';
+        modal.innerHTML = `
+            <div style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target === this) toggleSponsoredModal()">
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:480px;width:100%;" onclick="event.stopPropagation()">
+                    <h3 style="font-family:'Fraunces',serif;color:var(--gold);font-size:1.2rem;margin-bottom:16px;">Kelola Sponsored Content</h3>
+                    <form id="sponsored-form" method="POST" style="display:flex;flex-direction:column;gap:16px;">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                        <input type="hidden" name="_method" value="PATCH">
+                        <input type="hidden" id="sponsored-reel-id" name="reel_id" value="">
+                        
+                        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                            <input type="checkbox" id="sponsored-checkbox" name="is_sponsored" value="1" style="width:18px;height:18px;cursor:pointer;">
+                            <span style="font-size:0.88rem;color:var(--text);">Jadikan sebagai konten sponsored</span>
+                        </label>
+                        
+                        <div id="sponsored-fields" style="display:none;">
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block;font-size:0.85rem;color:var(--text-muted);margin-bottom:6px;">Nama Sponsor (opsional)</label>
+                                <input type="text" id="sponsor-name-input" name="sponsor_name" placeholder="Contoh: Gaming Gear Store" style="width:100%;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:0.88rem;">
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:0.85rem;color:var(--text-muted);margin-bottom:6px;">URL Sponsor (opsional)</label>
+                                <input type="url" id="sponsor-url-input" name="sponsor_url" placeholder="https://example.com" style="width:100%;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:0.88rem;">
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex;gap:10px;justify-content:flex-end;">
+                            <button type="button" onclick="toggleSponsoredModal()" style="background:var(--bg-panel);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:8px;font-size:0.88rem;cursor:pointer;">Batal</button>
+                            <button type="submit" style="background:var(--gold);color:#1a1410;border:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:0.88rem;cursor:pointer;">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Handle checkbox toggle
+        document.getElementById('sponsored-checkbox').addEventListener('change', function() {
+            document.getElementById('sponsored-fields').style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    
+    if (typeof reelId !== 'undefined') {
+        // Open modal with data
+        modal.style.display = 'block';
+        document.getElementById('sponsored-form').action = '/dev/reels/' + reelId + '/sponsored';
+        document.getElementById('sponsored-reel-id').value = reelId;
+        document.getElementById('sponsored-checkbox').checked = isSponsored;
+        document.getElementById('sponsor-name-input').value = sponsorName || '';
+        document.getElementById('sponsor-url-input').value = sponsorUrl || '';
+        document.getElementById('sponsored-fields').style.display = isSponsored ? 'block' : 'none';
+    } else {
+        // Close modal
+        modal.style.display = 'none';
+    }
+}
+
 </script>
 @endsection

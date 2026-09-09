@@ -241,6 +241,26 @@ class ReelDeveloperController extends Controller
         return back()->with('success', "{$count} item berhasil {$verb}.");
     }
 
+    public function updateSponsored(Request $request, Reel $reel): RedirectResponse
+    {
+        $validated = $request->validate([
+            'is_sponsored' => ['nullable', 'boolean'],
+            'sponsor_name' => ['nullable', 'string', 'max:255'],
+            'sponsor_url' => ['nullable', 'url', 'max:500'],
+        ]);
+
+        $isSponsored = $request->has('is_sponsored');
+
+        $reel->update([
+            'is_sponsored' => $isSponsored,
+            'sponsor_name' => $isSponsored ? ($validated['sponsor_name'] ?? null) : null,
+            'sponsor_url' => $isSponsored ? ($validated['sponsor_url'] ?? null) : null,
+            'sponsored_at' => $isSponsored ? now() : null,
+        ]);
+
+        return back()->with('success', $isSponsored ? 'Reel berhasil dijadikan sponsored.' : 'Status sponsored dihapus.');
+    }
+
     public function destroy(Reel $reel): RedirectResponse
     {
         $reel->delete();
