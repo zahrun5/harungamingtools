@@ -9,10 +9,248 @@
 @section('og_description', 'Free Albion Online tools: Refining calculator, market browser, flip scanner, crafting planner. Real-time prices from Albion Data API. 7 languages, 3 server regions.')
 
 @section('content')
-    <h1>{{ __('home.welcome_title') }}</h1>
-    <p>{{ __('home.welcome_sub') }}</p>
+    {{-- ===== HERO SECTION ===== --}}
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">{{ __('home.hero.title') }}</h1>
+            <p class="hero-subtitle">{{ __('home.hero.subtitle') }}</p>
+            
+            <div class="hero-features">
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">⚡</span>
+                    <span class="hero-feature-text">{{ __('home.hero.features.realtime') }}</span>
+                </div>
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">🌍</span>
+                    <span class="hero-feature-text">{{ __('home.hero.features.multilang') }}</span>
+                </div>
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">💯</span>
+                    <span class="hero-feature-text">{{ __('home.hero.features.free') }}</span>
+                </div>
+            </div>
+
+            <div class="hero-cta">
+                <a href="#tools" class="hero-btn hero-btn-primary">{{ __('home.hero.cta_primary') }}</a>
+                <a href="/market" class="hero-btn hero-btn-secondary">{{ __('home.hero.cta_secondary') }}</a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">10+</div>
+                    <div class="hero-stat-label">{{ __('home.hero.stats.tools') }}</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">1000+</div>
+                    <div class="hero-stat-label">{{ __('home.hero.stats.users') }}</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">7</div>
+                    <div class="hero-stat-label">{{ __('home.hero.stats.languages') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, rgba(217, 166, 83, 0.05) 0%, rgba(20, 17, 15, 0) 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 48px 24px;
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin: 0 0 16px 0;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin: 0 0 32px 0;
+            line-height: 1.6;
+        }
+
+        .hero-features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .hero-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: var(--text);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .hero-feature:hover {
+            transform: translateY(-2px);
+            border-color: var(--gold);
+        }
+
+        .hero-feature-icon {
+            font-size: 1.2rem;
+        }
+
+        .hero-cta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .hero-btn {
+            display: inline-block;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .hero-btn-primary {
+            background: linear-gradient(135deg, var(--gold) 0%, #c89a4e 100%);
+            color: #14110F;
+            border: none;
+        }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 166, 83, 0.4);
+        }
+
+        .hero-btn-secondary {
+            background: transparent;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+        }
+
+        .hero-btn-secondary:hover {
+            background: var(--gold);
+            color: #14110F;
+            transform: translateY(-2px);
+        }
+
+        .hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+
+        .hero-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 32px 20px;
+                margin-bottom: 32px;
+            }
+
+            .hero-title {
+                font-size: 1.8rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-features {
+                gap: 12px;
+            }
+
+            .hero-feature {
+                font-size: 0.85rem;
+                padding: 8px 16px;
+            }
+
+            .hero-btn {
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+
+            .hero-stats {
+                gap: 24px;
+            }
+
+            .hero-stat-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.5rem;
+            }
+
+            .hero-features {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .hero-feature {
+                justify-content: center;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+
+            .hero-btn {
+                width: 100%;
+            }
+        }
+
+        /* Smooth scroll for anchor link */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
 
     {{-- ===== STASIUN REFINE ===== --}}
+    <div id="tools"></div>
     <h2 class="section-title">{{ __('home.sections.refine.title') }}</h2>
     <p class="section-sub">{{ __('home.sections.refine.sub') }}</p>
 

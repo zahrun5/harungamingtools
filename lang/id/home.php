@@ -5,6 +5,23 @@ return [
     'welcome_title' => 'Selamat datang di Albion Online Tools👋',
     'welcome_sub' => 'Tempat kumpulnya pemain Albion Online — kalkulator, leaderboard, dan komunitas.',
 
+    'hero' => [
+        'title' => 'Albion Online Tools — Hitung, Catat, Naik Peringkat',
+        'subtitle' => 'Kalkulator gratis untuk refining, crafting, fishing, dan market analysis. Data real-time dari Albion Data Project. Dipercaya oleh ribuan pemain di seluruh dunia.',
+        'features' => [
+            'realtime' => 'Data Real-Time',
+            'multilang' => '7 Bahasa',
+            'free' => '100% Gratis',
+        ],
+        'cta_primary' => 'Mulai Sekarang',
+        'cta_secondary' => 'Cek Market',
+        'stats' => [
+            'tools' => 'Tools',
+            'users' => 'Pengguna',
+            'languages' => 'Bahasa',
+        ],
+    ],
+
     'sections' => [
         'refine'   => ['title' => '⚒️ Stasiun Refine', 'sub' => 'Pilih stasiun sesuai jenis resource yang mau kamu olah.'],
         'crafting' => ['title' => '🛠️ Crafting Station', 'sub' => 'Cari tahu berapa biaya craft equipment favoritmu.'],

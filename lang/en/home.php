@@ -5,6 +5,23 @@ return [
     'welcome_title' => 'Welcome to Albion Online Tools👋',
     'welcome_sub' => 'Where Albion Online players gather — calculators, leaderboard, and community.',
 
+    'hero' => [
+        'title' => 'Albion Online Tools — Calculate, Track, Rise',
+        'subtitle' => 'Free calculators for refining, crafting, fishing, and market analysis. Real-time data from Albion Data Project. Trusted by thousands of players worldwide.',
+        'features' => [
+            'realtime' => 'Real-Time Data',
+            'multilang' => '7 Languages',
+            'free' => '100% Free',
+        ],
+        'cta_primary' => 'Get Started',
+        'cta_secondary' => 'Check Market',
+        'stats' => [
+            'tools' => 'Tools',
+            'users' => 'Users',
+            'languages' => 'Languages',
+        ],
+    ],
+
     'sections' => [
         'refine'   => ['title' => '⚒️ Refining Stations', 'sub' => 'Pick a station based on the resource type you want to refine.'],
         'crafting' => ['title' => '🛠️ Crafting Station', 'sub' => 'Find out how much it costs to craft your favorite equipment.'],
