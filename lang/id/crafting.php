@@ -74,4 +74,8 @@ return [
     'switch_recipe_toast' => 'Pindah ke Resep :n',
     'recipe_tab' => 'Resep :n',
     'craft_success_toast' => 'Berhasil membuat :qty× :name!',
+    
+    // Advance Mode
+    'craftable_items' => 'Item yang Bisa Di-craft',
+    'reset' => 'Reset',
 ];

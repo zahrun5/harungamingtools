@@ -184,12 +184,139 @@
 </div>
 </div>
 
-<!-- ====== MODE ADVANCE (placeholder, akan dibangun ulang) ====== -->
+<!-- ====== MODE ADVANCE (mirip Refining Calculator) ====== -->
 <div id="mtAdvanceWrap" style="display:none">
   <div class="panel">
-    <div style="text-align:center;padding:80px 20px;">
-      <div style="font-size:3rem;margin-bottom:16px;">🚧</div>
-      <p style="color:var(--text-dim);font-size:.9rem;">{{ __('crafting.advance_placeholder') }}</p>
+    <div class="panel-header">
+      <span>⚙️</span>
+      <span class="panel-title">{{ $stationName }} — {{ __('crafting.mode_advance') }}</span>
+      <input type="text" class="header-search" id="advSearchInput" placeholder="{{ __('crafting.search_placeholder') }}" oninput="onAdvSearch()">
+    </div>
+
+    <div class="rw-main">
+      <div class="rw-col-left">
+        <div class="filter-bar" id="advFilterBar">
+          <!-- TIER -->
+          <div class="flt-wrap">
+            <div class="flt-btn" id="btnAdvTier" onclick="toggleDrop('advTier')">
+              <span class="flt-label" id="lblAdvTier">{{ __('crafting.filter.tier') }}</span>
+              <span class="flt-val" id="valAdvTier" style="display:none"></span>
+              <span class="flt-arrow">▼</span>
+            </div>
+            <div class="drop-wrap" id="dropAdvTier">
+              <div class="drop-col" id="colAdvTier"></div>
+            </div>
+          </div>
+          <!-- ENCHANTMENT -->
+          <div class="flt-wrap">
+            <div class="flt-btn" id="btnAdvEnc" onclick="toggleDrop('advEnc')">
+              <span class="flt-label" id="lblAdvEnc">{{ __('crafting.filter.enchant') }}</span>
+              <span class="flt-val" id="valAdvEnc" style="display:none"></span>
+              <span class="flt-arrow">▼</span>
+            </div>
+            <div class="drop-wrap" id="dropAdvEnc">
+              <div class="drop-col" id="colAdvEnc"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item List (Materials) -->
+        <div class="item-list" id="advItemList">
+          <div class="item-list-empty" id="advEmptyMsg">{{ __('crafting.loading_items') }}</div>
+          <div class="item-table-wrap" id="advItemTableWrap" style="display:none">
+            <div id="advItemGrid"></div>
+          </div>
+        </div>
+
+        <div class="bot-bar">
+          <button class="inv-btn" id="advInvBtn" onclick="toggleAdvInv()">📦 {{ __('crafting.inventory') }} (<span id="advInvCount">0</span>)</button>
+          <button class="reset-btn" onclick="doAdvReset()">🗑 {{ __('crafting.reset') }}</button>
+        </div>
+      </div>
+
+      <div class="rw-col-right">
+        <!-- Journal Section (sama seperti Simple Mode) -->
+        <div class="craft-journal-section" id="advJournalSection" style="display:none">
+          <button type="button" class="craft-journal-toggle-btn" id="advUseJournalBtn" onclick="onAdvUseJournalToggle()">📔 {{ __('crafting.use_journal') }}</button>
+          <div class="craft-journal-picker" id="advJournalPickerRow" style="display:none">
+            <img id="advJournalIcon" src="" alt="Jurnal" onerror="this.style.opacity=.3">
+            <div class="craft-journal-picker-body">
+              <div class="craft-journal-dd-row">
+                <div class="flt-wrap">
+                  <div class="flt-btn" id="btnAdvJtype" onclick="toggleDrop('advJtype')">
+                    <span class="flt-label" id="lblAdvJtype">{{ __('crafting.journal_type') }}</span>
+                    <span class="flt-val" id="valAdvJtype" style="display:none"></span>
+                    <span class="flt-arrow">▼</span>
+                  </div>
+                  <div class="drop-wrap" id="dropAdvJtype">
+                    <div class="drop-col" id="colAdvJtype"></div>
+                  </div>
+                </div>
+                <div class="flt-wrap">
+                  <div class="flt-btn" id="btnAdvJtier" onclick="toggleDrop('advJtier')">
+                    <span class="flt-label" id="lblAdvJtier">{{ __('crafting.filter.tier') }}</span>
+                    <span class="flt-val" id="valAdvJtier" style="display:none"></span>
+                    <span class="flt-arrow">▼</span>
+                  </div>
+                  <div class="drop-wrap" id="dropAdvJtier">
+                    <div class="drop-col" id="colAdvJtier"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="craft-inv-section" id="advInvSection">
+          <div class="craft-inv-lbl">📦 {{ __('crafting.inventory') }} (<span id="advInvCount2">0</span>)</div>
+          <div class="cinv-grid" id="advInvGrid"></div>
+        </div>
+
+        <!-- Craft Buttons (item yang bisa di-craft) -->
+        <div class="craft-craftable-section" id="advCraftableSection" style="display:none">
+          <div class="craft-inv-lbl">⚒️ {{ __('crafting.craftable_items') }}</div>
+          <div class="craft-craftable-grid" id="advCraftableGrid"></div>
+        </div>
+
+        <!-- Bottom Bar: Return % + Quantity + Sell Price + Craft Button -->
+        <div class="craft-bottom-bar" id="advBottomBar" style="display:none">
+          <div class="craft-ret-wrap">
+            <label>♻️ {{ __('crafting.return_label') }}</label>
+            <input class="craft-ret-inp" type="number" id="advCraftReturn" value="21.5" min="0" max="100" step="0.1">
+            <span style="color:var(--text-dim);font-size:12px">%</span>
+          </div>
+          <div class="craft-qty-wrap">
+            <label>🔢 {{ __('crafting.quantity_label') }}</label>
+            <input class="craft-qty-inp" type="number" id="advCraftQty" value="1" min="1" disabled>
+            <label class="craft-max-chk"><input type="checkbox" id="advCraftHabis" onchange="onAdvCraftHabisChange()"> {{ __('crafting.craft_all_checkbox') }}</label>
+          </div>
+          <div class="craft-sell-wrap">
+            <label>💵 {{ __('crafting.sell_price_label') }}</label>
+            <input class="craft-sell-inp" type="number" id="advCraftSellPrice" placeholder="0" min="0">
+            <label class="craft-max-chk"><input type="checkbox" id="advCraftPremium" onchange="renderAdvCraftResultPanel()"> {{ __('crafting.premium') }}</label>
+            <label class="craft-max-chk"><input type="checkbox" id="advCraftOrderCost" onchange="renderAdvCraftResultPanel()"> {{ __('crafting.sell_order_label') }}</label>
+          </div>
+          <button class="craft-btn" id="advCraftBtn" disabled onclick="doAdvCraft()">⚒️ {{ __('crafting.craft_btn') }}</button>
+        </div>
+
+        <!-- Craft Result Panel -->
+        <div class="craft-result-panel" id="advResultPanel" style="display:none">
+          <div class="crp-group-lbl">💰 {{ __('crafting.modal_group') }}</div>
+          <div class="crp-row"><span class="crp-label">{{ __('crafting.crafting_materials') }}</span><span class="crp-val" id="advModalBahan">0</span></div>
+          <div class="crp-row" id="advModalJurnalRow" style="display:none"><span class="crp-label">{{ __('crafting.journal_needed') }}</span><span class="crp-val" id="advModalJurnal">0</span></div>
+          <div class="crp-row crp-subtotal"><span class="crp-label">{{ __('crafting.total_modal') }}</span><span class="crp-val" id="advTotalModal">0</span></div>
+
+          <div class="crp-group-lbl" id="advProfitGroupLbl">📈 {{ __('crafting.profit_group') }}</div>
+          <div class="crp-row" id="advRowProfitItem"><span class="crp-label">{{ __('crafting.result_item') }}</span><span class="crp-val" id="advProfitItem">0</span></div>
+          <div class="crp-row" id="advRowPajak"><span class="crp-label">{{ __('crafting.tax_and_order_fee') }}</span><span class="crp-val negative" id="advPajak">0</span></div>
+          <div class="crp-row" id="advRowProfitSisa"><span class="crp-label">{{ __('crafting.remaining_materials') }}</span><span class="crp-val" id="advProfitSisa">0</span></div>
+          <div class="crp-row" id="advProfitJurnalRow" style="display:none"><span class="crp-label">{{ __('crafting.journal_full') }}</span><span class="crp-val" id="advProfitJurnal">0</span></div>
+          <div class="crp-row crp-subtotal" id="advRowHasilAkhir"><span class="crp-label">{{ __('crafting.final_result') }}</span><span class="crp-val" id="advHasilAkhir">0</span></div>
+
+          <div class="crp-row crp-total" id="advRowTotalProfit"><span class="crp-label">{{ __('crafting.total_profit') }}</span><span class="crp-val" id="advTotalProfit">0</span></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -713,6 +840,11 @@ function setMTMode(mode) {
   document.getElementById('btnModeSimple').classList.toggle('active', isSimple);
   document.getElementById('btnModeAdvance').classList.toggle('active', !isSimple);
   localStorage.setItem('mt_mode', mode);
+  
+  // Initialize advance mode if switched to advance
+  if (!isSimple && advMaterials.length === 0) {
+    initAdvanceMode();
+  }
 }
 
 // ============================================================
@@ -1745,6 +1877,218 @@ function showCraftToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ============================================================
+// ADVANCE MODE
+// ============================================================
+let advMaterials = [];      // All materials for this station
+let advInv = [];            // Inventory: [{item, qty, harga}]
+let advSelTier = null;      // Selected tier filter
+let advSelEnc = null;       // Selected enchantment filter
+let advSearchQ = '';        // Search query
+let advCraftTarget = null;  // Item yang mau di-craft
+let advRecipes = {};        // Recipes cache
+
+// Load materials from backend
+function loadAdvMaterials() {
+  showAdvEmpty(t('loading_items'));
+  const params = new URLSearchParams();
+  if (advSelTier) params.set('tier', advSelTier);
+  if (advSelEnc !== null) params.set('enc', advSelEnc);
+  
+  fetch(`${CRAFT_API_BASE}/advance/materials?` + params.toString())
+    .then(r => r.json())
+    .then(items => {
+      advMaterials = items;
+      filterAdvMaterials();
+    })
+    .catch(() => showAdvEmpty(t('failed_load_items')));
+}
+
+// Filter & render materials
+function filterAdvMaterials() {
+  let filtered = advMaterials;
+  if (advSearchQ) {
+    const q = advSearchQ.toLowerCase();
+    filtered = advMaterials.filter(i => i.name.toLowerCase().includes(q));
+  }
+  if (!filtered.length) { showAdvEmpty(t('no_items_found')); return; }
+  renderAdvMaterials(filtered);
+}
+
+function showAdvEmpty(msg) {
+  document.getElementById('advEmptyMsg').textContent = msg;
+  document.getElementById('advEmptyMsg').style.display = '';
+  document.getElementById('advItemTableWrap').style.display = 'none';
+}
+
+function renderAdvMaterials(items) {
+  const grid = document.getElementById('advItemGrid');
+  grid.innerHTML = '';
+  document.getElementById('advItemTableWrap').style.display = '';
+  document.getElementById('advEmptyMsg').style.display = 'none';
+  
+  items.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <div class="item-icon-wrap">
+        ${item.icon ? `<img class="item-icon" src="${item.icon}" alt="${item.name}" loading="lazy">` : `<div class="item-icon">?</div>`}
+      </div>
+      <div class="item-info">
+        <span class="item-name">${item.name}</span>
+      </div>`;
+    row.addEventListener('click', () => openAdvAdd(idx, items));
+    grid.appendChild(row);
+  });
+}
+
+// Build tier dropdown for advance mode
+function buildAdvTierDrop() {
+  const col = document.getElementById('colAdvTier');
+  if (!col) return;
+  col.innerHTML = '';
+  col.appendChild(makeItem(t('filter.all'), false, !advSelTier, () => {
+    advSelTier = null; setFilterVal('lblAdvTier','valAdvTier',null); closeDrop(); loadAdvMaterials();
+  }));
+  TIERS.forEach(tier => col.appendChild(makeItem(TIER_LABEL[tier], false, advSelTier === tier, () => {
+    advSelTier = tier; setFilterVal('lblAdvTier','valAdvTier',TIER_LABEL[tier]); closeDrop(); loadAdvMaterials();
+  })));
+}
+
+// Build enchantment dropdown for advance mode
+function buildAdvEncDrop() {
+  const col = document.getElementById('colAdvEnc');
+  if (!col) return;
+  col.innerHTML = '';
+  col.appendChild(makeItem(t('filter.all'), false, advSelEnc === null, () => {
+    advSelEnc = null; setFilterVal('lblAdvEnc','valAdvEnc',null); closeDrop(); loadAdvMaterials();
+  }));
+  ENCS.forEach(e => col.appendChild(makeItem(t('filter.enchant_option', {n: e}), false, advSelEnc === e, () => {
+    advSelEnc = e; setFilterVal('lblAdvEnc','valAdvEnc', t('filter.enchant_short', {n: e})); closeDrop(); loadAdvMaterials();
+  })));
+}
+
+// Search materials
+function onAdvSearch() {
+  clearTimeout(window.advSearchTimer);
+  window.advSearchTimer = setTimeout(() => {
+    advSearchQ = document.getElementById('advSearchInput').value.trim();
+    filterAdvMaterials();
+  }, 400);
+}
+
+// Open add material popup
+function openAdvAdd(idx, items) {
+  const item = items[idx];
+  // TODO: Implement popup similar to Simple Mode
+  // For now, just add directly to inventory
+  addAdvToInventory(item, 1, 0);
+}
+
+// Add to inventory
+function addAdvToInventory(item, qty, harga) {
+  const existing = advInv.find(i => i.item.id === item.id);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    advInv.push({ item, qty, harga });
+  }
+  renderAdvInventory();
+  saveAdvState();
+  checkAdvCraftable();
+}
+
+// Render inventory
+function renderAdvInventory() {
+  const grid = document.getElementById('advInvGrid');
+  const count = document.getElementById('advInvCount');
+  const count2 = document.getElementById('advInvCount2');
+  count.textContent = advInv.length;
+  count2.textContent = advInv.length;
+  
+  if (advInv.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px">' + t('inventory_empty') + '</div>';
+    return;
+  }
+  
+  grid.innerHTML = advInv.map((inv, idx) => `
+    <div class="cinv-slot filled" onclick="editAdvInvItem(${idx})">
+      <img src="${inv.item.icon || ''}" alt="${inv.item.name}">
+      <div class="cinv-qty">${inv.qty}</div>
+    </div>
+  `).join('');
+}
+
+// Check craftable items (placeholder)
+function checkAdvCraftable() {
+  // TODO: Implement recipe matching
+  document.getElementById('advCraftableSection').style.display = 'none';
+  document.getElementById('advBottomBar').style.display = 'none';
+}
+
+// Toggle inventory visibility
+function toggleAdvInv() {
+  // TODO: Toggle visibility for mobile
+}
+
+// Reset advance mode
+function doAdvReset() {
+  if (!confirm(t('confirm_reset'))) return;
+  advInv = [];
+  advCraftTarget = null;
+  renderAdvInventory();
+  checkAdvCraftable();
+  saveAdvState();
+}
+
+// Save state to localStorage
+function saveAdvState() {
+  try {
+    localStorage.setItem('ct_adv_inv_' + STATION, JSON.stringify({
+      inv: advInv.map(i => ({ itemId: i.item.id, qty: i.qty, harga: i.harga }))
+    }));
+  } catch (e) {}
+}
+
+// Load state from localStorage
+function loadAdvState() {
+  try {
+    const raw = localStorage.getItem('ct_adv_inv_' + STATION);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    // TODO: Restore inventory from saved data
+  } catch (e) {}
+}
+
+// Journal functions (placeholder)
+function onAdvUseJournalToggle() {
+  // TODO: Implement journal toggle
+}
+
+function onAdvCraftHabisChange() {
+  // TODO: Implement craft all checkbox
+}
+
+function renderAdvCraftResultPanel() {
+  // TODO: Implement result panel
+}
+
+function doAdvCraft() {
+  // TODO: Implement craft action
+}
+
+function editAdvInvItem(idx) {
+  // TODO: Implement edit inventory item
+}
+
+// Initialize advance mode on toggle
+function initAdvanceMode() {
+  buildAdvTierDrop();
+  buildAdvEncDrop();
+  loadAdvMaterials();
+  loadAdvState();
 }
 
 // ============================================================

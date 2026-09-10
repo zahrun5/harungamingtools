@@ -601,4 +601,68 @@ class CraftingController extends Controller
     {
         return $this->refreshPrices($id);
     }
+
+    /**
+     * Advance Mode: Get all materials (bahan crafting) for a station
+     * Query dari crafting_station_materials, lalu generate all tier+enchant variants
+     */
+    public function advanceMaterials(Request $request, string $station = 'mage-tower')
+    {
+        $request->validate([
+            'tier' => 'nullable|integer|min:2|max:8',
+            'enc' => 'nullable|integer|min:0|max:4',
+        ]);
+
+        // Get material definitions for this station
+        $materials = DB::table('crafting_station_materials')
+            ->where('station_slug', $station)
+            ->get();
+
+        if ($materials->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $items = [];
+        $tierFilter = $request->input('tier');
+        $encFilter = $request->input('enc');
+
+        foreach ($materials as $mat) {
+            // Generate all tier + enchant variants
+            for ($tier = $mat->min_tier; $tier <= $mat->max_tier; $tier++) {
+                // Apply tier filter
+                if ($tierFilter && $tier != $tierFilter) {
+                    continue;
+                }
+
+                for ($enc = 0; $enc <= $mat->max_enchant; $enc++) {
+                    // Apply enchantment filter
+                    if ($encFilter !== null && $enc != $encFilter) {
+                        continue;
+                    }
+
+                    $apiId = "T{$tier}_{$mat->material_base}";
+                    if ($enc > 0) {
+                        $apiId .= "_LEVEL{$enc}@{$enc}";
+                    }
+
+                    // Get item from database
+                    $item = Item::where('api_id', $apiId)->first();
+
+                    if ($item) {
+                        $items[] = [
+                            'id' => $item->id,
+                            'api_id' => $item->api_id,
+                            'name' => $item->name,
+                            'icon' => $item->icon,
+                            'tier' => $tier,
+                            'enc' => $enc,
+                            'type' => $mat->type,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return response()->json($items);
+    }
 }

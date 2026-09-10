@@ -74,4 +74,8 @@ return [
     'switch_recipe_toast' => 'Switched to Recipe :n',
     'recipe_tab' => 'Recipe :n',
     'craft_success_toast' => 'Successfully crafted :qty× :name!',
+    
+    // Advance Mode
+    'craftable_items' => 'Craftable Items',
+    'reset' => 'Reset',
 ];

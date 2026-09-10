@@ -75,11 +75,15 @@ Route::prefix('api/crafting')->group(function () {
     Route::post('/item/{id}/refresh-price', [CraftingController::class, 'refreshItemPriceSingle']);
     Route::post('/category/{categoryId}/refresh-prices', [CraftingController::class, 'refreshCategoryPrices']);
 
+    // Advance Mode - materials endpoint
+    Route::get('/advance/materials', [CraftingController::class, 'advanceMaterials']);
+
     // Station lain (Hunter's Lodge, dst) — butuh slug di URL.
     // Harus diletakkan SETELAH rute /categories dan /items di atas,
     // supaya tidak "menangkap" duluan request ke /api/crafting/categories.
     Route::get('/{station}/categories', [CraftingController::class, 'categories']);
     Route::get('/{station}/items', [CraftingController::class, 'items']);
+    Route::get('/{station}/advance/materials', [CraftingController::class, 'advanceMaterials']);
 });
 
 // ─── Market ─────────────────────────────────────────────────────────────
