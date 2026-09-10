@@ -2176,10 +2176,8 @@ function addAdvToInventory(item, qty, harga) {
 // Render inventory
 function renderAdvInventory() {
   const grid = document.getElementById('advInvGrid');
-  const count = document.getElementById('advInvCount');
   const count2 = document.getElementById('advInvCount2');
-  count.textContent = advInv.length;
-  count2.textContent = advInv.length;
+  if (count2) count2.textContent = advInv.length;
   
   if (advInv.length === 0) {
     grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px">' + t('inventory_empty') + '</div>';
