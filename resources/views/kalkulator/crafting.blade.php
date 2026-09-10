@@ -338,7 +338,10 @@
       </div>
       <div id="caQtyField">
         <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">{{ __('crafting.quantity_label') }}</label>
-        <input type="number" id="caQty" value="1" min="1" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="range" id="caQtySlider" min="1" max="999" value="100" oninput="syncCaQty('s')" style="flex:1;">
+          <input type="number" id="caQty" value="100" min="1" max="999999" oninput="syncCaQty('v')" style="width:80px;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+        </div>
       </div>
       <div class="pop-btn-row" id="caBtnRow" style="display:flex;gap:7px;">
         <button class="wiz-btn-hitung" style="flex:1" onclick="doCraftAddResource()">➕ {{ __('crafting.add_to_inventory') }}</button>
@@ -2027,6 +2030,21 @@ let advPendingItem = null;
 let advPendingItems = null;
 let advPendingIdx = null;
 
+// Sync qty slider and input for add material popup
+function syncCaQty(src) {
+  const slider = document.getElementById('caQtySlider');
+  const input = document.getElementById('caQty');
+  if (!slider || !input) return;
+  const max = parseInt(slider.max) || 999;
+  if (src === 's') {
+    input.value = slider.value;
+  } else {
+    const val = Math.min(Math.max(parseInt(input.value) || 1, 1), 999999);
+    if (val <= max) slider.value = val;
+    input.value = val;
+  }
+}
+
 function openAdvAdd(idx, items) {
   const item = items[idx];
   advPendingItem = item;
@@ -2038,7 +2056,8 @@ function openAdvAdd(idx, items) {
   document.getElementById('caName').textContent = item.name;
   document.getElementById('caNeed').textContent = `Tier ${item.tier}${item.enc > 0 ? ` .${item.enc}` : ''}`;
   document.getElementById('caHarga').value = '';
-  document.getElementById('caQty').value = '1';
+  document.getElementById('caQtySlider').value = '100';
+  document.getElementById('caQty').value = '100';
   document.getElementById('caQtyField').style.display = '';
   document.getElementById('caBtnRow').innerHTML = '<button class="wiz-btn-hitung" style="flex:1" onclick="doAdvAddResource()">➕ ' + t('add_to_inventory') + '</button>';
   
