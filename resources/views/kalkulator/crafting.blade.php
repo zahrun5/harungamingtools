@@ -2127,22 +2127,37 @@ function closeAdvAddOnBg(e) {
 }
 
 function doAdvAddMaterial() {
+  console.log('🔍 doAdvAddMaterial called');
+  console.log('advPendingItem:', advPendingItem);
+  
   if (!advPendingItem) {
+    console.error('❌ No item selected');
     showCraftToast('❌ Error: No item selected');
     return;
   }
   
-  const qty = parseInt(document.getElementById('advAddQty').value) || 1;
-  const harga = parseInt(document.getElementById('advAddHarga').value) || 0;
+  const qtyInput = document.getElementById('advAddQty');
+  const hargaInput = document.getElementById('advAddHarga');
+  
+  console.log('qty input:', qtyInput, qtyInput?.value);
+  console.log('harga input:', hargaInput, hargaInput?.value);
+  
+  const qty = parseInt(qtyInput?.value) || 1;
+  const harga = parseInt(hargaInput?.value) || 0;
+  
+  console.log('Parsed - qty:', qty, 'harga:', harga);
   
   if (qty < 1) {
+    console.error('❌ Invalid quantity');
     showCraftToast('❌ ' + t('invalid_quantity'));
     return;
   }
   
+  console.log('✅ Adding to inventory...');
   addAdvToInventory(advPendingItem, qty, harga);
   closeAdvAddOverlay();
   showCraftToast('✅ ' + advPendingItem.name + ' ditambahkan');
+  console.log('✅ Done!');
 }
 
 // Add to inventory
