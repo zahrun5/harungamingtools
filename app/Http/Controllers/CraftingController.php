@@ -649,11 +649,18 @@ class CraftingController extends Controller
                     $item = Item::where('api_id', $apiId)->first();
 
                     if ($item) {
+                        // Generate img_url for Albion render service
+                        $apiIdWithEnc = $item->api_id;
+                        if ($enc > 0) {
+                            $apiIdWithEnc .= "@{$enc}";
+                        }
+                        
                         $items[] = [
                             'id' => $item->id,
                             'api_id' => $item->api_id,
                             'name' => $item->name,
                             'icon' => $item->icon,
+                            'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
                             'tier' => $tier,
                             'enc' => $enc,
                             'type' => $mat->type,

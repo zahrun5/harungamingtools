@@ -1934,7 +1934,7 @@ function renderAdvMaterials(items) {
     row.className = 'item-row';
     row.innerHTML = `
       <div class="item-icon-wrap">
-        ${item.icon ? `<img class="item-icon" src="${item.icon}" alt="${item.name}" loading="lazy">` : `<div class="item-icon">?</div>`}
+        ${item.img_url ? `<img class="item-icon" src="${item.img_url}" alt="${item.name}" loading="lazy" onerror="this.style.display='none'">` : `<div class="item-icon">?</div>`}
       </div>
       <div class="item-info">
         <span class="item-name">${item.name}</span>
@@ -2015,7 +2015,7 @@ function renderAdvInventory() {
   
   grid.innerHTML = advInv.map((inv, idx) => `
     <div class="cinv-slot filled" onclick="editAdvInvItem(${idx})">
-      <img src="${inv.item.icon || ''}" alt="${inv.item.name}">
+      <img src="${inv.item.img_url || ''}" alt="${inv.item.name}" onerror="this.style.opacity=0.3">
       <div class="cinv-qty">${inv.qty}</div>
     </div>
   `).join('');
