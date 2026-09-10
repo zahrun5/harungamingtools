@@ -421,14 +421,25 @@
 .craft-toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:#3d2e15; border:1px solid var(--gold-dk); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:11px; padding:7px 14px; transition:transform .25s; z-index:10001; white-space:nowrap; }
 .craft-toast.show { transform:translateX(-50%) translateY(0); }
 
-/* DESKTOP TWO-COLUMN LAYOUT — Mode Advance saja (item list kiri, slot resep+inventory+craft kanan) */
+/* DESKTOP TWO-COLUMN LAYOUT — Simple & Advance Mode (item list kiri, slot resep+inventory+craft kanan) */
+#mtSimpleWrap .rw-main,
 #mtAdvanceWrap .rw-main { display:flex; flex-direction:column; }
+#mtSimpleWrap .rw-col-left, #mtSimpleWrap .rw-col-right,
 #mtAdvanceWrap .rw-col-left, #mtAdvanceWrap .rw-col-right { display:flex; flex-direction:column; min-width:0; }
 
 @media (min-width:960px) {
+  #mtSimpleWrap,
   #mtAdvanceWrap { max-width:1180px; margin:0 auto; }
+  
+  #mtSimpleWrap .rw-main,
   #mtAdvanceWrap .rw-main { flex-direction:row; align-items:flex-start; }
+  
+  #mtSimpleWrap .rw-col-left,
   #mtAdvanceWrap .rw-col-left { flex:1 1 auto; border-right:1px solid var(--panel-bd); }
+  
+  #mtSimpleWrap .rw-col-right,
   #mtAdvanceWrap .rw-col-right { flex:0 0 360px; }
+  
+  #mtSimpleWrap .item-list,
   #mtAdvanceWrap .item-list { max-height:600px; overflow-y:auto; }
 }
