@@ -79,6 +79,7 @@ Route::prefix('api/crafting')->group(function () {
     Route::get('/advance/materials', [CraftingController::class, 'advanceMaterials']);
     Route::post('/advance/check-craftable', [CraftingController::class, 'checkCraftable']);
     Route::get('/advance/recipe', [CraftingController::class, 'advanceRecipe']);
+    Route::get('/advance/item-detail', [CraftingController::class, 'advanceItemDetail']);
 
     // Station lain (Hunter's Lodge, dst) — butuh slug di URL.
     // Harus diletakkan SETELAH rute /categories dan /items di atas,
@@ -88,6 +89,7 @@ Route::prefix('api/crafting')->group(function () {
     Route::get('/{station}/advance/materials', [CraftingController::class, 'advanceMaterials']);
     Route::post('/{station}/advance/check-craftable', [CraftingController::class, 'checkCraftable']);
     Route::get('/{station}/advance/recipe', [CraftingController::class, 'advanceRecipe']);
+    Route::get('/{station}/advance/item-detail', [CraftingController::class, 'advanceItemDetail']);
 });
 
 // ─── Market ─────────────────────────────────────────────────────────────

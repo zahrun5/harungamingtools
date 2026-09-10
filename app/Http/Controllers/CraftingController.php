@@ -815,16 +815,49 @@ class CraftingController extends Controller
         
         $materials = array_values($materialsMap);
         
+        // Build img_url for result item
+        $itemEnc = (int) ($item->enc ?? 0);
+        $itemApiIdWithEnc = $item->api_id . ($itemEnc > 0 ? "_LEVEL{$itemEnc}@{$itemEnc}" : '');
+        
         return response()->json([
             'item' => [
                 'id' => $item->id,
                 'name' => $item->name,
                 'api_id' => $item->api_id,
+                'img_url' => "https://render.albiononline.com/v1/item/{$itemApiIdWithEnc}.png",
                 'tier' => $item->tier,
                 'enc' => $item->enc,
             ],
             'materials' => $materials,
             'silver_cost' => $recipes->first()->silver_cost ?? 0,
+        ]);
+    }
+
+    /**
+     * Get item detail for advance mode (used for restoring inventory)
+     */
+    public function advanceItemDetail(Request $request, string $station = 'mage-tower')
+    {
+        $request->validate([
+            'item_id' => 'required|integer',
+        ]);
+
+        $item = Item::find($request->input('item_id'));
+        
+        if (!$item) {
+            return response()->json(['error' => 'Item not found'], 404);
+        }
+        
+        $enc = (int) ($item->enc ?? 0);
+        $apiIdWithEnc = $item->api_id . ($enc > 0 ? "_LEVEL{$enc}@{$enc}" : '');
+        
+        return response()->json([
+            'id' => $item->id,
+            'name' => $item->name,
+            'api_id' => $item->api_id,
+            'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
+            'tier' => $item->tier,
+            'enc' => $item->enc,
         ]);
     }
 }
