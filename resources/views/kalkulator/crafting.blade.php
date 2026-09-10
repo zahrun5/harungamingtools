@@ -1980,11 +1980,40 @@ function onAdvSearch() {
 }
 
 // Open add material popup
+let advPendingItem = null;
+let advPendingItems = null;
+let advPendingIdx = null;
+
 function openAdvAdd(idx, items) {
   const item = items[idx];
-  // TODO: Implement popup similar to Simple Mode
-  // For now, just add directly to inventory
-  addAdvToInventory(item, 1, 0);
+  advPendingItem = item;
+  advPendingItems = items;
+  advPendingIdx = idx;
+  
+  // Populate popup
+  document.getElementById('caIcon').src = item.img_url || '';
+  document.getElementById('caName').textContent = item.name;
+  document.getElementById('caNeed').textContent = `Tier ${item.tier}${item.enc > 0 ? ` .${item.enc}` : ''}`;
+  document.getElementById('caHarga').value = '';
+  document.getElementById('caQty').value = '1';
+  document.getElementById('caQtyField').style.display = '';
+  document.getElementById('caBtnRow').innerHTML = '<button class="wiz-btn-hitung" style="flex:1" onclick="doAdvAddResource()">➕ ' + t('add_to_inventory') + '</button>';
+  
+  document.getElementById('craftAddOverlay').classList.add('show');
+}
+
+function doAdvAddResource() {
+  const qty = parseInt(document.getElementById('caQty').value) || 1;
+  const harga = parseInt(document.getElementById('caHarga').value) || 0;
+  
+  if (qty < 1) {
+    showCraftToast('❌ ' + t('invalid_quantity'));
+    return;
+  }
+  
+  addAdvToInventory(advPendingItem, qty, harga);
+  closeCraftAddOverlay();
+  showCraftToast('✅ ' + t('added_to_inventory'));
 }
 
 // Add to inventory
@@ -2021,11 +2050,64 @@ function renderAdvInventory() {
   `).join('');
 }
 
-// Check craftable items (placeholder)
-function checkAdvCraftable() {
-  // TODO: Implement recipe matching
-  document.getElementById('advCraftableSection').style.display = 'none';
-  document.getElementById('advBottomBar').style.display = 'none';
+// Check craftable items - Recipe matching algorithm
+async function checkAdvCraftable() {
+  if (advInv.length === 0) {
+    document.getElementById('advCraftableSection').style.display = 'none';
+    document.getElementById('advBottomBar').style.display = 'none';
+    return;
+  }
+  
+  // Prepare materials array for backend
+  // Use base API ID only (enc is handled separately in recipes table)
+  const materials = advInv.map(inv => ({
+    api_id: inv.item.api_id,  // Base API ID only, enc is in recipes table
+    qty: inv.qty
+  }));
+  
+  try {
+    const response = await fetch(`${CRAFT_API_BASE}/advance/check-craftable`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ materials })
+    });
+    
+    const craftable = await response.json();
+    
+    if (craftable.length === 0) {
+      document.getElementById('advCraftableSection').style.display = 'none';
+      document.getElementById('advBottomBar').style.display = 'none';
+      return;
+    }
+    
+    renderAdvCraftableItems(craftable);
+    document.getElementById('advCraftableSection').style.display = '';
+  } catch (error) {
+    console.error('Failed to check craftable items:', error);
+    document.getElementById('advCraftableSection').style.display = 'none';
+  }
+}
+
+// Render craftable items
+function renderAdvCraftableItems(craftable) {
+  const grid = document.getElementById('advCraftableGrid');
+  
+  grid.innerHTML = craftable.map(item => `
+    <div class="craft-craftable-item" onclick="selectAdvCraftTarget(${item.id})">
+      <img src="${item.img_url || ''}" alt="${item.name}" onerror="this.style.opacity=0.3">
+      <div class="cc-name">${item.name}</div>
+      <div class="cc-max">${t('max')}: ${item.maxQty}</div>
+    </div>
+  `).join('');
+}
+
+// Select craft target
+function selectAdvCraftTarget(itemId) {
+  // TODO: Load item recipes and setup craft panel
+  showCraftToast('🚧 Craft selection coming soon!');
 }
 
 // Toggle inventory visibility

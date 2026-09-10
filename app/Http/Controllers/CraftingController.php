@@ -672,4 +672,82 @@ class CraftingController extends Controller
 
         return response()->json($items);
     }
+
+    /**
+     * Advance Mode: Check which items can be crafted with given materials
+     * Receives array of material api_ids from inventory, returns craftable items
+     */
+    public function checkCraftable(Request $request, string $station = 'mage-tower')
+    {
+        $request->validate([
+            'materials' => 'required|array',
+            'materials.*.api_id' => 'required|string',
+            'materials.*.qty' => 'required|integer|min:1',
+        ]);
+
+        $stationCategoryIds = $this->resolveCategoryIds($station);
+        if (empty($stationCategoryIds)) {
+            return response()->json([]);
+        }
+
+        $materialsInv = collect($request->input('materials'))->keyBy('api_id');
+        
+        // Get all items for this station
+        $items = Item::whereIn('category_id', $stationCategoryIds)->get();
+        
+        $craftable = [];
+        
+        foreach ($items as $item) {
+            // Get recipes for this item
+            $recipes = DB::table('item_recipes')
+                ->where('item_api_id', $item->api_id)
+                ->where('enchantment_level', $item->enc)
+                ->get();
+            
+            if ($recipes->isEmpty()) continue;
+            
+            // Check if all required materials are in inventory
+            $canCraft = true;
+            $maxQty = PHP_INT_MAX;
+            
+            foreach ($recipes as $recipe) {
+                $requiredApiId = $recipe->resource_api_id;
+                if ($recipe->resource_enchantment_level > 0) {
+                    $requiredApiId .= '_LEVEL' . $recipe->resource_enchantment_level . '@' . $recipe->resource_enchantment_level;
+                }
+                
+                if (!$materialsInv->has($requiredApiId)) {
+                    $canCraft = false;
+                    break;
+                }
+                
+                $available = $materialsInv->get($requiredApiId)['qty'];
+                $required = $recipe->count;
+                
+                if ($available < $required) {
+                    $canCraft = false;
+                    break;
+                }
+                
+                $maxQty = min($maxQty, floor($available / $required));
+            }
+            
+            if ($canCraft) {
+                $enc = (int) ($item->enc ?? 0);
+                $apiIdWithEnc = $item->api_id . ($enc > 0 ? "@{$enc}" : '');
+                
+                $craftable[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'api_id' => $item->api_id,
+                    'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
+                    'tier' => $item->tier,
+                    'enc' => $item->enc,
+                    'maxQty' => $maxQty,
+                ];
+            }
+        }
+        
+        return response()->json($craftable);
+    }
 }
