@@ -229,7 +229,6 @@
         </div>
 
         <div class="bot-bar">
-          <button class="inv-btn" id="advInvBtn" onclick="toggleAdvInv()">📦 {{ __('crafting.inventory') }} (<span id="advInvCount">0</span>)</button>
           <button class="reset-btn" onclick="doAdvReset()">🗑 {{ __('crafting.reset') }}</button>
         </div>
       </div>
@@ -2431,10 +2430,7 @@ function renderAdvCraftResultPanel() {
 
 // Old function removed - using doAdvCraftExecute() from popup instead
 
-// Toggle inventory visibility
-function toggleAdvInv() {
-  // TODO: Toggle visibility for mobile
-}
+// Old function removed - inventory always visible in Advance Mode
 
 // Reset advance mode
 function doAdvReset() {
