@@ -1519,7 +1519,13 @@ function openResourceAdd(gi, ri) {
   document.getElementById('caName').textContent = r.name;
   document.getElementById('caNeed').textContent = t('resource_needed', {count: r.count});
   document.getElementById('caHarga').value = existing ? (existing.harga || '') : (bahanPriceCache[r.item_id] || '');
-  document.getElementById('caQty').value = r.count;
+  
+  // Set both slider and input
+  const slider = document.getElementById('caQtySlider');
+  const qtyInput = document.getElementById('caQty');
+  if (slider) slider.value = r.count;
+  if (qtyInput) qtyInput.value = r.count;
+  
   document.getElementById('caQtyField').style.display = '';
   document.getElementById('caBtnRow').innerHTML = `<button class="wiz-btn-hitung" style="flex:1" onclick="doCraftAddResource()">➕ ${t('add_to_inventory')}</button>`;
   document.getElementById('craftAddOverlay').classList.add('show');
