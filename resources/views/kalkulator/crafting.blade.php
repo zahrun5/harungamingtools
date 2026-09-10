@@ -375,6 +375,50 @@
   </div>
 </div>
 
+<!-- ====== POPUP CRAFT ADVANCE MODE ====== -->
+<div class="popup-overlay" id="advCraftPopupOverlay" onclick="closeAdvCraftPopupOnBg(event)">
+  <div class="popup-box" id="advCraftPopupBox" style="max-width:500px;">
+    <button class="popup-close" onclick="closeAdvCraftPopup()">✕</button>
+    <div class="popup-head">
+      <img id="advCraftIcon" src="" alt="" onerror="this.style.opacity=.3">
+      <div>
+        <div class="popup-item-name" id="advCraftName">—</div>
+        <div class="popup-item-sub" id="advCraftDesc">—</div>
+      </div>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px;">
+      <!-- Bahan yang dibutuhkan -->
+      <div id="advCraftMaterialsInfo" style="background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:4px;padding:10px;"></div>
+      
+      <!-- Return Rate -->
+      <div>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">♻️ {{ __('crafting.return_label') }}</label>
+        <input type="number" id="advCraftReturnRate" value="21.5" min="0" max="100" step="0.1" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+      </div>
+      
+      <!-- Quantity Slider -->
+      <div id="advCraftQtyField">
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">🔢 {{ __('crafting.quantity_label') }}</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="range" id="advCraftSlider" min="1" max="100" value="1" oninput="syncAdvCraftQty('s')" style="flex:1;">
+          <input type="number" id="advCraftQtyInput" value="1" min="1" max="100" oninput="syncAdvCraftQty('v')" style="width:80px;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+        </div>
+      </div>
+      
+      <!-- Checkbox Habis -->
+      <label style="display:flex;align-items:center;gap:8px;font-family:'Crimson Text',serif;font-size:14px;color:var(--text-lt);cursor:pointer;">
+        <input type="checkbox" id="advCraftHabisCheckbox" onchange="onAdvCraftHabisCheckboxChange()">
+        {{ __('crafting.craft_all_checkbox') }}
+      </label>
+      
+      <!-- Button Craft -->
+      <div class="pop-btn-row" style="display:flex;gap:7px;">
+        <button class="wiz-btn-hitung" style="flex:1" onclick="doAdvCraftExecute()">⚒️ {{ __('crafting.craft_btn') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="craft-toast" id="craftToast"></div>
 
 <!-- ====== POPUP OVERLAY ====== -->
@@ -2104,7 +2148,7 @@ function renderAdvCraftableItems(craftable) {
   `).join('');
 }
 
-// Select craft target - load recipe and show craft panel
+// Select craft target - load recipe and show craft popup
 async function selectAdvCraftTarget(itemId) {
   try {
     showCraftToast('⏳ ' + t('loading_recipe'));
@@ -2121,32 +2165,166 @@ async function selectAdvCraftTarget(itemId) {
     advCraftMaterials = data.materials;
     advSilverCost = data.silver_cost || 0;
     
-    // Show bottom bar
-    document.getElementById('advBottomBar').style.display = '';
-    
-    // Update craft button
-    document.getElementById('advCraftBtn').disabled = false;
-    
-    // Reset form values
-    document.getElementById('advCraftQty').value = 1;
-    document.getElementById('advCraftQty').disabled = false;
-    document.getElementById('advCraftHabis').checked = false;
-    document.getElementById('advCraftSellPrice').value = '';
-    document.getElementById('advCraftPremium').checked = false;
-    document.getElementById('advCraftOrderCost').checked = false;
-    
-    // Auto-fill sell price from market (if available)
-    // For now, leave empty
-    
-    showCraftToast('✅ ' + t('recipe_loaded'));
-    
-    // Calculate preview
-    renderAdvCraftResultPanel();
+    // Open craft popup
+    openAdvCraftPopup();
     
   } catch (error) {
     console.error('Failed to load recipe:', error);
     showCraftToast('❌ ' + t('failed_load_recipe'));
   }
+}
+
+// Open craft popup
+function openAdvCraftPopup() {
+  if (!advCraftTarget || !advCraftMaterials) return;
+  
+  // Populate popup header
+  document.getElementById('advCraftIcon').src = advCraftTarget.img_url || '';
+  document.getElementById('advCraftName').textContent = advCraftTarget.name;
+  document.getElementById('advCraftDesc').textContent = `Tier ${advCraftTarget.tier}${advCraftTarget.enc > 0 ? ` .${advCraftTarget.enc}` : ''}`;
+  
+  // Build materials info (punya/butuh)
+  let materialsHTML = '<div style="display:flex;flex-direction:column;gap:8px;">';
+  advCraftMaterials.forEach(mat => {
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    const have = invItem ? invItem.qty : 0;
+    const need = mat.count;
+    const enough = have >= need;
+    materialsHTML += `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <img src="${mat.img_url || ''}" alt="${mat.name}" style="width:32px;height:32px;" onerror="this.style.opacity=0.3">
+        <div style="flex:1;font-family:'Crimson Text',serif;font-size:14px;color:var(--text-lt);">
+          ${mat.name}
+        </div>
+        <div style="font-family:'Cinzel',serif;font-size:13px;">
+          <span style="color:${enough ? 'var(--green)' : 'var(--red)'}">${have}</span>
+          <span style="color:var(--text-dim)"> / </span>
+          <span style="color:var(--text-lt)">${need}</span>
+        </div>
+      </div>`;
+  });
+  materialsHTML += '</div>';
+  document.getElementById('advCraftMaterialsInfo').innerHTML = materialsHTML;
+  
+  // Calculate max craftable
+  const maxQty = getAdvMaxCraftable();
+  
+  // Setup slider
+  const slider = document.getElementById('advCraftSlider');
+  const qtyInput = document.getElementById('advCraftQtyInput');
+  slider.max = maxQty;
+  slider.value = maxQty;
+  qtyInput.max = maxQty;
+  qtyInput.value = maxQty;
+  
+  // Reset return rate to default
+  document.getElementById('advCraftReturnRate').value = 21.5;
+  
+  // Reset checkbox
+  document.getElementById('advCraftHabisCheckbox').checked = false;
+  document.getElementById('advCraftQtyField').style.opacity = '1';
+  slider.disabled = false;
+  qtyInput.disabled = false;
+  
+  // Show popup
+  document.getElementById('advCraftPopupOverlay').classList.add('show');
+}
+
+function closeAdvCraftPopup() {
+  document.getElementById('advCraftPopupOverlay').classList.remove('show');
+}
+
+function closeAdvCraftPopupOnBg(e) {
+  if (e.target === document.getElementById('advCraftPopupOverlay')) {
+    closeAdvCraftPopup();
+  }
+}
+
+// Sync qty slider and input
+function syncAdvCraftQty(src) {
+  const slider = document.getElementById('advCraftSlider');
+  const input = document.getElementById('advCraftQtyInput');
+  const max = parseInt(slider.max) || 1;
+  if (src === 's') {
+    input.value = slider.value;
+  } else {
+    const val = Math.min(Math.max(parseInt(input.value) || 1, 1), max);
+    slider.value = val;
+    input.value = val;
+  }
+}
+
+// Checkbox "Habis" change
+function onAdvCraftHabisCheckboxChange() {
+  const checkbox = document.getElementById('advCraftHabisCheckbox');
+  const slider = document.getElementById('advCraftSlider');
+  const qtyInput = document.getElementById('advCraftQtyInput');
+  const qtyField = document.getElementById('advCraftQtyField');
+  
+  if (checkbox.checked) {
+    // Disable manual input, will use simulation
+    qtyField.style.opacity = '0.4';
+    slider.disabled = true;
+    qtyInput.disabled = true;
+    
+    // Calculate with simulation loop
+    const simQty = simulateAdvCraftLoop();
+    slider.value = simQty;
+    qtyInput.value = simQty;
+  } else {
+    // Enable manual input
+    qtyField.style.opacity = '1';
+    slider.disabled = false;
+    qtyInput.disabled = false;
+    
+    // Reset to max
+    const maxQty = getAdvMaxCraftable();
+    slider.value = maxQty;
+    qtyInput.value = maxQty;
+  }
+}
+
+// Simulate craft loop (like refine)
+function simulateAdvCraftLoop() {
+  if (!advCraftMaterials || advCraftMaterials.length === 0) return 0;
+  
+  const returnRate = parseFloat(document.getElementById('advCraftReturnRate').value) || 0;
+  const ret = returnRate / 100;
+  
+  // Create stock array from inventory
+  let stock = advCraftMaterials.map(mat => {
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    return invItem ? invItem.qty : 0;
+  });
+  
+  const req = advCraftMaterials.map(mat => mat.count);
+  let total = 0;
+  
+  while (true) {
+    // Find bottleneck (minimum craftable from all materials)
+    let canCraft = Infinity;
+    for (let i = 0; i < req.length; i++) {
+      if (req[i] > 0) {
+        canCraft = Math.min(canCraft, Math.floor(stock[i] / req[i]));
+      }
+    }
+    
+    if (canCraft === 0 || canCraft === Infinity) break;
+    
+    // Deduct materials
+    for (let i = 0; i < req.length; i++) {
+      stock[i] -= canCraft * req[i];
+    }
+    
+    total += canCraft;
+    
+    // Add return materials
+    for (let i = 0; i < req.length; i++) {
+      stock[i] += Math.round(canCraft * req[i] * ret);
+    }
+  }
+  
+  return total;
 }
 
 // Recipe materials loaded from backend
@@ -2251,35 +2429,7 @@ function renderAdvCraftResultPanel() {
   document.getElementById('advTotalProfit').className = 'crp-val ' + (profit >= 0 ? 'positive' : 'negative');
 }
 
-// Execute craft
-function doAdvCraft() {
-  if (!advCraftTarget) {
-    showCraftToast('❌ ' + t('select_item_first'));
-    return;
-  }
-  
-  const qty = getAdvCraftQty();
-  
-  // Deduct materials from inventory
-  for (const mat of advCraftMaterials) {
-    const invIdx = advInv.findIndex(i => i.item.api_id === mat.api_id);
-    if (invIdx !== -1) {
-      advInv[invIdx].qty -= mat.count * qty;
-      if (advInv[invIdx].qty <= 0) {
-        advInv.splice(invIdx, 1);
-      }
-    }
-  }
-  
-  // Show success toast
-  showCraftToast('✅ ' + t('craft_success_toast', {qty, name: advCraftTarget.name}));
-  
-  // Refresh UI
-  renderAdvInventory();
-  checkAdvCraftable();
-  renderAdvCraftResultPanel();
-  saveAdvState();
-}
+// Old function removed - using doAdvCraftExecute() from popup instead
 
 // Toggle inventory visibility
 function toggleAdvInv() {
@@ -2311,29 +2461,79 @@ function loadAdvState() {
     const raw = localStorage.getItem('ct_adv_inv_' + STATION);
     if (!raw) return;
     const data = JSON.parse(raw);
-    // TODO: Restore inventory from saved data
-  } catch (e) {}
+    if (!data || !data.inv) return;
+    
+    // Restore inventory - need to fetch item details for each saved item
+    const itemIds = data.inv.map(i => i.itemId).filter(Boolean);
+    if (itemIds.length === 0) return;
+    
+    // Fetch all items in parallel
+    Promise.all(itemIds.map(id => 
+      fetch(`${CRAFT_API_BASE}/advance/item-detail?item_id=${id}`)
+        .then(r => r.json())
+        .catch(() => null)
+    )).then(items => {
+      items.forEach((item, idx) => {
+        if (!item) return;
+        const saved = data.inv[idx];
+        advInv.push({
+          item: item,
+          qty: saved.qty,
+          harga: saved.harga || 0
+        });
+      });
+      
+      renderAdvInventory();
+      checkAdvCraftable();
+    });
+  } catch (e) {
+    console.error('Failed to load advance state:', e);
+  }
 }
 
-// Journal functions (placeholder)
+// Journal functions (skip for now)
 function onAdvUseJournalToggle() {
-  // TODO: Implement journal toggle
+  // Skip journal for now
 }
 
-function onAdvCraftHabisChange() {
-  // TODO: Implement craft all checkbox
-}
-
-function renderAdvCraftResultPanel() {
-  // TODO: Implement result panel
-}
-
-function doAdvCraft() {
-  // TODO: Implement craft action
-}
-
+// Edit inventory item
 function editAdvInvItem(idx) {
-  // TODO: Implement edit inventory item
+  const inv = advInv[idx];
+  if (!inv) return;
+  
+  advPendingItem = inv.item;
+  advPendingIdx = idx;
+  
+  document.getElementById('caIcon').src = inv.item.img_url || '';
+  document.getElementById('caName').textContent = inv.item.name;
+  document.getElementById('caNeed').textContent = t('edit_price_or_delete');
+  document.getElementById('caHarga').value = inv.harga || '';
+  document.getElementById('caQty').value = inv.qty;
+  document.getElementById('caQtyField').style.display = 'none';
+  document.getElementById('caBtnRow').innerHTML = `
+    <button class="wiz-btn-hitung" style="flex:1" onclick="doAdvEditHarga()">💾 ${t('save_price')}</button>
+    <button class="reset-btn" onclick="doAdvDeleteResource()">🗑</button>`;
+  document.getElementById('craftAddOverlay').classList.add('show');
+}
+
+function doAdvEditHarga() {
+  if (advPendingIdx === null) return;
+  advInv[advPendingIdx].harga = parseFloat(document.getElementById('caHarga').value) || 0;
+  closeCraftAddOverlay();
+  renderAdvInventory();
+  saveAdvState();
+  showCraftToast('💰 ' + t('price_updated'));
+}
+
+function doAdvDeleteResource() {
+  if (advPendingIdx === null) return;
+  const nama = advInv[advPendingIdx].item.name;
+  advInv.splice(advPendingIdx, 1);
+  closeCraftAddOverlay();
+  renderAdvInventory();
+  checkAdvCraftable();
+  saveAdvState();
+  showCraftToast('🗑 ' + t('item_deleted', {name: nama}));
 }
 
 // Initialize advance mode on toggle
