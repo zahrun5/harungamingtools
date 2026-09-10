@@ -377,6 +377,36 @@
   </div>
 </div>
 
+<!-- ====== POPUP ADD MATERIAL ADVANCE MODE ====== -->
+<div class="popup-overlay" id="advAddOverlay" onclick="closeAdvAddOnBg(event)">
+  <div class="popup-box" id="advAddBox" style="max-width:340px;">
+    <button class="popup-close" onclick="closeAdvAddOverlay()">✕</button>
+    <div class="popup-head">
+      <img id="advAddIcon" src="" alt="" onerror="this.style.opacity=.3">
+      <div>
+        <div class="popup-item-name" id="advAddName">—</div>
+        <div class="popup-item-sub" id="advAddDesc">—</div>
+      </div>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">{{ __('crafting.price_per_unit_optional') }}</label>
+        <input type="number" id="advAddHarga" placeholder="0" min="0" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+      </div>
+      <div>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">{{ __('crafting.quantity_label') }}</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="range" id="advAddQtySlider" min="1" max="999" value="100" oninput="syncAdvAddQty('s')" style="flex:1;">
+          <input type="number" id="advAddQty" value="100" min="1" max="999999" oninput="syncAdvAddQty('v')" style="width:80px;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+        </div>
+      </div>
+      <div class="pop-btn-row" style="display:flex;gap:7px;">
+        <button class="wiz-btn-hitung" style="flex:1" onclick="doAdvAddMaterial()">➕ {{ __('crafting.add_to_inventory') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ====== POPUP CRAFT ADVANCE MODE ====== -->
 <div class="popup-overlay" id="advCraftPopupOverlay" onclick="closeAdvCraftPopupOnBg(event)">
   <div class="popup-box" id="advCraftPopupBox" style="max-width:500px;">
@@ -1507,8 +1537,24 @@ function renderCraftSlots() {
 }
 
 // ------------------------------------------------------------
-// POPUP TAMBAH / EDIT BAHAN
+// POPUP TAMBAH / EDIT BAHAN (Simple Mode)
 // ------------------------------------------------------------
+
+// Sync qty slider and input for Simple Mode popup
+function syncCaQty(src) {
+  const slider = document.getElementById('caQtySlider');
+  const input = document.getElementById('caQty');
+  if (!slider || !input) return;
+  const max = parseInt(slider.max) || 999;
+  if (src === 's') {
+    input.value = slider.value;
+  } else {
+    const val = Math.min(Math.max(parseInt(input.value) || 1, 1), 999999);
+    if (val <= max) slider.value = val;
+    input.value = val;
+  }
+}
+
 function openResourceAdd(gi, ri) {
   const r = craftRecipes[gi][ri];
   craftPending = r;
@@ -2036,10 +2082,10 @@ let advPendingItem = null;
 let advPendingItems = null;
 let advPendingIdx = null;
 
-// Sync qty slider and input for add material popup
-function syncCaQty(src) {
-  const slider = document.getElementById('caQtySlider');
-  const input = document.getElementById('caQty');
+// Sync qty slider and input for add material popup (Advance Mode)
+function syncAdvAddQty(src) {
+  const slider = document.getElementById('advAddQtySlider');
+  const input = document.getElementById('advAddQty');
   if (!slider || !input) return;
   const max = parseInt(slider.max) || 999;
   if (src === 's') {
@@ -2058,21 +2104,36 @@ function openAdvAdd(idx, items) {
   advPendingIdx = idx;
   
   // Populate popup
-  document.getElementById('caIcon').src = item.img_url || '';
-  document.getElementById('caName').textContent = item.name;
-  document.getElementById('caNeed').textContent = `Tier ${item.tier}${item.enc > 0 ? ` .${item.enc}` : ''}`;
-  document.getElementById('caHarga').value = '';
-  document.getElementById('caQtySlider').value = '100';
-  document.getElementById('caQty').value = '100';
-  document.getElementById('caQtyField').style.display = '';
-  document.getElementById('caBtnRow').innerHTML = '<button class="wiz-btn-hitung" style="flex:1" onclick="doAdvAddResource()">➕ ' + t('add_to_inventory') + '</button>';
+  document.getElementById('advAddIcon').src = item.img_url || '';
+  document.getElementById('advAddName').textContent = item.name;
+  document.getElementById('advAddDesc').textContent = `Tier ${item.tier}${item.enc > 0 ? ` .${item.enc}` : ''}`;
+  document.getElementById('advAddHarga').value = '';
+  document.getElementById('advAddQtySlider').value = '100';
+  document.getElementById('advAddQty').value = '100';
   
-  document.getElementById('craftAddOverlay').classList.add('show');
+  document.getElementById('advAddOverlay').classList.add('show');
 }
 
-function doAdvAddResource() {
-  const qty = parseInt(document.getElementById('caQty').value) || 1;
-  const harga = parseInt(document.getElementById('caHarga').value) || 0;
+function closeAdvAddOverlay() {
+  document.getElementById('advAddOverlay').classList.remove('show');
+  advPendingItem = null;
+  advPendingIdx = null;
+}
+
+function closeAdvAddOnBg(e) {
+  if (e.target === document.getElementById('advAddOverlay')) {
+    closeAdvAddOverlay();
+  }
+}
+
+function doAdvAddMaterial() {
+  if (!advPendingItem) {
+    showCraftToast('❌ Error: No item selected');
+    return;
+  }
+  
+  const qty = parseInt(document.getElementById('advAddQty').value) || 1;
+  const harga = parseInt(document.getElementById('advAddHarga').value) || 0;
   
   if (qty < 1) {
     showCraftToast('❌ ' + t('invalid_quantity'));
@@ -2080,8 +2141,8 @@ function doAdvAddResource() {
   }
   
   addAdvToInventory(advPendingItem, qty, harga);
-  closeCraftAddOverlay();
-  showCraftToast('✅ ' + t('added_to_inventory'));
+  closeAdvAddOverlay();
+  showCraftToast('✅ ' + advPendingItem.name + ' ditambahkan');
 }
 
 // Add to inventory
