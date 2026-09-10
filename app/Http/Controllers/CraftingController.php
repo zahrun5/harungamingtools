@@ -750,4 +750,81 @@ class CraftingController extends Controller
         
         return response()->json($craftable);
     }
+
+    /**
+     * Advance Mode: Get recipe details for a specific item
+     * Returns all materials needed and their quantities
+     */
+    public function advanceRecipe(Request $request, string $station = 'mage-tower')
+    {
+        $request->validate([
+            'item_id' => 'required|integer',
+        ]);
+
+        $itemId = $request->input('item_id');
+        $stationCategoryIds = $this->resolveCategoryIds($station);
+        
+        // Verify item belongs to this station
+        $item = Item::where('id', $itemId)
+            ->whereIn('category_id', $stationCategoryIds)
+            ->first();
+        
+        if (!$item) {
+            return response()->json(['error' => 'Item not found'], 404);
+        }
+        
+        // Get recipes for this item
+        $recipes = DB::table('item_recipes')
+            ->where('item_api_id', $item->api_id)
+            ->where('enchantment_level', $item->enc)
+            ->get();
+        
+        if ($recipes->isEmpty()) {
+            return response()->json(['error' => 'No recipe found'], 404);
+        }
+        
+        // Group recipes by resource (some items have multiple recipe rows for same material)
+        $materialsMap = [];
+        foreach ($recipes as $recipe) {
+            $key = $recipe->resource_api_id . '@' . $recipe->resource_enchantment_level;
+            
+            if (!isset($materialsMap[$key])) {
+                $resourceItem = Item::where('api_id', $recipe->resource_api_id)
+                    ->where('enc', $recipe->resource_enchantment_level)
+                    ->first();
+                
+                if ($resourceItem) {
+                    $enc = (int) ($resourceItem->enc ?? 0);
+                    $apiIdWithEnc = $resourceItem->api_id . ($enc > 0 ? "@{$enc}" : '');
+                    
+                    $materialsMap[$key] = [
+                        'id' => $resourceItem->id,
+                        'api_id' => $resourceItem->api_id,
+                        'name' => $resourceItem->name,
+                        'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
+                        'tier' => $resourceItem->tier,
+                        'enc' => $resourceItem->enc,
+                        'count' => $recipe->count,
+                    ];
+                }
+            } else {
+                // Sum the count if same material appears multiple times
+                $materialsMap[$key]['count'] += $recipe->count;
+            }
+        }
+        
+        $materials = array_values($materialsMap);
+        
+        return response()->json([
+            'item' => [
+                'id' => $item->id,
+                'name' => $item->name,
+                'api_id' => $item->api_id,
+                'tier' => $item->tier,
+                'enc' => $item->enc,
+            ],
+            'materials' => $materials,
+            'silver_cost' => $recipes->first()->silver_cost ?? 0,
+        ]);
+    }
 }

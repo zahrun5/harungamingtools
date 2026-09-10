@@ -78,4 +78,9 @@ return [
     // Advance Mode
     'craftable_items' => 'Craftable Items',
     'reset' => 'Reset',
+    'loading_recipe' => 'Loading recipe...',
+    'recipe_loaded' => 'Recipe loaded!',
+    'failed_load_recipe' => 'Failed to load recipe',
+    'select_item_first' => 'Select an item to craft first',
+    'craft_success_toast' => 'Successfully crafted :qty× :name!',
 ];

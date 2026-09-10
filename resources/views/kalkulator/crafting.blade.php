@@ -2104,10 +2104,181 @@ function renderAdvCraftableItems(craftable) {
   `).join('');
 }
 
-// Select craft target
-function selectAdvCraftTarget(itemId) {
-  // TODO: Load item recipes and setup craft panel
-  showCraftToast('🚧 Craft selection coming soon!');
+// Select craft target - load recipe and show craft panel
+async function selectAdvCraftTarget(itemId) {
+  try {
+    showCraftToast('⏳ ' + t('loading_recipe'));
+    
+    const response = await fetch(`${CRAFT_API_BASE}/advance/recipe?item_id=${itemId}`);
+    const data = await response.json();
+    
+    if (data.error) {
+      showCraftToast('❌ ' + data.error);
+      return;
+    }
+    
+    advCraftTarget = data.item;
+    advCraftMaterials = data.materials;
+    advSilverCost = data.silver_cost || 0;
+    
+    // Show bottom bar
+    document.getElementById('advBottomBar').style.display = '';
+    
+    // Update craft button
+    document.getElementById('advCraftBtn').disabled = false;
+    
+    // Reset form values
+    document.getElementById('advCraftQty').value = 1;
+    document.getElementById('advCraftQty').disabled = false;
+    document.getElementById('advCraftHabis').checked = false;
+    document.getElementById('advCraftSellPrice').value = '';
+    document.getElementById('advCraftPremium').checked = false;
+    document.getElementById('advCraftOrderCost').checked = false;
+    
+    // Auto-fill sell price from market (if available)
+    // For now, leave empty
+    
+    showCraftToast('✅ ' + t('recipe_loaded'));
+    
+    // Calculate preview
+    renderAdvCraftResultPanel();
+    
+  } catch (error) {
+    console.error('Failed to load recipe:', error);
+    showCraftToast('❌ ' + t('failed_load_recipe'));
+  }
+}
+
+// Recipe materials loaded from backend
+let advCraftMaterials = [];
+let advSilverCost = 0;
+
+// Craft calculation functions
+function getAdvSellFeeMultiplier() {
+  let mult = 1;
+  if (document.getElementById('advCraftPremium').checked) mult *= 0.97; // 3% tax
+  if (document.getElementById('advCraftOrderCost').checked) mult *= 0.955; // 4.5% order fee
+  return mult;
+}
+
+function getAdvReturnRate() {
+  return parseFloat(document.getElementById('advCraftReturn').value) || 0;
+}
+
+function getAdvCraftQty() {
+  const qty = parseInt(document.getElementById('advCraftQty').value) || 1;
+  const maxQty = advCraftTarget ? Math.min(qty, getAdvMaxCraftable()) : qty;
+  return Math.max(1, Math.min(qty, maxQty));
+}
+
+function getAdvMaxCraftable() {
+  if (!advCraftTarget || advCraftMaterials.length === 0) return 0;
+  
+  let maxQty = Infinity;
+  for (const mat of advCraftMaterials) {
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    if (!invItem) return 0;
+    maxQty = Math.min(maxQty, Math.floor(invItem.qty / mat.count));
+  }
+  return maxQty;
+}
+
+function onAdvCraftHabisChange() {
+  const checkbox = document.getElementById('advCraftHabis');
+  const qtyInput = document.getElementById('advCraftQty');
+  if (checkbox.checked) {
+    qtyInput.value = getAdvMaxCraftable();
+    qtyInput.disabled = true;
+  } else {
+    qtyInput.disabled = false;
+  }
+  renderAdvCraftResultPanel();
+}
+
+// Render craft result panel (preview + final)
+function renderAdvCraftResultPanel() {
+  if (!advCraftTarget || advCraftMaterials.length === 0) {
+    document.getElementById('advResultPanel').style.display = 'none';
+    return;
+  }
+  
+  const qty = getAdvCraftQty();
+  const returnRate = getAdvReturnRate() / 100;
+  const feeMult = getAdvSellFeeMultiplier();
+  
+  // Calculate material costs
+  let totalMaterialCost = 0;
+  let totalMaterialValue = 0;
+  
+  for (const mat of advCraftMaterials) {
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    if (!invItem) continue;
+    
+    const needed = mat.count * qty;
+    const unitPrice = invItem.harga || 0;
+    totalMaterialCost += needed * unitPrice;
+    
+    // Value of remaining materials
+    const remaining = invItem.qty - needed;
+    if (remaining > 0) {
+      totalMaterialValue += remaining * unitPrice;
+    }
+  }
+  
+  // Add silver cost
+  totalMaterialCost += advSilverCost * qty;
+  
+  // Result item value
+  const craftItem = advInv.find(i => i.item.id === advCraftTarget.id);
+  const sellPrice = parseFloat(document.getElementById('advCraftSellPrice').value) || 0;
+  const resultValue = sellPrice * qty * feeMult;
+  
+  // Calculate return value
+  const returnValue = totalMaterialCost * returnRate;
+  
+  // Profit calculation
+  const profit = resultValue + returnValue + totalMaterialValue - totalMaterialCost;
+  
+  // Update UI
+  document.getElementById('advResultPanel').style.display = '';
+  document.getElementById('advModalBahan').textContent = formatSilver(totalMaterialCost);
+  document.getElementById('advTotalModal').textContent = formatSilver(totalMaterialCost);
+  document.getElementById('advProfitItem').textContent = formatSilver(resultValue);
+  document.getElementById('advPajak').textContent = formatSilver(sellPrice * qty * (1 - feeMult));
+  document.getElementById('advProfitSisa').textContent = formatSilver(totalMaterialValue);
+  document.getElementById('advHasilAkhir').textContent = formatSilver(resultValue + returnValue + totalMaterialValue);
+  document.getElementById('advTotalProfit').textContent = formatSilver(profit);
+  document.getElementById('advTotalProfit').className = 'crp-val ' + (profit >= 0 ? 'positive' : 'negative');
+}
+
+// Execute craft
+function doAdvCraft() {
+  if (!advCraftTarget) {
+    showCraftToast('❌ ' + t('select_item_first'));
+    return;
+  }
+  
+  const qty = getAdvCraftQty();
+  
+  // Deduct materials from inventory
+  for (const mat of advCraftMaterials) {
+    const invIdx = advInv.findIndex(i => i.item.api_id === mat.api_id);
+    if (invIdx !== -1) {
+      advInv[invIdx].qty -= mat.count * qty;
+      if (advInv[invIdx].qty <= 0) {
+        advInv.splice(invIdx, 1);
+      }
+    }
+  }
+  
+  // Show success toast
+  showCraftToast('✅ ' + t('craft_success_toast', {qty, name: advCraftTarget.name}));
+  
+  // Refresh UI
+  renderAdvInventory();
+  checkAdvCraftable();
+  renderAdvCraftResultPanel();
+  saveAdvState();
 }
 
 // Toggle inventory visibility

@@ -78,4 +78,9 @@ return [
     // Advance Mode
     'craftable_items' => 'Item yang Bisa Di-craft',
     'reset' => 'Reset',
+    'loading_recipe' => 'Memuat resep...',
+    'recipe_loaded' => 'Resep dimuat!',
+    'failed_load_recipe' => 'Gagal memuat resep',
+    'select_item_first' => 'Pilih item yang mau di-craft dulu',
+    'craft_success_toast' => 'Berhasil membuat :qty× :name!',
 ];
