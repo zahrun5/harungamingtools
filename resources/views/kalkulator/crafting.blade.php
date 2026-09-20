@@ -196,6 +196,17 @@
     <div class="rw-main">
       <div class="rw-col-left">
         <div class="filter-bar" id="advFilterBar">
+          <!-- TIPE BAHAN (base/artifact/rune/soul/crystal) -->
+          <div class="flt-wrap">
+            <div class="flt-btn" id="btnAdvType" onclick="toggleDrop('advType')">
+              <span class="flt-label" id="lblAdvType">Kategori</span>
+              <span class="flt-val" id="valAdvType" style="display:none"></span>
+              <span class="flt-arrow">▼</span>
+            </div>
+            <div class="drop-wrap" id="dropAdvType">
+              <div class="drop-col" id="colAdvType"></div>
+            </div>
+          </div>
           <!-- TIER -->
           <div class="flt-wrap">
             <div class="flt-btn" id="btnAdvTier" onclick="toggleDrop('advTier')">
@@ -226,10 +237,6 @@
           <div class="item-table-wrap" id="advItemTableWrap" style="display:none">
             <div id="advItemGrid"></div>
           </div>
-        </div>
-
-        <div class="bot-bar">
-          <button class="reset-btn" onclick="doAdvReset()">🗑 {{ __('crafting.reset') }}</button>
         </div>
       </div>
 
@@ -272,31 +279,26 @@
           <div class="cinv-grid" id="advInvGrid"></div>
         </div>
 
+        <!-- Global Craft Settings -->
+        <div class="craft-settings-section" style="background:linear-gradient(180deg,#2e2210 0%,#1e1608 100%);border:2px solid var(--panel-bd);border-radius:6px;padding:12px;margin-top:12px;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <!-- Return Rate -->
+            <div>
+              <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">♻️ {{ __('crafting.return_label') }}</label>
+              <input type="number" id="advGlobalReturnRate" value="21.5" min="0" max="100" step="0.1" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+            </div>
+            <!-- Premium & Sell Order -->
+            <div style="display:flex;gap:14px;">
+              <label class="craft-max-chk" style="flex:1;"><input type="checkbox" id="advGlobalPremium"> {{ __('crafting.premium') }}</label>
+              <label class="craft-max-chk" style="flex:1;"><input type="checkbox" id="advGlobalSellOrder"> {{ __('crafting.sell_order_label') }}</label>
+            </div>
+          </div>
+        </div>
+
         <!-- Craft Buttons (item yang bisa di-craft) -->
         <div class="craft-craftable-section" id="advCraftableSection" style="display:none">
           <div class="craft-inv-lbl">⚒️ {{ __('crafting.craftable_items') }}</div>
           <div class="craft-craftable-grid" id="advCraftableGrid"></div>
-        </div>
-
-        <!-- Bottom Bar: Return % + Quantity + Sell Price + Craft Button -->
-        <div class="craft-bottom-bar" id="advBottomBar" style="display:none">
-          <div class="craft-ret-wrap">
-            <label>♻️ {{ __('crafting.return_label') }}</label>
-            <input class="craft-ret-inp" type="number" id="advCraftReturn" value="21.5" min="0" max="100" step="0.1">
-            <span style="color:var(--text-dim);font-size:12px">%</span>
-          </div>
-          <div class="craft-qty-wrap">
-            <label>🔢 {{ __('crafting.quantity_label') }}</label>
-            <input class="craft-qty-inp" type="number" id="advCraftQty" value="1" min="1" disabled>
-            <label class="craft-max-chk"><input type="checkbox" id="advCraftHabis" onchange="onAdvCraftHabisChange()"> {{ __('crafting.craft_all_checkbox') }}</label>
-          </div>
-          <div class="craft-sell-wrap">
-            <label>💵 {{ __('crafting.sell_price_label') }}</label>
-            <input class="craft-sell-inp" type="number" id="advCraftSellPrice" placeholder="0" min="0">
-            <label class="craft-max-chk"><input type="checkbox" id="advCraftPremium" onchange="renderAdvCraftResultPanel()"> {{ __('crafting.premium') }}</label>
-            <label class="craft-max-chk"><input type="checkbox" id="advCraftOrderCost" onchange="renderAdvCraftResultPanel()"> {{ __('crafting.sell_order_label') }}</label>
-          </div>
-          <button class="craft-btn" id="advCraftBtn" disabled onclick="doAdvCraft()">⚒️ {{ __('crafting.craft_btn') }}</button>
         </div>
 
         <!-- Craft Result Panel -->
@@ -314,6 +316,11 @@
           <div class="crp-row crp-subtotal" id="advRowHasilAkhir"><span class="crp-label">{{ __('crafting.final_result') }}</span><span class="crp-val" id="advHasilAkhir">0</span></div>
 
           <div class="crp-row crp-total" id="advRowTotalProfit"><span class="crp-label">{{ __('crafting.total_profit') }}</span><span class="crp-val" id="advTotalProfit">0</span></div>
+        </div>
+
+        <!-- Reset Button -->
+        <div style="margin-top:16px;">
+          <button class="reset-btn" style="width:100%;" onclick="doAdvReset()">🗑 {{ __('crafting.reset') }}</button>
         </div>
       </div>
     </div>
@@ -425,18 +432,28 @@
       <!-- Return Rate -->
       <div>
         <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">♻️ {{ __('crafting.return_label') }}</label>
-        <input type="number" id="advCraftReturnRate" value="21.5" min="0" max="100" step="0.1" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+        <input type="number" id="advCraftReturnRate" value="21.5" min="0" max="100" step="0.1" oninput="renderAdvCraftResultPanel()" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
       </div>
       
       <!-- Quantity Slider -->
       <div id="advCraftQtyField">
         <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">🔢 {{ __('crafting.quantity_label') }}</label>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="range" id="advCraftSlider" min="1" max="100" value="1" oninput="syncAdvCraftQty('s')" style="flex:1;">
-          <input type="number" id="advCraftQtyInput" value="1" min="1" max="100" oninput="syncAdvCraftQty('v')" style="width:80px;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+          <input type="range" id="advCraftSlider" min="1" max="100" value="1" oninput="syncAdvCraftQty('s'); renderAdvCraftResultPanel();" style="flex:1;">
+          <input type="number" id="advCraftQtyInput" value="1" min="1" max="100" oninput="syncAdvCraftQty('v'); renderAdvCraftResultPanel();" style="width:80px;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
         </div>
       </div>
       
+      <!-- Harga Jual -->
+      <div>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">💵 {{ __('crafting.sell_price_label') }}</label>
+        <input type="number" id="advCraftSellPrice" placeholder="0" min="0" oninput="renderAdvCraftResultPanel()" style="width:100%;background:var(--slot-bg);border:1px solid var(--slot-bd);border-radius:3px;color:var(--text-lt);font-size:14px;padding:8px 10px;outline:none;">
+        <div style="display:flex;gap:14px;margin-top:6px;">
+          <label class="craft-max-chk"><input type="checkbox" id="advCraftPremium" onchange="renderAdvCraftResultPanel()"> {{ __('crafting.premium') }}</label>
+          <label class="craft-max-chk"><input type="checkbox" id="advCraftOrderCost" onchange="renderAdvCraftResultPanel()"> {{ __('crafting.sell_order_label') }}</label>
+        </div>
+      </div>
+
       <!-- Checkbox Habis -->
       <label style="display:flex;align-items:center;gap:8px;font-family:'Crimson Text',serif;font-size:14px;color:var(--text-lt);cursor:pointer;">
         <input type="checkbox" id="advCraftHabisCheckbox" onchange="onAdvCraftHabisCheckboxChange()">
@@ -917,9 +934,18 @@ function setMTMode(mode) {
   document.getElementById('btnModeAdvance').classList.toggle('active', !isSimple);
   localStorage.setItem('mt_mode', mode);
   
-  // Initialize advance mode if switched to advance
-  if (!isSimple && advMaterials.length === 0) {
-    initAdvanceMode();
+  // Initialize mode yang belum pernah diakses
+  if (isSimple) {
+    // Switch ke Simple: kalau item list kosong, fetch sekarang
+    if (document.getElementById('itemGrid').children.length === 0) {
+      fetchItems();
+      loadCraftState();
+    }
+  } else {
+    // Switch ke Advance: kalau materials belum pernah load, init sekarang
+    if (advMaterials.length === 0) {
+      initAdvanceMode();
+    }
   }
 }
 
@@ -1984,6 +2010,10 @@ let advMaterials = [];      // All materials for this station
 let advInv = [];            // Inventory: [{item, qty, harga}]
 let advSelTier = null;      // Selected tier filter
 let advSelEnc = null;       // Selected enchantment filter
+let advSelCategoryId = null; // Selected material category filter (dinamis dari backend)
+let advCategoryList = [];   // Daftar kategori bahan buat station ini — dikirim bareng
+                             // response /advance/materials pertama kali, bukan endpoint
+                             // terpisah, biar gak nambah round-trip.
 let advSearchQ = '';        // Search query
 let advCraftTarget = null;  // Item yang mau di-craft
 let advRecipes = {};        // Recipes cache
@@ -1994,14 +2024,37 @@ function loadAdvMaterials() {
   const params = new URLSearchParams();
   if (advSelTier) params.set('tier', advSelTier);
   if (advSelEnc !== null) params.set('enc', advSelEnc);
+  if (advSelCategoryId) params.set('category_id', advSelCategoryId);
   
   fetch(`${CRAFT_API_BASE}/advance/materials?` + params.toString())
     .then(r => r.json())
-    .then(items => {
-      advMaterials = items;
+    .then(data => {
+      advMaterials = data.items || [];
+      // Kategori dikirim bareng response pertama — dropdown-nya baru
+      // dibangun sekali (kalau belum pernah), gak perlu fetch terpisah.
+      if (data.categories && data.categories.length && advCategoryList.length === 0) {
+        advCategoryList = data.categories;
+        buildAdvCategoryDrop();
+      }
       filterAdvMaterials();
     })
     .catch(() => showAdvEmpty(t('failed_load_items')));
+}
+
+// ============================================================
+// HARGA DEFAULT BAHAN — lazy-load: fetch harga SATU item saat
+// popup "Tambah ke Inventory" dibuka, bukan semua item sekaligus.
+// ============================================================
+function fetchAdvSingleItemPrice(itemId) {
+  if (itemId in bahanPriceCache) return Promise.resolve(bahanPriceCache[itemId]);
+  return fetch('/api/crafting/item/' + itemId)
+    .then(r => r.json())
+    .then(item => {
+      const prices = Object.values(item.prices || {}).filter(p => p > 0);
+      bahanPriceCache[itemId] = prices.length ? Math.min(...prices) : 0;
+      return bahanPriceCache[itemId];
+    })
+    .catch(() => { bahanPriceCache[itemId] = 0; return 0; });
 }
 
 // Filter & render materials
@@ -2040,6 +2093,21 @@ function renderAdvMaterials(items) {
     row.addEventListener('click', () => openAdvAdd(idx, items));
     grid.appendChild(row);
   });
+}
+
+// Build material-category dropdown for advance mode — dinamis dari
+// advCategoryList (dikirim backend bareng response materials pertama,
+// bukan endpoint terpisah).
+function buildAdvCategoryDrop() {
+  const col = document.getElementById('colAdvType');
+  if (!col) return;
+  col.innerHTML = '';
+  col.appendChild(makeItem(t('filter.all'), false, !advSelCategoryId, () => {
+    advSelCategoryId = null; setFilterVal('lblAdvType','valAdvType',null); closeDrop(); loadAdvMaterials();
+  }));
+  advCategoryList.forEach(({id, name}) => col.appendChild(makeItem(name, false, advSelCategoryId === id, () => {
+    advSelCategoryId = id; setFilterVal('lblAdvType','valAdvType', name); closeDrop(); loadAdvMaterials();
+  })));
 }
 
 // Build tier dropdown for advance mode
@@ -2107,11 +2175,23 @@ function openAdvAdd(idx, items) {
   document.getElementById('advAddIcon').src = item.img_url || '';
   document.getElementById('advAddName').textContent = item.name;
   document.getElementById('advAddDesc').textContent = `Tier ${item.tier}${item.enc > 0 ? ` .${item.enc}` : ''}`;
-  document.getElementById('advAddHarga').value = '';
+  const existing = advInv.find(i => i.item.id === item.id);
+  document.getElementById('advAddHarga').value = existing ? (existing.harga || '') : (bahanPriceCache[item.id] || '');
   document.getElementById('advAddQtySlider').value = '100';
   document.getElementById('advAddQty').value = '100';
   
   document.getElementById('advAddOverlay').classList.add('show');
+
+  // Lazy-load harga: fetch hanya item ini, bukan semua 500+
+  if (!existing && !(item.id in bahanPriceCache)) {
+    fetchAdvSingleItemPrice(item.id).then(price => {
+      // Hanya isi kalau popup masih buka untuk item yang sama
+      if (advPendingItem && advPendingItem.id === item.id) {
+        const hargaInput = document.getElementById('advAddHarga');
+        if (hargaInput && !hargaInput.value) hargaInput.value = price || '';
+      }
+    });
+  }
 }
 
 function closeAdvAddOverlay() {
@@ -2127,11 +2207,7 @@ function closeAdvAddOnBg(e) {
 }
 
 function doAdvAddMaterial() {
-  console.log('🔍 doAdvAddMaterial called');
-  console.log('advPendingItem:', advPendingItem);
-  
   if (!advPendingItem) {
-    console.error('❌ No item selected');
     showCraftToast('❌ Error: No item selected');
     return;
   }
@@ -2139,25 +2215,17 @@ function doAdvAddMaterial() {
   const qtyInput = document.getElementById('advAddQty');
   const hargaInput = document.getElementById('advAddHarga');
   
-  console.log('qty input:', qtyInput, qtyInput?.value);
-  console.log('harga input:', hargaInput, hargaInput?.value);
-  
   const qty = parseInt(qtyInput?.value) || 1;
   const harga = parseInt(hargaInput?.value) || 0;
   
-  console.log('Parsed - qty:', qty, 'harga:', harga);
-  
   if (qty < 1) {
-    console.error('❌ Invalid quantity');
     showCraftToast('❌ ' + t('invalid_quantity'));
     return;
   }
   
-  console.log('✅ Adding to inventory...');
   addAdvToInventory(advPendingItem, qty, harga);
   closeAdvAddOverlay();
   showCraftToast('✅ ' + advPendingItem.name + ' ditambahkan');
-  console.log('✅ Done!');
 }
 
 // Add to inventory
@@ -2170,7 +2238,7 @@ function addAdvToInventory(item, qty, harga) {
   }
   renderAdvInventory();
   saveAdvState();
-  checkAdvCraftable();
+  checkAdvCraftableDebounced();
 }
 
 // Render inventory
@@ -2178,32 +2246,42 @@ function renderAdvInventory() {
   const grid = document.getElementById('advInvGrid');
   const count2 = document.getElementById('advInvCount2');
   if (count2) count2.textContent = advInv.length;
-  
-  if (advInv.length === 0) {
-    grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px">' + t('inventory_empty') + '</div>';
-    return;
+
+  let html = '';
+  const slots = Math.max(advInv.length, 10);
+  for (let s = 0; s < slots; s++) {
+    const inv = advInv[s];
+    if (inv) {
+      html += `<div class="cinv-slot filled" title="${inv.item.name} × ${inv.qty}" onclick="editAdvInvItem(${s})">
+        <img src="${inv.item.img_url || ''}" alt="${inv.item.name}" onerror="this.style.opacity=0.3">
+        <span class="cinv-qty">${inv.qty}</span>
+      </div>`;
+    } else {
+      html += '<div class="cinv-slot"></div>';
+    }
   }
-  
-  grid.innerHTML = advInv.map((inv, idx) => `
-    <div class="cinv-slot filled" onclick="editAdvInvItem(${idx})">
-      <img src="${inv.item.img_url || ''}" alt="${inv.item.name}" onerror="this.style.opacity=0.3">
-      <div class="cinv-qty">${inv.qty}</div>
-    </div>
-  `).join('');
+  grid.innerHTML = html;
 }
 
 // Check craftable items - Recipe matching algorithm
+let _advCraftableTimer = null;
+function checkAdvCraftableDebounced() {
+  clearTimeout(_advCraftableTimer);
+  _advCraftableTimer = setTimeout(checkAdvCraftable, 500);
+}
+
 async function checkAdvCraftable() {
   if (advInv.length === 0) {
     document.getElementById('advCraftableSection').style.display = 'none';
-    document.getElementById('advBottomBar').style.display = 'none';
     return;
   }
   
-  // Prepare materials array for backend
-  // Use base API ID only (enc is handled separately in recipes table)
+  // Prepare materials array for backend — api_id + enc dikirim terpisah,
+  // wajib buat backend checkCraftable() yang baru (dulu cuma api_id, salah
+  // asumsi enc "ditangani otomatis" padahal enc harus match persis).
   const materials = advInv.map(inv => ({
-    api_id: inv.item.api_id,  // Base API ID only, enc is in recipes table
+    api_id: inv.item.api_id,
+    enc: inv.item.enc || 0,
     qty: inv.qty
   }));
   
@@ -2221,7 +2299,6 @@ async function checkAdvCraftable() {
     
     if (craftable.length === 0) {
       document.getElementById('advCraftableSection').style.display = 'none';
-      document.getElementById('advBottomBar').style.display = 'none';
       return;
     }
     
@@ -2284,7 +2361,7 @@ function openAdvCraftPopup() {
   // Build materials info (punya/butuh)
   let materialsHTML = '<div style="display:flex;flex-direction:column;gap:8px;">';
   advCraftMaterials.forEach(mat => {
-    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id && i.item.enc === mat.enc);
     const have = invItem ? invItem.qty : 0;
     const need = mat.count;
     const enough = have >= need;
@@ -2315,14 +2392,19 @@ function openAdvCraftPopup() {
   qtyInput.max = maxQty;
   qtyInput.value = maxQty;
   
-  // Reset return rate to default
-  document.getElementById('advCraftReturnRate').value = 21.5;
+  // Copy global settings ke popup sebagai default
+  document.getElementById('advCraftReturnRate').value = document.getElementById('advGlobalReturnRate').value || 21.5;
+  document.getElementById('advCraftPremium').checked = document.getElementById('advGlobalPremium').checked;
+  document.getElementById('advCraftOrderCost').checked = document.getElementById('advGlobalSellOrder').checked;
   
   // Reset checkbox
   document.getElementById('advCraftHabisCheckbox').checked = false;
   document.getElementById('advCraftQtyField').style.opacity = '1';
   slider.disabled = false;
   qtyInput.disabled = false;
+  
+  // Show live preview modal/profit langsung pas popup dibuka
+  renderAdvCraftResultPanel();
   
   // Show popup
   document.getElementById('advCraftPopupOverlay').classList.add('show');
@@ -2366,7 +2448,7 @@ function onAdvCraftHabisCheckboxChange() {
     qtyInput.disabled = true;
     
     // Calculate with simulation loop
-    const simQty = simulateAdvCraftLoop();
+    const simQty = simulateAdvCraftLoop().total;
     slider.value = simQty;
     qtyInput.value = simQty;
   } else {
@@ -2380,18 +2462,20 @@ function onAdvCraftHabisCheckboxChange() {
     slider.value = maxQty;
     qtyInput.value = maxQty;
   }
+
+  renderAdvCraftResultPanel();
 }
 
 // Simulate craft loop (like refine)
 function simulateAdvCraftLoop() {
-  if (!advCraftMaterials || advCraftMaterials.length === 0) return 0;
+  if (!advCraftMaterials || advCraftMaterials.length === 0) return { total: 0, stock: [] };
   
   const returnRate = parseFloat(document.getElementById('advCraftReturnRate').value) || 0;
   const ret = returnRate / 100;
   
   // Create stock array from inventory
   let stock = advCraftMaterials.map(mat => {
-    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id && i.item.enc === mat.enc);
     return invItem ? invItem.qty : 0;
   });
   
@@ -2422,7 +2506,7 @@ function simulateAdvCraftLoop() {
     }
   }
   
-  return total;
+  return { total, stock };
 }
 
 // Recipe materials loaded from backend
@@ -2438,11 +2522,11 @@ function getAdvSellFeeMultiplier() {
 }
 
 function getAdvReturnRate() {
-  return parseFloat(document.getElementById('advCraftReturn').value) || 0;
+  return parseFloat(document.getElementById('advCraftReturnRate').value) || 0;
 }
 
 function getAdvCraftQty() {
-  const qty = parseInt(document.getElementById('advCraftQty').value) || 1;
+  const qty = parseInt(document.getElementById('advCraftQtyInput').value) || 1;
   const maxQty = advCraftTarget ? Math.min(qty, getAdvMaxCraftable()) : qty;
   return Math.max(1, Math.min(qty, maxQty));
 }
@@ -2452,23 +2536,11 @@ function getAdvMaxCraftable() {
   
   let maxQty = Infinity;
   for (const mat of advCraftMaterials) {
-    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id && i.item.enc === mat.enc);
     if (!invItem) return 0;
     maxQty = Math.min(maxQty, Math.floor(invItem.qty / mat.count));
   }
   return maxQty;
-}
-
-function onAdvCraftHabisChange() {
-  const checkbox = document.getElementById('advCraftHabis');
-  const qtyInput = document.getElementById('advCraftQty');
-  if (checkbox.checked) {
-    qtyInput.value = getAdvMaxCraftable();
-    qtyInput.disabled = true;
-  } else {
-    qtyInput.disabled = false;
-  }
-  renderAdvCraftResultPanel();
 }
 
 // Render craft result panel (preview + final)
@@ -2487,7 +2559,7 @@ function renderAdvCraftResultPanel() {
   let totalMaterialValue = 0;
   
   for (const mat of advCraftMaterials) {
-    const invItem = advInv.find(i => i.item.api_id === mat.api_id);
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id && i.item.enc === mat.enc);
     if (!invItem) continue;
     
     const needed = mat.count * qty;
@@ -2527,60 +2599,157 @@ function renderAdvCraftResultPanel() {
   document.getElementById('advTotalProfit').className = 'crp-val ' + (profit >= 0 ? 'positive' : 'negative');
 }
 
-// Old function removed - using doAdvCraftExecute() from popup instead
+// ============================================================
+// EKSEKUSI CRAFTING — inti mode Advance. Beda sama mode Simple:
+// abis craft, TIDAK reset sesi — checkAdvCraftable() dipanggil ulang
+// di akhir biar user bisa langsung lanjut craft item lain dari sisa
+// bahan yang sama, tanpa mulai sesi baru.
+// ============================================================
+function doAdvCraftExecute() {
+  if (!advCraftTarget || !advCraftMaterials || advCraftMaterials.length === 0) return;
 
-// Old function removed - inventory always visible in Advance Mode
+  const habis = document.getElementById('advCraftHabisCheckbox').checked;
+  const returnRate = getAdvReturnRate();
+  const sellPrice = parseFloat(document.getElementById('advCraftSellPrice').value) || 0;
+  const feeMult = getAdvSellFeeMultiplier();
+
+  let jumlah, modal = 0;
+
+  if (habis) {
+    const { total, stock } = simulateAdvCraftLoop();
+    if (total < 1) { showCraftToast('❌ ' + t('invalid_quantity')); return; }
+    jumlah = total;
+    advCraftMaterials.forEach((mat, i) => {
+      const invItem = advInv.find(x => x.item.api_id === mat.api_id && x.item.enc === mat.enc);
+      if (!invItem) return;
+      const consumed = Math.max(0, invItem.qty - stock[i]);
+      modal += consumed * (invItem.harga || 0);
+      invItem.qty = stock[i];
+      if (invItem.qty <= 0) advInv.splice(advInv.indexOf(invItem), 1);
+    });
+  } else {
+    jumlah = Math.min(getAdvCraftQty(), getAdvMaxCraftable());
+    if (jumlah < 1) { showCraftToast('❌ ' + t('invalid_quantity')); return; }
+    advCraftMaterials.forEach(mat => {
+      const invItem = advInv.find(i => i.item.api_id === mat.api_id && i.item.enc === mat.enc);
+      if (!invItem) return;
+      const totalCount = mat.count * jumlah;
+      const returned = Math.round(totalCount * returnRate / 100);
+      const consumed = totalCount - returned;
+      modal += consumed * (invItem.harga || 0);
+      invItem.qty -= consumed;
+      if (invItem.qty <= 0) advInv.splice(advInv.indexOf(invItem), 1);
+    });
+  }
+
+  modal += advSilverCost * jumlah;
+
+  // Nilai sisa bahan (dari bahan yang tadi kepakai buat resep ini),
+  // dihitung SETELAH dipotong — jadi ini murni "apa yang masih tersisa".
+  let remainingValue = 0;
+  advCraftMaterials.forEach(mat => {
+    const invItem = advInv.find(i => i.item.api_id === mat.api_id && i.item.enc === mat.enc);
+    if (invItem) remainingValue += invItem.qty * (invItem.harga || 0);
+  });
+
+  // Item hasil craft ikut masuk inventory — biar kepantau & bisa
+  // dipakai lagi sebagai bahan lanjutan (mis. artifact piece -> gear).
+  const exOut = advInv.find(i => i.item.id === advCraftTarget.id);
+  if (exOut) {
+    exOut.qty += jumlah;
+  } else {
+    advInv.push({ item: advCraftTarget, qty: jumlah, harga: sellPrice || 0 });
+  }
+
+  // Tampilkan hasil RIIL dari craft ini (bukan preview) ke result panel
+  const resultValue = sellPrice * jumlah * feeMult;
+  const pajak = sellPrice * jumlah * (1 - feeMult);
+  const hasilAkhir = resultValue + remainingValue;
+  const profit = hasilAkhir - modal;
+
+  document.getElementById('advResultPanel').style.display = '';
+  document.getElementById('advModalBahan').textContent = formatSilver(modal);
+  document.getElementById('advTotalModal').textContent = formatSilver(modal);
+  document.getElementById('advProfitItem').textContent = formatSilver(resultValue);
+  document.getElementById('advPajak').textContent = formatSilver(pajak);
+  document.getElementById('advProfitSisa').textContent = formatSilver(remainingValue);
+  document.getElementById('advHasilAkhir').textContent = formatSilver(hasilAkhir);
+  const totalEl = document.getElementById('advTotalProfit');
+  totalEl.textContent = (profit >= 0 ? '+' : '-') + formatSilver(Math.abs(profit));
+  totalEl.className = 'crp-val ' + (profit >= 0 ? 'positive' : 'negative');
+
+  renderAdvInventory();
+  saveAdvState();
+  closeAdvCraftPopup();
+
+  // Kunci mode Advance: refresh daftar item craftable dari inventory
+  // yang udah kepotong, biar user bisa langsung lanjut craft item lain.
+  checkAdvCraftable();
+
+  showCraftToast('⚒️ ' + t('craft_success_toast', {qty: jumlah, name: advCraftTarget.name}));
+}
+
+// Inventory selalu tampil di mode Advance (bukan cuma pas ada target dipilih)
 
 // Reset advance mode
 function doAdvReset() {
   if (!confirm(t('confirm_reset'))) return;
   advInv = [];
   advCraftTarget = null;
+  advCraftMaterials = [];
+  document.getElementById('advResultPanel').style.display = 'none';
   renderAdvInventory();
   checkAdvCraftable();
   saveAdvState();
 }
 
-// Save state to localStorage
+// Save state to localStorage — simpan detail item langsung biar
+// restore tidak perlu fetch ke backend per item.
 function saveAdvState() {
   try {
     localStorage.setItem('ct_adv_inv_' + STATION, JSON.stringify({
-      inv: advInv.map(i => ({ itemId: i.item.id, qty: i.qty, harga: i.harga }))
+      inv: advInv.map(i => ({
+        item: {
+          id: i.item.id,
+          api_id: i.item.api_id,
+          name: i.item.name,
+          img_url: i.item.img_url,
+          tier: i.item.tier,
+          enc: i.item.enc,
+        },
+        qty: i.qty,
+        harga: i.harga
+      }))
     }));
   } catch (e) {}
 }
 
-// Load state from localStorage
+// Load state from localStorage — restore langsung dari data yang
+// tersimpan, tanpa fetch ke backend. Zero network requests.
 function loadAdvState() {
   try {
     const raw = localStorage.getItem('ct_adv_inv_' + STATION);
     if (!raw) return;
     const data = JSON.parse(raw);
     if (!data || !data.inv) return;
-    
-    // Restore inventory - need to fetch item details for each saved item
-    const itemIds = data.inv.map(i => i.itemId).filter(Boolean);
-    if (itemIds.length === 0) return;
-    
-    // Fetch all items in parallel
-    Promise.all(itemIds.map(id => 
-      fetch(`${CRAFT_API_BASE}/advance/item-detail?item_id=${id}`)
-        .then(r => r.json())
-        .catch(() => null)
-    )).then(items => {
-      items.forEach((item, idx) => {
-        if (!item) return;
-        const saved = data.inv[idx];
-        advInv.push({
-          item: item,
-          qty: saved.qty,
-          harga: saved.harga || 0
-        });
+
+    data.inv.forEach(saved => {
+      if (!saved.item && saved.itemId) {
+        // Format lama (cuma ID) — skip, user harus re-add manual
+        return;
+      }
+      if (!saved.item || !saved.item.id) return;
+      advInv.push({
+        item: saved.item,
+        qty: saved.qty || 0,
+        harga: saved.harga || 0,
       });
-      
+    });
+
+    if (advInv.length > 0) {
       renderAdvInventory();
       checkAdvCraftable();
-    });
+    }
   } catch (e) {
     console.error('Failed to load advance state:', e);
   }
@@ -2626,7 +2795,7 @@ function doAdvDeleteResource() {
   advInv.splice(advPendingIdx, 1);
   closeCraftAddOverlay();
   renderAdvInventory();
-  checkAdvCraftable();
+  checkAdvCraftableDebounced();
   saveAdvState();
   showCraftToast('🗑 ' + t('item_deleted', {name: nama}));
 }
@@ -2649,6 +2818,8 @@ function initAdvanceMode() {
 const STATION = '{{ $station ?? "mage-tower" }}';
 const CRAFT_API_BASE = STATION === 'mage-tower' ? '/api/crafting' : `/api/crafting/${STATION}`;
 
+const _savedMode = localStorage.getItem('mt_mode') || 'simple';
+
 function loadCategoriesAndInit(isRetry) {
   fetch(`${CRAFT_API_BASE}/categories`)
     .then(r => r.json())
@@ -2663,8 +2834,12 @@ function loadCategoriesAndInit(isRetry) {
       if (selTier)          setFilterVal('lblTier', 'valTier', TIER_LABEL[selTier]);
       if (selEnc !== null)  setFilterVal('lblEnc', 'valEnc', t('filter.enchant_short', {n: selEnc}));
       if (searchQ)          document.getElementById('searchInput').value = searchQ;
-      fetchItems(); // load semua item dari awal, gak perlu pilih kategori dulu
-      loadCraftState(); // pulihkan target + inventory bahan dari sesi sebelumnya (kalau ada)
+      // Hanya fetch items Simple kalau memang mode Simple yang aktif.
+      // Kalau user terakhir di Advance, skip — hemat 1 API call + query.
+      if (_savedMode === 'simple') {
+        fetchItems();
+        loadCraftState();
+      }
     })
     .catch(() => {
       // Sebelumnya gak ada .catch() di sini -> kalau fetch categories gagal/telat
@@ -2681,7 +2856,7 @@ renderCraftInventory();
 renderCraftSlots();
 updateCraftQtyField();
 updateCraftModal();
-setMTMode(localStorage.getItem('mt_mode') || 'simple');
+setMTMode(_savedMode);
 </script>
 <x-comments page="mages-tower" />
 @endsection

@@ -603,74 +603,89 @@ class CraftingController extends Controller
     }
 
     /**
-     * Advance Mode: Get all materials (bahan crafting) for a station
-     * Query dari crafting_station_materials, lalu generate all tier+enchant variants
+     * Advance Mode: Get all materials (bahan crafting) for a station.
+     * Baca langsung dari tabel crafting_station_materials yang sudah
+     * di-generate via `php artisan crafting:scan-materials`.
+     * Tidak ada lagi scan item_recipes setiap request.
      */
     public function advanceMaterials(Request $request, string $station = 'mage-tower')
     {
         $request->validate([
             'tier' => 'nullable|integer|min:2|max:8',
-            'enc' => 'nullable|integer|min:0|max:4',
+            'enc'  => 'nullable|integer|min:0|max:4',
+            'category_id' => 'nullable|integer',
         ]);
 
-        // Get material definitions for this station
-        $materials = DB::table('crafting_station_materials')
-            ->where('station_slug', $station)
-            ->get();
-
-        if ($materials->isEmpty()) {
-            return response()->json([]);
+        $craftingStation = \App\Models\CraftingStation::where('slug', $station)->first();
+        if (!$craftingStation) {
+            return response()->json(['items' => [], 'categories' => []]);
         }
 
-        $items = [];
-        $tierFilter = $request->input('tier');
-        $encFilter = $request->input('enc');
+        // 1 query: ambil semua bahan pre-mapped untuk station ini, join ke
+        // categories buat nama kategori (sudah di-index di tabel).
+        $query = \App\Models\CraftingStationMaterial::where('station_id', $craftingStation->id)
+            ->join('categories', 'crafting_station_materials.category_id', '=', 'categories.id')
+            ->select(
+                'crafting_station_materials.item_id as id',
+                'crafting_station_materials.api_id',
+                'crafting_station_materials.enc',
+                'crafting_station_materials.tier',
+                'crafting_station_materials.category_id',
+                'categories.name as category_name',
+            );
 
-        foreach ($materials as $mat) {
-            // Generate all tier + enchant variants
-            for ($tier = $mat->min_tier; $tier <= $mat->max_tier; $tier++) {
-                // Apply tier filter
-                if ($tierFilter && $tier != $tierFilter) {
-                    continue;
-                }
+        // Daftar kategori dihitung dari POOL LENGKAP (sebelum filter) biar
+        // dropdown stabil dari load pertama.
+        $allRows = $query->get();
 
-                for ($enc = 0; $enc <= $mat->max_enchant; $enc++) {
-                    // Apply enchantment filter
-                    if ($encFilter !== null && $enc != $encFilter) {
-                        continue;
-                    }
+        $categories = $allRows
+            ->unique('category_id')
+            ->map(fn($r) => ['id' => $r->category_id, 'name' => $r->category_name])
+            ->sortBy('name')
+            ->values();
 
-                    $apiId = "T{$tier}_{$mat->material_base}";
-                    if ($enc > 0) {
-                        $apiId .= "_LEVEL{$enc}@{$enc}";
-                    }
-
-                    // Get item from database
-                    $item = Item::where('api_id', $apiId)->first();
-
-                    if ($item) {
-                        // Generate img_url for Albion render service
-                        $apiIdWithEnc = $item->api_id;
-                        if ($enc > 0) {
-                            $apiIdWithEnc .= "@{$enc}";
-                        }
-                        
-                        $items[] = [
-                            'id' => $item->id,
-                            'api_id' => $item->api_id,
-                            'name' => $item->name,
-                            'icon' => $item->icon,
-                            'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
-                            'tier' => $tier,
-                            'enc' => $enc,
-                            'type' => $mat->type,
-                        ];
-                    }
-                }
-            }
+        // Apply filter
+        $filtered = $allRows;
+        if ($request->filled('tier')) {
+            $tierFilter = (int) $request->input('tier');
+            $filtered = $filtered->filter(fn($r) => (int) $r->tier === $tierFilter);
+        }
+        if ($request->filled('enc')) {
+            $encFilter = (int) $request->input('enc');
+            $filtered = $filtered->filter(fn($r) => (int) $r->enc === $encFilter);
+        }
+        if ($request->filled('category_id')) {
+            $catFilter = (int) $request->input('category_id');
+            $filtered = $filtered->filter(fn($r) => (int) $r->category_id === $catFilter);
         }
 
-        return response()->json($items);
+        // Ambil nama item dari tabel items (1 query bulk)
+        $itemIds = $filtered->pluck('id')->unique()->values();
+        $itemNames = Item::whereIn('id', $itemIds)->pluck('name', 'id');
+
+        $items = $filtered
+            ->sortBy([['tier', 'asc'], ['enc', 'asc']])
+            ->values()
+            ->map(function ($row) use ($itemNames) {
+                $enc = (int) ($row->enc ?? 0);
+                $apiIdWithEnc = $row->api_id . ($enc > 0 ? "@{$enc}" : '');
+
+                return [
+                    'id' => $row->id,
+                    'api_id' => $row->api_id,
+                    'name' => $itemNames[$row->id] ?? $row->api_id,
+                    'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
+                    'tier' => $row->tier,
+                    'enc' => $row->enc,
+                    'category_id' => $row->category_id,
+                    'category_name' => $row->category_name,
+                ];
+            });
+
+        return response()->json([
+            'items' => $items->values(),
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -682,7 +697,8 @@ class CraftingController extends Controller
         $request->validate([
             'materials' => 'required|array',
             'materials.*.api_id' => 'required|string',
-            'materials.*.qty' => 'required|integer|min:1',
+            'materials.*.enc'    => 'required|integer|min:0|max:4',
+            'materials.*.qty'    => 'required|integer|min:1',
         ]);
 
         $stationCategoryIds = $this->resolveCategoryIds($station);
@@ -690,52 +706,73 @@ class CraftingController extends Controller
             return response()->json([]);
         }
 
-        $materialsInv = collect($request->input('materials'))->keyBy('api_id');
-        
+        // key gabungan api_id + enc — T4 enc0 dan enc1 dianggap bahan beda.
+        $materialsInv = collect($request->input('materials'))
+            ->keyBy(fn($m) => $m['api_id'] . '|' . $m['enc']);
+
         // Get all items for this station
         $items = Item::whereIn('category_id', $stationCategoryIds)->get();
-        
+
+        if ($items->isEmpty()) {
+            return response()->json([]);
+        }
+
+        // BULK QUERY: ambil SEMUA recipe sekaligus (1 query, bukan N query)
+        $allRecipes = DB::table('item_recipes')
+            ->whereIn('item_api_id', $items->pluck('api_id')->unique())
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn($r) => $r->item_api_id . '|' . $r->enchantment_level);
+
         $craftable = [];
-        
+
         foreach ($items as $item) {
-            // Get recipes for this item
-            $recipes = DB::table('item_recipes')
-                ->where('item_api_id', $item->api_id)
-                ->where('enchantment_level', $item->enc)
-                ->get();
-            
-            if ($recipes->isEmpty()) continue;
-            
-            // Check if all required materials are in inventory
-            $canCraft = true;
-            $maxQty = PHP_INT_MAX;
-            
-            foreach ($recipes as $recipe) {
-                $requiredApiId = $recipe->resource_api_id;
-                if ($recipe->resource_enchantment_level > 0) {
-                    $requiredApiId .= '_LEVEL' . $recipe->resource_enchantment_level . '@' . $recipe->resource_enchantment_level;
+            $key = $item->api_id . '|' . (int) $item->enc;
+            $recipes = $allRecipes->get($key);
+
+            if (!$recipes || $recipes->isEmpty()) continue;
+
+            $recipeGroups = $this->groupRecipeResources($recipes);
+
+            $canCraft   = false;
+            $bestMaxQty = 0;
+
+            foreach ($recipeGroups as $group) {
+                $required = [];
+                foreach ($group as $recipe) {
+                    $rKey = $recipe->resource_api_id . '|' . $recipe->resource_enchantment_level;
+                    $required[$rKey] = ($required[$rKey] ?? 0) + $recipe->count;
                 }
-                
-                if (!$materialsInv->has($requiredApiId)) {
-                    $canCraft = false;
-                    break;
+
+                $groupOk     = true;
+                $groupMaxQty = PHP_INT_MAX;
+
+                foreach ($required as $rKey => $needed) {
+                    if (!$materialsInv->has($rKey)) {
+                        $groupOk = false;
+                        break;
+                    }
+
+                    $available = $materialsInv->get($rKey)['qty'];
+
+                    if ($available < $needed) {
+                        $groupOk = false;
+                        break;
+                    }
+
+                    $groupMaxQty = min($groupMaxQty, (int) floor($available / $needed));
                 }
-                
-                $available = $materialsInv->get($requiredApiId)['qty'];
-                $required = $recipe->count;
-                
-                if ($available < $required) {
-                    $canCraft = false;
-                    break;
+
+                if ($groupOk) {
+                    $canCraft   = true;
+                    $bestMaxQty = max($bestMaxQty, $groupMaxQty);
                 }
-                
-                $maxQty = min($maxQty, floor($available / $required));
             }
-            
+
             if ($canCraft) {
                 $enc = (int) ($item->enc ?? 0);
                 $apiIdWithEnc = $item->api_id . ($enc > 0 ? "@{$enc}" : '');
-                
+
                 $craftable[] = [
                     'id' => $item->id,
                     'name' => $item->name,
@@ -743,11 +780,11 @@ class CraftingController extends Controller
                     'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
                     'tier' => $item->tier,
                     'enc' => $item->enc,
-                    'maxQty' => $maxQty,
+                    'maxQty' => $bestMaxQty,
                 ];
             }
         }
-        
+
         return response()->json($craftable);
     }
 
@@ -773,47 +810,60 @@ class CraftingController extends Controller
             return response()->json(['error' => 'Item not found'], 404);
         }
         
-        // Get recipes for this item
+        // orderBy('id') — groupRecipeResources() bergantung urutan baris
+        // buat misahin alternatif resep, sama seperti dipakai itemDetail().
         $recipes = DB::table('item_recipes')
             ->where('item_api_id', $item->api_id)
             ->where('enchantment_level', $item->enc)
+            ->orderBy('id')
             ->get();
         
         if ($recipes->isEmpty()) {
             return response()->json(['error' => 'No recipe found'], 404);
         }
-        
-        // Group recipes by resource (some items have multiple recipe rows for same material)
-        $materialsMap = [];
-        foreach ($recipes as $recipe) {
-            $key = $recipe->resource_api_id . '@' . $recipe->resource_enchantment_level;
-            
-            if (!isset($materialsMap[$key])) {
-                $resourceItem = Item::where('api_id', $recipe->resource_api_id)
-                    ->where('enc', $recipe->resource_enchantment_level)
-                    ->first();
-                
-                if ($resourceItem) {
-                    $enc = (int) ($resourceItem->enc ?? 0);
-                    $apiIdWithEnc = $resourceItem->api_id . ($enc > 0 ? "@{$enc}" : '');
-                    
-                    $materialsMap[$key] = [
-                        'id' => $resourceItem->id,
-                        'api_id' => $resourceItem->api_id,
-                        'name' => $resourceItem->name,
-                        'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
-                        'tier' => $resourceItem->tier,
-                        'enc' => $resourceItem->enc,
-                        'count' => $recipe->count,
-                    ];
+
+        // FIX: item bisa punya beberapa ALTERNATIF resep (misal Avalon bow —
+        // artifact Avalon atau artifact Hell). Versi lama nge-sum semua baris
+        // flat jadi 1 daftar bahan, jadi bahan yang sama di tiap alternatif
+        // (mis. PLANKS 32 di kedua alternatif) keitung dobel jadi 64. Sekarang
+        // dipisah dulu per grup pakai fungsi yang sama dengan itemDetail()/
+        // tab Resep 1-2 di mode Simple.
+        $recipeGroups = $this->groupRecipeResources($recipes);
+
+        $mapGroup = function ($group) {
+            $materialsMap = [];
+            foreach ($group as $recipe) {
+                $key = $recipe->resource_api_id . '@' . $recipe->resource_enchantment_level;
+
+                if (!isset($materialsMap[$key])) {
+                    $resourceItem = Item::where('api_id', $recipe->resource_api_id)
+                        ->where('enc', $recipe->resource_enchantment_level)
+                        ->first();
+
+                    if ($resourceItem) {
+                        $enc = (int) ($resourceItem->enc ?? 0);
+                        $apiIdWithEnc = $resourceItem->api_id . ($enc > 0 ? "@{$enc}" : '');
+
+                        $materialsMap[$key] = [
+                            'id' => $resourceItem->id,
+                            'api_id' => $resourceItem->api_id,
+                            'name' => $resourceItem->name,
+                            'img_url' => "https://render.albiononline.com/v1/item/{$apiIdWithEnc}.png",
+                            'tier' => $resourceItem->tier,
+                            'enc' => $resourceItem->enc,
+                            'count' => $recipe->count,
+                        ];
+                    }
+                } else {
+                    // Baris berulang DALAM grup yang sama (jarang, tapi jaga-jaga)
+                    $materialsMap[$key]['count'] += $recipe->count;
                 }
-            } else {
-                // Sum the count if same material appears multiple times
-                $materialsMap[$key]['count'] += $recipe->count;
             }
-        }
-        
-        $materials = array_values($materialsMap);
+
+            return array_values($materialsMap);
+        };
+
+        $groups = collect($recipeGroups)->map($mapGroup)->values()->all();
         
         // Build img_url for result item
         $itemEnc = (int) ($item->enc ?? 0);
@@ -828,7 +878,12 @@ class CraftingController extends Controller
                 'tier' => $item->tier,
                 'enc' => $item->enc,
             ],
-            'materials' => $materials,
+            // 'materials' = grup pertama, dipertahankan sementara buat backward-compat
+            // sama frontend stub yang ada sekarang. Kalau item punya >1 alternatif,
+            // frontend Tahap 2 nanti pakai 'recipe_groups' buat kasih pilihan tab
+            // (persis pola Resep 1/Resep 2 di mode Simple).
+            'materials' => $groups[0] ?? [],
+            'recipe_groups' => $groups,
             'silver_cost' => $recipes->first()->silver_cost ?? 0,
         ]);
     }
