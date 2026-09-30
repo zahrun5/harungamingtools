@@ -8,6 +8,7 @@ use App\Models\ItemPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use App\Services\CraftingQualityService;
 
 /**
  * ===========================================================
@@ -41,7 +42,7 @@ class CraftingController extends Controller
 {
     private const CITIES = ['Caerleon', 'Bridgewatch', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
 
-    public function index($station = 'mage-tower')
+    public function index(CraftingQualityService $qualityService, $station = 'mage-tower')
     {
         $craftingStation = \App\Models\CraftingStation::where('slug', $station)->first();
         $stationName = $craftingStation->name ?? ucwords(str_replace('-', ' ', $station));
@@ -49,6 +50,8 @@ class CraftingController extends Controller
         return view('kalkulator.crafting', [
             'station'     => $station,
             'stationName' => $stationName,
+            'quality_distribution' => $qualityService->expectedQualityDistribution(),
+            'quality_categories' => $qualityService->getQualitySupportedCategories(),
         ]);
     }
 

@@ -178,9 +178,12 @@
 
           <div class="crp-row crp-total" id="crpRowTotalProfit"><span class="crp-label">{{ __('crafting.total_profit') }}</span><span class="crp-val" id="crpTotalProfit">0</span></div>
         </div>
-      </div>
+
+              </div>
     </div>
   </div>
+</div>
+</div>
 </div>
 </div>
 
@@ -1374,6 +1377,45 @@ function onJournalPriceOverrideInput() {
 // langsung sebagai slot ikon di grid Inventory — lihat renderCraftInventory()
 // dan popup openJournalFullPopup()/openJournalPartialPopup() di atas.
 
+
+
+const QUALITY_PROBABILITIES = {!! json_encode($quality_distribution ?? [1 => 0.689, 2 => 0.25, 3 => 0.05, 4 => 0.01, 5 => 0.001]) !!};
+const QUALITY_CATEGORIES = ['weapons', 'armor', 'bags', 'capes', 'mounts', 'fishing rods', 'off-hand'];
+
+const CURRENT_SERVER = {!! json_encode(session('server', 'americas')) !!};
+const AODP_BASE_URL = {
+  'americas': 'https://west.albion-online-data.com',
+  'europe':   'https://europe.albion-online-data.com',
+  'asia':     'https://east.albion-online-data.com'
+};
+const AODP_BASE = AODP_BASE_URL[CURRENT_SERVER] || AODP_BASE_URL.americas;
+
+let craftQualityPrices = null;
+
+function fetchQualityPrices(apiId) {
+  craftQualityPrices = null;
+  if (!apiId) return;
+  const locs = 'Caerleon,Lymhurst,Bridgewatch,Martlock,Thetford,Fort Sterling,Brecilien';
+  fetch(`${AODP_BASE}/api/v2/stats/prices/${apiId}?locations=${locs}&qualities=1,2,3,4,5`)
+    .then(r => r.json())
+    .then(data => {
+      let qPrices = {1:0, 2:0, 3:0, 4:0, 5:0};
+      data.forEach(d => {
+         const q = d.quality;
+         if (d.sell_price_min > 0 && d.sell_price_min > qPrices[q]) {
+             qPrices[q] = d.sell_price_min;
+         }
+      });
+      for(let q=2; q<=5; q++) {
+         if (qPrices[q] === 0) qPrices[q] = qPrices[q-1];
+      }
+      craftQualityPrices = qPrices;
+    }).catch(e => console.error('Quality fetch error', e));
+}
+
+
+
+
 function selectCraftTarget(itemId) {
   fetch(`/api/crafting/item/${itemId}?station=${STATION}`)
     .then(r => r.json())
@@ -1384,7 +1426,8 @@ function selectCraftTarget(itemId) {
         : groupRecipeResources(item.resources);
       craftActiveRecipe = 0;
       craftInv          = [];
-      totalFameAccumulated = 0; // sesi baru = akumulasi fame & modal-lock direset
+      totalFameAccumulated = 0;
+      
       craftModalLock        = null;
       journalPriceOverride  = null;
       lockItemTable(itemId);
@@ -1403,6 +1446,7 @@ function selectCraftTarget(itemId) {
       applyCraftSellPriceDefault(item.prices);
       refreshCraftSellPrice(itemId);
       fetchBahanDefaultPrices(craftRecipes);
+      fetchQualityPrices(item.api_id);
     })
     .catch(() => showCraftToast('❌ ' + t('failed_load_recipe_toast')));
 }
@@ -1870,11 +1914,54 @@ function doCraft() {
     });
   }
 
-  const exOut = craftInv.find(i => i.itemId === craftTarget.id);
-  if (exOut) {
-    exOut.qty += jumlah;
+
+  let craftIsQualitySupported = false;
+  let cat = CATEGORIES.find(c => c.id === craftTarget.category_id);
+  if (!cat && craftTarget.category_name) {
+     craftIsQualitySupported = QUALITY_CATEGORIES.includes(craftTarget.category_name.toLowerCase());
+  } else if (cat && cat.name) {
+     craftIsQualitySupported = QUALITY_CATEGORIES.includes(cat.name.toLowerCase());
   } else {
-    craftInv.push({ itemId: craftTarget.id, name: craftTarget.name, imgUrl: craftTarget.img_url, qty: jumlah, harga: sellPrice || 0 });
+     craftIsQualitySupported = /_(MAIN|2H|HEAD|ARMOR|SHOES|BAG|CAPE|MOUNT)_/.test(craftTarget.api_id);
+  }
+
+  if (craftIsQualitySupported) {
+    const qNames = {1:'Normal', 2:'Good', 3:'Outstanding', 4:'Excellent', 5:'Masterpiece'};
+    let sisaDist = jumlah;
+    for (let q = 5; q >= 2; q--) {
+       let qQty = Math.round(jumlah * QUALITY_PROBABILITIES[q]);
+       sisaDist -= qQty;
+       if (qQty > 0) {
+           let qName = craftTarget.name + ' (' + qNames[q] + ')';
+           let exOut = craftInv.find(i => i.name === qName && i.itemId === craftTarget.id);
+           if (exOut) {
+               exOut.qty += qQty;
+           } else {
+               let qImg = craftTarget.img_url ? craftTarget.img_url.split('?')[0] + '?quality=' + q : '';
+               let qHarga = (craftQualityPrices && craftQualityPrices[q] > 0) ? craftQualityPrices[q] : (sellPrice || 0);
+               craftInv.push({ itemId: craftTarget.id, name: qName, imgUrl: qImg, qty: qQty, harga: qHarga, quality: q });
+           }
+       }
+    }
+    // Normal gets the rest
+    if (sisaDist > 0) {
+        let qName = craftTarget.name + ' (Normal)';
+        let exOut = craftInv.find(i => i.name === qName && i.itemId === craftTarget.id);
+        if (exOut) {
+            exOut.qty += sisaDist;
+        } else {
+            let qImg = craftTarget.img_url ? craftTarget.img_url.split('?')[0] + '?quality=1' : '';
+            let qHarga = (craftQualityPrices && craftQualityPrices[1] > 0) ? craftQualityPrices[1] : (sellPrice || 0);
+            craftInv.push({ itemId: craftTarget.id, name: qName, imgUrl: qImg, qty: sisaDist, harga: qHarga, quality: 1 });
+        }
+    }
+  } else {
+    const exOut = craftInv.find(i => i.itemId === craftTarget.id);
+    if (exOut) {
+      exOut.qty += jumlah;
+    } else {
+      craftInv.push({ itemId: craftTarget.id, name: craftTarget.name, imgUrl: craftTarget.img_url, qty: jumlah, harga: sellPrice || 0 });
+    }
   }
 
   // Modal Bahan Crafting — SNAPSHOT sekali di craft PERTAMA sesi ini,
@@ -1974,8 +2061,8 @@ function renderCraftResultPanel() {
   document.getElementById('crpTotalModal').textContent = formatSilver(totalModal);
 
   // --- PROFIT ---
-  const exOut = craftTarget ? craftInv.find(i => i.itemId === craftTarget.id) : null;
-  const itemHasilGross = exOut ? exOut.qty * (exOut.harga || 0) : 0;
+  const exOuts = craftTarget ? craftInv.filter(i => i.itemId === craftTarget.id) : [];
+  const itemHasilGross = exOuts.reduce((sum, i) => sum + i.qty * (i.harga || 0), 0);
   const feeMultiplier  = getSellFeeMultiplier();
   const itemHasilVal   = itemHasilGross * feeMultiplier; // NETO, sudah dipotong pajak + biaya pesanan
   document.getElementById('crpProfitItem').textContent = formatSilver(itemHasilVal);
@@ -1994,6 +2081,7 @@ function renderCraftResultPanel() {
   totalEl.classList.remove('positive', 'negative');
   totalEl.textContent = (totalProfit >= 0 ? '+' : '-') + formatSilver(Math.abs(totalProfit));
   totalEl.classList.add(totalProfit >= 0 ? 'positive' : 'negative');
+  
 }
 
 function showCraftToast(msg) {
@@ -2339,6 +2427,7 @@ async function selectAdvCraftTarget(itemId) {
     advCraftTarget = data.item;
     advCraftMaterials = data.materials;
     advSilverCost = data.silver_cost || 0;
+    fetchQualityPrices(data.item.api_id);
     
     // Open craft popup
     openAdvCraftPopup();
@@ -2654,16 +2743,70 @@ function doAdvCraftExecute() {
 
   // Item hasil craft ikut masuk inventory — biar kepantau & bisa
   // dipakai lagi sebagai bahan lanjutan (mis. artifact piece -> gear).
-  const exOut = advInv.find(i => i.item.id === advCraftTarget.id);
-  if (exOut) {
-    exOut.qty += jumlah;
+  let isAdvSupported = false;
+  let advCat = CATEGORIES.find(c => c.id === advCraftTarget.category_id);
+  if (!advCat && advCraftTarget.category_name) {
+     isAdvSupported = QUALITY_CATEGORIES.includes(advCraftTarget.category_name.toLowerCase());
+  } else if (advCat && advCat.name) {
+     isAdvSupported = QUALITY_CATEGORIES.includes(advCat.name.toLowerCase());
   } else {
-    advInv.push({ item: advCraftTarget, qty: jumlah, harga: sellPrice || 0 });
+     isAdvSupported = /_(MAIN|2H|HEAD|ARMOR|SHOES|BAG|CAPE|MOUNT)_/.test(advCraftTarget.api_id);
+  }
+
+  let craftGross = 0;
+  if (isAdvSupported) {
+    const qNames = {1:'Normal', 2:'Good', 3:'Outstanding', 4:'Excellent', 5:'Masterpiece'};
+    let sisaDist = jumlah;
+    for (let q = 5; q >= 2; q--) {
+       let qQty = Math.round(jumlah * QUALITY_PROBABILITIES[q]);
+       sisaDist -= qQty;
+       if (qQty > 0) {
+           let qHarga = (craftQualityPrices && craftQualityPrices[q] > 0) ? craftQualityPrices[q] : (sellPrice || 0);
+           craftGross += qHarga * qQty;
+           let qName = advCraftTarget.name + ' (' + qNames[q] + ')';
+           // Copy the target item but change name and img
+           let qImg = advCraftTarget.img_url ? advCraftTarget.img_url.split('?')[0] + '?quality=' + q : '';
+           let qItem = JSON.parse(JSON.stringify(advCraftTarget));
+           qItem.name = qName;
+           qItem.img_url = qImg;
+           
+           let exOut = advInv.find(i => i.item.name === qName && i.item.id === advCraftTarget.id);
+           if (exOut) {
+               exOut.qty += qQty;
+           } else {
+               advInv.push({ item: qItem, qty: qQty, harga: qHarga, quality: q });
+           }
+       }
+    }
+    if (sisaDist > 0) {
+        let qHarga = (craftQualityPrices && craftQualityPrices[1] > 0) ? craftQualityPrices[1] : (sellPrice || 0);
+        craftGross += qHarga * sisaDist;
+        let qName = advCraftTarget.name + ' (Normal)';
+        let qImg = advCraftTarget.img_url ? advCraftTarget.img_url.split('?')[0] + '?quality=1' : '';
+        let qItem = JSON.parse(JSON.stringify(advCraftTarget));
+        qItem.name = qName;
+        qItem.img_url = qImg;
+        
+        let exOut = advInv.find(i => i.item.name === qName && i.item.id === advCraftTarget.id);
+        if (exOut) {
+            exOut.qty += sisaDist;
+        } else {
+            advInv.push({ item: qItem, qty: sisaDist, harga: qHarga, quality: 1 });
+        }
+    }
+  } else {
+    craftGross = sellPrice * jumlah;
+    const exOut = advInv.find(i => i.item.id === advCraftTarget.id);
+    if (exOut) {
+      exOut.qty += jumlah;
+    } else {
+      advInv.push({ item: advCraftTarget, qty: jumlah, harga: sellPrice || 0 });
+    }
   }
 
   // Tampilkan hasil RIIL dari craft ini (bukan preview) ke result panel
-  const resultValue = sellPrice * jumlah * feeMult;
-  const pajak = sellPrice * jumlah * (1 - feeMult);
+  const resultValue = craftGross * feeMult;
+  const pajak = craftGross * (1 - feeMult);
   const hasilAkhir = resultValue + remainingValue;
   const profit = hasilAkhir - modal;
 
