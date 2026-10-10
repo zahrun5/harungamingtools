@@ -14,6 +14,11 @@ class CraftingStationMaterial extends Model
         'api_id',
         'enc',
         'tier',
+        'quality_supported',
+    ];
+
+    protected $casts = [
+        'quality_supported' => 'boolean',
     ];
 
     public function station(): BelongsTo

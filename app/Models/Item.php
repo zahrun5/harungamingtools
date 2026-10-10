@@ -26,6 +26,12 @@ class Item extends Model
         return $this->hasMany(ItemLocalization::class, 'api_id', 'api_id');
     }
 
+    // HERMES PATCH 4: prices relation for eager loading
+    public function prices()
+    {
+        return $this->hasMany(ItemPrice::class, 'item_api_id', 'api_id');
+    }
+
     public function getLocalizedNameAttribute()
     {
         $apiLocale = static::currentApiLocale();

@@ -44,7 +44,7 @@ class CraftingController extends Controller
 
     public function index(CraftingQualityService $qualityService, $station = 'mage-tower')
     {
-        $craftingStation = \App\Models\CraftingStation::where('slug', $station)->first();
+        $craftingStation = $this->getStation($station);
         $stationName = $craftingStation->name ?? ucwords(str_replace('-', ' ', $station));
 
         return view('kalkulator.crafting', [
@@ -52,6 +52,7 @@ class CraftingController extends Controller
             'stationName' => $stationName,
             'quality_distribution' => $qualityService->expectedQualityDistribution(),
             'quality_categories' => $qualityService->getQualitySupportedCategories(),
+            'quality_return_range' => $qualityService->getQualityReturnRange(),
         ]);
     }
 
@@ -63,12 +64,17 @@ class CraftingController extends Controller
      */
     private function resolveCategoryIds(string $station): array
     {
-        $craftingStation = \App\Models\CraftingStation::where('slug', $station)->first();
+        $craftingStation = $this->getStation($station);
         if (!$craftingStation) {
             return [];
         }
 
-        return $craftingStation->categories()->pluck('categories.id')->all();
+        // HERMES PATCH 1b: cache the category IDs per station
+        return \Illuminate\Support\Facades\Cache::remember(
+            "crafting_station_categories:{$craftingStation->id}",
+            now()->addHours(6),
+            fn () => $craftingStation->categories()->pluck('categories.id')->all()
+        );
     }
 
 
@@ -80,7 +86,7 @@ class CraftingController extends Controller
     // (contoh: "Off-hands" yang isinya cuma "Mage" doang).
     public function categories(string $station = 'mage-tower')
     {
-        $craftingStation = \App\Models\CraftingStation::where('slug', $station)->first();
+        $craftingStation = $this->getStation($station);
         if (!$craftingStation) {
             return response()->json([]);
         }
@@ -171,6 +177,11 @@ class CraftingController extends Controller
 
         if ($request->filled('enc')) {
             $query->where('enc', $request->enc);
+        }
+
+        // HERMES PATCH 1c: cap at 200 when no filter to keep response fast
+        if (!$request->filled('category_id') && !$request->filled('tier') && !$request->filled('enc')) {
+            $query->limit(200);
         }
 
         $items = $query->orderBy('tier')->orderBy('name')->get();
@@ -419,8 +430,9 @@ class CraftingController extends Controller
     // Detail 1 item + recipe + harga cache — identik dengan itemDetail() di MarketController
     public function itemDetail(Request $request, $id)
     {
-        $item = Item::findOrFail($id);
+        $item = Item::with('category')->findOrFail($id);
         $encLevel = (int) ($item->enc ?? 0);
+        $item->load(['prices' => fn($q) => $q->where('enc', $encLevel)]);
         $apiIdWithEnc = $encLevel > 0 ? "{$item->api_id}@{$encLevel}" : $item->api_id;
 
         // orderBy('id') eksplisit — groupRecipeResources() di bawah bergantung
@@ -470,10 +482,7 @@ class CraftingController extends Controller
             ->map(fn($group) => $group->map($mapResource)->values())
             ->values();
 
-        $cachedPrices = ItemPrice::where('item_api_id', $item->api_id)
-            ->where('enc', $encLevel)
-            ->get()
-            ->keyBy('city');
+        $cachedPrices = $item->prices->keyBy('city');
 
         $prices = collect(self::CITIES)->mapWithKeys(
             fn($city) => [$city => (int) ($cachedPrices[$city]->sell_price_min ?? 0)]
@@ -486,7 +495,7 @@ class CraftingController extends Controller
         $journalOptions = [];
 
         if ($stationSlug) {
-            $craftingStation = \App\Models\CraftingStation::where('slug', $stationSlug)->first();
+            $craftingStation = $this->getStation($stationSlug);
             if ($craftingStation && $craftingStation->journal_name) {
                 $minTier = max(2, $item->tier - 2);
                 $tierRange = range($minTier, $item->tier);
@@ -619,7 +628,7 @@ class CraftingController extends Controller
             'category_id' => 'nullable|integer',
         ]);
 
-        $craftingStation = \App\Models\CraftingStation::where('slug', $station)->first();
+        $craftingStation = $this->getStation($station);
         if (!$craftingStation) {
             return response()->json(['items' => [], 'categories' => []]);
         }
@@ -634,6 +643,7 @@ class CraftingController extends Controller
                 'crafting_station_materials.enc',
                 'crafting_station_materials.tier',
                 'crafting_station_materials.category_id',
+                'crafting_station_materials.quality_supported',
                 'categories.name as category_name',
             );
 
@@ -682,6 +692,7 @@ class CraftingController extends Controller
                     'enc' => $row->enc,
                     'category_id' => $row->category_id,
                     'category_name' => $row->category_name,
+                    'quality_supported' => (bool) $row->quality_supported,
                 ];
             });
 
@@ -917,5 +928,305 @@ class CraftingController extends Controller
             'tier' => $item->tier,
             'enc' => $item->enc,
         ]);
+    }
+
+    /**
+     * Hitung expected profit per 5 kualitas.
+     *
+     * Input (POST JSON):
+     *   item_id      : int    — DB id item yang di-craft
+     *   quantity     : int    — jumlah craft (default 1)
+     *   return_rate  : float  — resource return rate dalam persen (misal 36.7 untuk 36.7%)
+     *   recipe_index : int    — indeks resep alternatif, 0-based (default 0)
+     *   prices       : object — harga jual per kualitas:
+     *                    { "1": <int>, "2": <int>, "3": <int>, "4": <int>, "5": <int> }
+     *                    Kualitas yang bernilai 0 / tidak disertakan akan di-cascade
+     *                    turun ke kualitas di bawahnya (fallback rule skill).
+     *   resource_prices : array — override harga per bahan (opsional):
+     *                    [{ "api_id": "T4_CLOTH", "enc": 0, "price": 500 }, ...]
+     *
+     * Return JSON:
+     *   {
+     *     "qualities": [
+     *       { "quality": 1, "name": "Normal",       "prob": 0.689, "expected_qty": ..., "expected_revenue": ... },
+     *       { "quality": 2, "name": "Good",         "prob": 0.250, ... },
+     *       { "quality": 3, "name": "Outstanding",  "prob": 0.050, ... },
+     *       { "quality": 4, "name": "Excellent",    "prob": 0.010, ... },
+     *       { "quality": 5, "name": "Masterpiece",  "prob": 0.001, ... },
+     *     ],
+     *     "total_expected_revenue" : float,
+     *     "resource_cost"          : float,   // total cost bahan setelah dikurangi return rate
+     *     "silver_cost"            : int,      // biaya silver crafting dari DB
+     *     "expected_profit"        : float,    // revenue - resource_cost - silver_cost
+     *     "resource_cost_raw"      : float,    // total cost bahan SEBELUM return rate
+     *     "resources_used"         : [...],    // detail tiap bahan
+     *     "supports_quality"       : bool,     // false = item tidak bisa dapat quality, profit dihitung flat
+     *   }
+     */
+    /**
+     * Calculate expected profit for an item with quality distribution.
+     * Shared by Simple mode (expectedProfit) and Advance mode (expectedProfitAdvance).
+     */
+    private function calculateExpectedProfit(
+        \App\Models\Item $item,
+        int $quantity,
+        float $returnRate,
+        int $recipeIndex,
+        array $inputPrices,
+        \App\Services\CraftingQualityService $qualityService,
+        array $resourcePrices = []
+    ): array {
+            // $item and other inputs are passed by the caller
+            $enc = (int) ($item->enc ?? 0);
+
+            // --- Cek apakah item ini support quality ---
+            $qualityCategories = $qualityService->getQualitySupportedCategories();
+            $supportsQuality   = in_array($item->category_id, $qualityCategories);
+
+            // --- Distribusi kualitas ---
+            $distribution = $qualityService->expectedQualityDistribution();
+            $qualityNames  = [1 => 'Normal', 2 => 'Good', 3 => 'Outstanding', 4 => 'Excellent', 5 => 'Masterpiece'];
+
+            // --- Resolve harga per kualitas dengan cascading fallback ---
+            // Pastikan semua kunci string dikonversi ke int key
+            $priceByQuality = [];
+            foreach ($distribution as $q => $prob) {
+                $priceByQuality[$q] = isset($inputPrices[(string)$q]) ? (float) $inputPrices[(string)$q] : 0;
+            }
+
+            // Cascading fallback: jika kualitas lebih tinggi = 0, pakai harga kualitas di bawahnya.
+            // Contoh: jika q5=0 dan q4=7000 -> q5 menjadi 7000.
+            for ($q = 2; $q <= 5; $q++) {
+                if ($priceByQuality[$q] <= 0 && $priceByQuality[$q - 1] > 0) {
+                    $priceByQuality[$q] = $priceByQuality[$q - 1];
+                }
+            }
+
+            // Jika item tidak support quality, semua dianggap Normal (quality=1)
+            // dan hitung flat saja (tidak ada distribusi).
+            if (!$supportsQuality) {
+                $flatPrice   = $priceByQuality[1];
+                $flatRevenue = $quantity * $flatPrice;
+                $qualitiesResult = [[
+                    'quality'          => 1,
+                    'name'             => 'Normal',
+                    'prob'             => 1.0,
+                    'expected_qty'     => (float) $quantity,
+                    'expected_revenue' => round($flatRevenue, 2),
+                    'price_used'       => $flatPrice,
+                ]];
+            } else {
+                $qualitiesResult = [];
+                foreach ($distribution as $q => $prob) {
+                    $expectedQty     = $quantity * $prob;
+                    $price           = $priceByQuality[$q];
+                    $expectedRevenue = $expectedQty * $price;
+
+                    $qualitiesResult[] = [
+                        'quality'          => $q,
+                        'name'             => $qualityNames[$q],
+                        'prob'             => $prob,
+                        'expected_qty'     => round($expectedQty, 4),
+                        'expected_revenue' => round($expectedRevenue, 2),
+                        'price_used'       => $price,
+                    ];
+                }
+            }
+
+            $totalExpectedRevenue = array_sum(array_column($qualitiesResult, 'expected_revenue'));
+
+            // --- Ambil resep & hitung biaya bahan ---
+            $recipes = DB::table('item_recipes')
+                ->where('item_api_id', $item->api_id)
+                ->where('enchantment_level', $enc)
+                ->orderBy('id')
+                ->get();
+
+            $recipeGroups   = $this->groupRecipeResources($recipes);
+            $selectedGroup  = $recipeGroups[$recipeIndex] ?? ($recipeGroups[0] ?? collect());
+            $silverCostBase = (int) ($recipes->first()->silver_cost ?? 0);
+
+            // Override harga resource dari input (opsional)
+            $resourcePriceOverrides = [];
+            foreach ($resourcePrices as $rp) {
+                $key = $rp['api_id'] . '|' . (int) $rp['enc'];
+                $resourcePriceOverrides[$key] = (float) $rp['price'];
+            }
+
+            $resourcesUsed    = [];
+            $resourceCostRaw  = 0.0;
+
+            foreach ($selectedGroup as $recipe) {
+                $rEnc     = (int) $recipe->resource_enchantment_level;
+                $rKey     = $recipe->resource_api_id . '|' . $rEnc;
+                $rCount   = (float) $recipe->count;
+
+                // Harga: override input > DB item_prices (avg kota) > 0
+                if (isset($resourcePriceOverrides[$rKey])) {
+                    $unitPrice = $resourcePriceOverrides[$rKey];
+                } else {
+                    $unitPrice = (float) (ItemPrice::where('item_api_id', $recipe->resource_api_id)
+                        ->where('enc', $rEnc)
+                        ->avg('sell_price_min') ?? 0);
+                }
+
+                $resourceItem = Item::where('api_id', $recipe->resource_api_id)
+                    ->where('enc', $rEnc)
+                    ->first();
+
+                $totalNeeded  = $rCount * $quantity;
+                $lineRawCost  = $totalNeeded * $unitPrice;
+                $resourceCostRaw += $lineRawCost;
+
+                $enc2 = $rEnc > 0 ? "@{$rEnc}" : '';
+                $resourcesUsed[] = [
+                    'api_id'        => $recipe->resource_api_id,
+                    'enc'           => $rEnc,
+                    'name'          => $resourceItem?->name ?? $recipe->resource_api_id,
+                    'img_url'       => "https://render.albiononline.com/v1/item/{$recipe->resource_api_id}{$enc2}.png",
+                    'qty_per_craft' => $rCount,
+                    'total_qty'     => $totalNeeded,
+                    'unit_price'    => $unitPrice,
+                    'total_cost'    => round($lineRawCost, 2),
+                ];
+            }
+
+            // Resource Return Rate mengurangi biaya bahan: cost_after_rrr = raw * (1 - rrr/100)
+            $returnFactor = max(0.0, min(1.0, $returnRate / 100));
+            $resourceCost = $resourceCostRaw * (1 - $returnFactor);
+
+            // Silver cost total (nilai di DB per 1 craft, dikali quantity)
+            $silverCostTotal = $silverCostBase * $quantity;
+
+            $expectedProfit = $totalExpectedRevenue - $resourceCost - $silverCostTotal;
+
+
+        return [
+            'qualities'              => $qualitiesResult,
+            'total_expected_revenue' => round($totalExpectedRevenue, 2),
+            'resource_cost_raw'      => round($resourceCostRaw, 2),
+            'resource_cost'          => round($resourceCost, 2),
+            'return_rate_applied'    => $returnRate,
+            'silver_cost'            => $silverCostTotal,
+            'expected_profit'        => round($expectedProfit, 2),
+            'resources_used'         => $resourcesUsed,
+            'supports_quality'       => $supportsQuality,
+        ];
+    }
+
+    /**
+     * Simple mode: expected profit for one selected recipe alternative.
+     */
+    public function expectedProfit(Request $request, CraftingQualityService $qualityService, string $station = 'mage-tower')
+    {
+        $request->validate([
+            'item_id'          => 'required|integer|exists:items,id',
+            'quantity'         => 'nullable|integer|min:1|max:100000',
+            'return_rate'      => 'nullable|numeric|min:0|max:100',
+            'recipe_index'     => 'nullable|integer|min:0',
+            'prices'           => 'nullable|array',
+            'prices.*'         => 'nullable|numeric|min:0',
+            'resource_prices'  => 'nullable|array',
+            'resource_prices.*.api_id' => 'required_with:resource_prices|string',
+            'resource_prices.*.enc'    => 'required_with:resource_prices|integer|min:0|max:4',
+            'resource_prices.*.price'  => 'required_with:resource_prices|numeric|min:0',
+        ]);
+
+        $item        = \App\Models\Item::findOrFail($request->input('item_id'));
+        $quantity    = (int) ($request->input('quantity', 1));
+        $returnRate  = (float) ($request->input('return_rate', 0));
+        $recipeIndex = (int) ($request->input('recipe_index', 0));
+        $inputPrices = (array) $request->input('prices', []);
+
+        $resourcePrices = (array) $request->input('resource_prices', []);
+        $result = $this->calculateExpectedProfit(
+            $item, $quantity, $returnRate, $recipeIndex, $inputPrices, $qualityService, $resourcePrices
+        );
+
+        return response()->json($result);
+    }
+
+    /**
+     * Advance mode: expected profit aggregated across all recipe alternatives.
+     * Picks the BEST profit per quality from any recipe alternative.
+     */
+    public function expectedProfitAdvance(Request $request, CraftingQualityService $qualityService, string $station = 'mage-tower')
+    {
+        $request->validate([
+            'item_id'                  => 'required|integer|exists:items,id',
+            'quantity'                 => 'nullable|integer|min:1|max:100000',
+            'return_rate'              => 'nullable|numeric|min:0|max:100',
+            'prices'                   => 'nullable|array',
+            'prices.*'                 => 'nullable|numeric|min:0',
+            'use_journal'              => 'nullable|boolean',
+            'journal_name'             => 'nullable|string',
+            'resource_prices'          => 'nullable|array',
+            'resource_prices.*.api_id' => 'required_with:resource_prices|string',
+            'resource_prices.*.enc'    => 'required_with:resource_prices|integer|min:0|max:4',
+            'resource_prices.*.price'  => 'required_with:resource_prices|numeric|min:0',
+        ]);
+
+        $item        = \App\Models\Item::findOrFail($request->input('item_id'));
+        $quantity    = (int) ($request->input('quantity', 1));
+        $returnRate  = (float) ($request->input('return_rate', 0));
+        $inputPrices = (array) $request->input('prices', []);
+        $useJournal  = (bool) $request->input('use_journal', false);
+        $journalName = $request->input('journal_name');
+        $resourcePrices = (array) $request->input('resource_prices', []);
+
+        $recipes = \Illuminate\Support\Facades\DB::table('item_recipes')
+            ->where('item_api_id', $item->api_id)
+            ->where('enchantment_level', (int) ($item->enc ?? 0))
+            ->orderBy('id')
+            ->get();
+
+        if ($recipes->isEmpty()) {
+            return response()->json(['error' => 'No recipe found for this item'], 404);
+        }
+
+        $recipeGroups = $this->groupRecipeResources($recipes);
+        if (empty($recipeGroups)) {
+            return response()->json(['error' => 'No valid recipe groups'], 404);
+        }
+
+        $bestResult = null;
+        $bestRecipeIndex = 0;
+        $perRecipeResults = [];
+
+        foreach ($recipeGroups as $idx => $group) {
+            $result = $this->calculateExpectedProfit(
+                $item, $quantity, $returnRate, $idx, $inputPrices, $qualityService, $resourcePrices
+            );
+            $perRecipeResults[] = [
+                'recipe_index'    => $idx,
+                'expected_profit' => $result['expected_profit'],
+                'resource_cost'   => $result['resource_cost'],
+            ];
+            if ($bestResult === null || $result['expected_profit'] > $bestResult['expected_profit']) {
+                $bestResult = $result;
+                $bestRecipeIndex = $idx;
+            }
+        }
+
+        $bestResult['best_recipe_index'] = $bestRecipeIndex;
+        $bestResult['per_recipe'] = $perRecipeResults;
+        $bestResult['use_journal'] = $useJournal;
+        $bestResult['journal_name'] = $journalName;
+
+        return response()->json($bestResult);
+    }
+
+
+    private function getStation(string $slug): ?\App\Models\CraftingStation
+    {
+        $id = \Illuminate\Support\Facades\Cache::remember(
+            "crafting_station_id:{$slug}",
+            now()->addHours(6),
+            fn () => \App\Models\CraftingStation::where('slug', $slug)->value('id')
+        );
+        if (!$id) {
+            return null;
+        }
+        return \App\Models\CraftingStation::find($id);
     }
 }
