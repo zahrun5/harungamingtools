@@ -24,13 +24,40 @@ Schedule::command('leaderboard:fetch-kill-events --range=week --pages=3')
     ->withoutOverlapping()
     ->onOneServer();
 
+
+// Re-enabled 2026-10-09: reels import with Gemini auto-review gate
+// New imports go through Gemini before hitting pending_review queue
+Schedule::command('reels:import-keyword --limit=200')
+    ->dailyAt('03:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->then(function () {
+        \Illuminate\Support\Facades\Artisan::call('reels:review-with-gemini', [
+            '--status' => 'pending_review',
+            '--model' => 'ag/gemini-3.7-flash-high',
+            '--batch' => 50,
+        ]);
+    });
+
+Schedule::command('reels:import-channels')
+    ->dailyAt('04:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->then(function () {
+        \Illuminate\Support\Facades\Artisan::call('reels:review-with-gemini', [
+            '--status' => 'pending_review',
+            '--model' => 'ag/gemini-3.7-flash-high',
+            '--batch' => 50,
+        ]);
+    });
+
 // ─── Flip Scan Background Job ───────────────────────────────────────
 // Scan semua leaf categories bertahap untuk flip opportunities.
 // Jalan setiap 6 jam karena scan 1 cycle butuh waktu lama (banyak kategori).
-Schedule::command('flip:scan-all')
-    ->everySixHours()
-    ->withoutOverlapping()
-    ->onOneServer();
+// Schedule::command('flip:scan-all')  // disabled 2026-10-09 to reduce DB lock
+//     ->everySixHours()
+//     ->withoutOverlapping()
+//     ->onOneServer();
 
 // DIMATIKAN SEMENTARA (2026-08-09) — backlog approve reels masih banyak
 // (700+ channel, 11.000+ video pending). Uncomment lagi kalau backlog udah

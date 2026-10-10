@@ -179,6 +179,28 @@
           <div class="crp-row crp-total" id="crpRowTotalProfit"><span class="crp-label">{{ __('crafting.total_profit') }}</span><span class="crp-val" id="crpTotalProfit">0</span></div>
         </div>
 
+        <!-- ====== QUALITY BREAKDOWN TABLE ====== -->
+        <div id="crpQualityBreakdown" style="display:none;margin-top:14px;">
+          <div class="crp-group-lbl">🏆 Expected Profit per Kualitas</div>
+          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+            <table id="crpQualityTable" style="width:100%;border-collapse:collapse;font-family:'Crimson Text',serif;font-size:13px;">
+              <thead>
+                <tr style="background:rgba(0,0,0,0.3);">
+                  <th style="padding:6px 8px;text-align:left;color:var(--text-dim);font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Kualitas</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--text-dim);font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Prob.</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--text-dim);font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Jml (1x)</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--text-dim);font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Harga Jual</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--text-dim);font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Est. Profit</th>
+                </tr>
+              </thead>
+              <tbody id="crpQualityTbody"></tbody>
+            </table>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:6px;padding:0 4px;">
+            * Expected profit per craft (probabilistik). Highlight = kualitas dengan return terbaik.
+          </div>
+        </div>
+
               </div>
     </div>
   </div>
@@ -319,6 +341,23 @@
           <div class="crp-row crp-subtotal" id="advRowHasilAkhir"><span class="crp-label">{{ __('crafting.final_result') }}</span><span class="crp-val" id="advHasilAkhir">0</span></div>
 
           <div class="crp-row crp-total" id="advRowTotalProfit"><span class="crp-label">{{ __('crafting.total_profit') }}</span><span class="crp-val" id="advTotalProfit">0</span></div>
+        </div>
+
+        <!-- ====== ADVANCE MODE: QUALITY BREAKDOWN TABLE ====== -->
+        <div id="advQualityBreakdown" style="display:none;margin-top:14px;">
+          <div class="crp-group-lbl">🏆 Expected Profit per Kualitas</div>
+          <table id="advQualityTable" style="width:100%;border-collapse:collapse;font-family:'Crimson Text',serif;font-size:13px;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--panel-bd);">
+                <th style="text-align:left;padding:6px 8px;color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Kualitas</th>
+                <th style="text-align:right;padding:6px 8px;color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;">%</th>
+                <th style="text-align:right;padding:6px 8px;color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Harga Jual</th>
+                <th style="text-align:right;padding:6px 8px;color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Expected Profit</th>
+              </tr>
+            </thead>
+            <tbody id="advQualityTbody"></tbody>
+          </table>
+          <div id="advRecipeNote" style="display:none;margin-top:8px;font-size:11px;color:var(--text-dim);font-style:italic;"></div>
         </div>
 
         <!-- Reset Button -->
@@ -1381,6 +1420,7 @@ function onJournalPriceOverrideInput() {
 
 const QUALITY_PROBABILITIES = {!! json_encode($quality_distribution ?? [1 => 0.689, 2 => 0.25, 3 => 0.05, 4 => 0.01, 5 => 0.001]) !!};
 const QUALITY_CATEGORIES = ['weapons', 'armor', 'bags', 'capes', 'mounts', 'fishing rods', 'off-hand'];
+const QUALITY_RETURN_RANGE = {!! json_encode($quality_return_range ?? [1=>['min'=>1.00,'max'=>1.00,'label'=>'Normal'],2=>['min'=>1.05,'max'=>1.10,'label'=>'Good'],3=>['min'=>1.15,'max'=>1.25,'label'=>'Outstanding'],4=>['min'=>1.30,'max'=>1.50,'label'=>'Excellent'],5=>['min'=>1.80,'max'=>2.50,'label'=>'Masterpiece']]) !!};
 
 const CURRENT_SERVER = {!! json_encode(session('server', 'americas')) !!};
 const AODP_BASE_URL = {
@@ -1538,6 +1578,10 @@ function resetCraftTarget() {
   document.getElementById('craftSellPrice').value = '';
   craftSellPriceIsDefault = false;
   document.getElementById('craftResultPanel').style.display = 'none';
+  // Reset quality breakdown
+  craftIsQualitySupported = false;
+  const qBreakdown = document.getElementById('crpQualityBreakdown');
+  if (qBreakdown) qBreakdown.style.display = 'none';
 }
 
 // ------------------------------------------------------------
@@ -1846,6 +1890,9 @@ function updateCraftResultPreview() {
   document.getElementById('crpProfitJurnalRow').style.display = 'none';
   document.getElementById('crpRowHasilAkhir').style.display   = 'none';
   document.getElementById('crpRowTotalProfit').style.display  = 'none';
+  // Sembunyikan quality breakdown juga selama preview
+  const qBreakdownPrev = document.getElementById('crpQualityBreakdown');
+  if (qBreakdownPrev) qBreakdownPrev.style.display = 'none';
 }
 
 // Simulasi loop craft berulang sampai bahan mentok — generalisasi dari
@@ -1915,7 +1962,8 @@ function doCraft() {
   }
 
 
-  let craftIsQualitySupported = false;
+  // Update global flag (untuk renderQualityBreakdown)
+  craftIsQualitySupported = false;
   let cat = CATEGORIES.find(c => c.id === craftTarget.category_id);
   if (!cat && craftTarget.category_name) {
      craftIsQualitySupported = QUALITY_CATEGORIES.includes(craftTarget.category_name.toLowerCase());
@@ -2081,8 +2129,109 @@ function renderCraftResultPanel() {
   totalEl.classList.remove('positive', 'negative');
   totalEl.textContent = (totalProfit >= 0 ? '+' : '-') + formatSilver(Math.abs(totalProfit));
   totalEl.classList.add(totalProfit >= 0 ? 'positive' : 'negative');
+
+  // --- QUALITY BREAKDOWN TABLE ---
+  renderQualityBreakdown(totalModal, feeMultiplier, sisaBahanVal, jurnalProfitVal);
   
 }
+
+// ============================================================
+// QUALITY BREAKDOWN TABLE — tampilkan expected profit per kualitas
+// untuk Simple Mode, muncul setelah craft pertama terjadi dan
+// item yang di-craft support kualitas.
+// ============================================================
+function renderQualityBreakdown(totalModal, feeMultiplier, sisaBahanVal, jurnalProfitVal) {
+  const breakdown = document.getElementById('crpQualityBreakdown');
+  const tbody = document.getElementById('crpQualityTbody');
+  if (!breakdown || !tbody) return;
+
+  // Cek apakah item support kualitas
+  if (!craftTarget || !craftIsQualitySupported) {
+    breakdown.style.display = 'none';
+    return;
+  }
+
+  const qNames = {1:'Normal', 2:'Good', 3:'Outstanding', 4:'Excellent', 5:'Masterpiece'};
+  const qEmoji = {1:'⬜', 2:'🟩', 3:'🟦', 4:'🟨', 5:'🟥'};
+  const qProbs = QUALITY_PROBABILITIES;
+
+  // Hitung expected profit per kualitas berdasarkan sell price masing-masing
+  let rows = [];
+  let bestProfit = -Infinity;
+
+  // First, build a CASCADED price map: if q=5 has no price, use q=4's price (or whatever's lower).
+  // This matches the backend cascade logic in calculateExpectedProfit().
+  const cascadedPrices = {};
+  for (let q = 5; q >= 1; q--) {
+    const hasPrice = craftQualityPrices && craftQualityPrices[q] > 0;
+    if (hasPrice) {
+      cascadedPrices[q] = craftQualityPrices[q];
+    } else if (q < 5 && cascadedPrices[q + 1] > 0) {
+      cascadedPrices[q] = cascadedPrices[q + 1]; // fall back to higher quality's price (Albion skill fallback)
+    } else {
+      // No upstream price either — fall back to Normal sell price
+      cascadedPrices[q] = parseFloat(document.getElementById('craftSellPrice').value) || 0;
+    }
+  }
+
+  for (let q = 1; q <= 5; q++) {
+    const prob = qProbs[q] || 0;
+    // Harga jual untuk kualitas ini (cascade dari quality lebih tinggi, atau fallback ke Normal sell price)
+    const qPrice = cascadedPrices[q];
+    // Expected qty dalam 1 craft run: prob (untuk display kolom Jml per 1 craft)
+    const expQty = prob;
+    // Expected revenue dari kualitas ini (neto setelah pajak)
+    const expRevenue = qPrice * expQty * feeMultiplier;
+    // Expected profit = revenue + porsi sisa bahan + porsi jurnal - modal
+    // Dibagi proporsional berdasarkan prob (porsi kontribusi tiap kualitas terhadap total)
+    const expProfit = expRevenue + (sisaBahanVal * prob) + (jurnalProfitVal * prob) - (totalModal * prob);
+    rows.push({ q, prob, expQty, qPrice, expProfit });
+    if (expProfit > bestProfit) bestProfit = expProfit;
+  }
+
+  let html = '';
+  rows.forEach(({ q, prob, expQty, qPrice, expProfit }) => {
+    const isBest = Math.abs(expProfit - bestProfit) < 1 && expProfit === bestProfit;
+    const profitColor = expProfit >= 0 ? 'var(--green, #4caf50)' : 'var(--red, #f44336)';
+    const rowStyle = isBest
+      ? 'background:rgba(212,175,55,0.18);border-left:3px solid #d4af37;'
+      : 'border-left:3px solid transparent;';
+    const profitSign = expProfit >= 0 ? '+' : '-';
+    html += `<tr style="${rowStyle}transition:background .2s;">
+      <td style="padding:5px 8px;white-space:nowrap;color:var(--text-lt);">
+        ${qEmoji[q]} ${qNames[q]}${isBest ? ' ⭐' : ''}
+      </td>
+      <td style="padding:5px 8px;text-align:right;color:var(--text-dim);">
+        ${(prob * 100).toFixed(1)}%
+      </td>
+      <td style="padding:5px 8px;text-align:right;color:var(--text-dim);">
+        ${prob.toFixed(3)}
+      </td>
+      <td style="padding:5px 8px;text-align:right;color:var(--text-lt);">
+        ${qPrice > 0 ? formatSilver(qPrice) : '—'}
+      </td>
+      <td style="padding:5px 8px;text-align:right;font-weight:600;color:${profitColor};white-space:nowrap;">
+        ${profitSign}${formatSilver(Math.abs(expProfit))}
+      </td>
+    </tr>`;
+  });
+
+  // Baris total expected profit (weighted average)
+  const totalExpected = rows.reduce((s, r) => s + r.expProfit, 0);
+  const totalSign = totalExpected >= 0 ? '+' : '-';
+  html += `<tr style="background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.1);">
+    <td colspan="4" style="padding:6px 8px;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Total Expected</td>
+    <td style="padding:6px 8px;text-align:right;font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:${totalExpected >= 0 ? 'var(--green, #4caf50)' : 'var(--red, #f44336)'};">
+      ${totalSign}${formatSilver(Math.abs(totalExpected))}
+    </td>
+  </tr>`;
+
+  tbody.innerHTML = html;
+  breakdown.style.display = '';
+}
+
+// Variabel global craftIsQualitySupported — diset di doCraft() dan direset di resetCraftTarget()
+let craftIsQualitySupported = false;
 
 function showCraftToast(msg) {
   const t = document.getElementById('craftToast');
@@ -2686,6 +2835,9 @@ function renderAdvCraftResultPanel() {
   document.getElementById('advHasilAkhir').textContent = formatSilver(resultValue + returnValue + totalMaterialValue);
   document.getElementById('advTotalProfit').textContent = formatSilver(profit);
   document.getElementById('advTotalProfit').className = 'crp-val ' + (profit >= 0 ? 'positive' : 'negative');
+
+  // === Quality breakdown (per-kualitas expected profit) ===
+  renderAdvQualityBreakdown(qty);
 }
 
 // ============================================================
@@ -3000,6 +3152,132 @@ renderCraftSlots();
 updateCraftQtyField();
 updateCraftModal();
 setMTMode(_savedMode);
+// ============================================================
+// renderAdvQualityBreakdown — fetch from /api/crafting/expected-profit-advance
+// and render per-kualitas expected profit table.
+// ============================================================
+async function renderAdvQualityBreakdown(qty) {
+  const breakdown = document.getElementById('advQualityBreakdown');
+  const tbody = document.getElementById('advQualityTbody');
+  const recipeNote = document.getElementById('advRecipeNote');
+  if (!breakdown || !tbody) return;
+
+  if (!advCraftTarget) {
+    breakdown.style.display = 'none';
+    return;
+  }
+
+  const returnRate = parseFloat(document.getElementById('advReturnRate')?.value) || 0;
+  const useJournal = document.getElementById('advUseJournalBtn')?.classList.contains('active') || false;
+
+  // Collect per-quality prices (1..5) — from advQualityPrices or fall back to single price
+  const sellPriceEl = document.getElementById('advCraftSellPrice');
+  const sellPrice = parseFloat(sellPriceEl?.value) || 0;
+  const prices = {};
+  for (let q = 1; q <= 5; q++) {
+    // advQualityPrices might not exist for advance; build from sellPrice cascade
+    const qp = (typeof advQualityPrices !== 'undefined' && advQualityPrices && advQualityPrices[q] > 0)
+      ? advQualityPrices[q] : 0;
+    prices[q] = qp;
+  }
+  // If all quality prices are 0, use sellPrice for q=1 (Normal) only
+  if (Object.values(prices).every(v => !v)) {
+    prices[1] = sellPrice;
+  }
+
+  // Build resource_prices override from advInv
+  const resourcePrices = advInv.map(inv => ({
+    api_id: inv.item.api_id,
+    enc: inv.item.enc || 0,
+    price: inv.harga || 0,
+  }));
+
+  try {
+    const resp = await fetch('/api/crafting/expected-profit-advance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+      },
+      body: JSON.stringify({
+        item_id: advCraftTarget.id,
+        quantity: qty,
+        return_rate: returnRate,
+        prices: prices,
+        use_journal: useJournal,
+        journal_name: useJournal ? (window.advJournalName || null) : null,
+        resource_prices: resourcePrices,
+      }),
+    });
+
+    if (!resp.ok) {
+      console.error('expected-profit-advance failed:', resp.status);
+      breakdown.style.display = 'none';
+      return;
+    }
+
+    const data = await resp.json();
+
+    if (!data.supports_quality) {
+      breakdown.style.display = 'none';
+      return;
+    }
+
+    // Render rows
+    const qNames = {1:'Normal', 2:'Good', 3:'Outstanding', 4:'Excellent', 5:'Masterpiece'};
+    const qEmoji = {1:'⬜', 2:'🟩', 3:'🟦', 4:'🟨', 5:'🟥'};
+    const qProbs = {1: 0.689, 2: 0.250, 3: 0.050, 4: 0.010, 5: 0.001};
+    const feeMult = getSellFeeMultiplier();
+
+    let html = '';
+    let bestExp = -Infinity;
+    data.qualities.forEach(q => {
+      if (q.expected_revenue > bestExp) bestExp = q.expected_revenue;
+    });
+
+    data.qualities.forEach(q => {
+      const emoji = qEmoji[q.quality];
+      const name = qNames[q.quality];
+      const prob = qProbs[q.quality] || q.prob;
+      // expected_profit per quality: scale backend's expected_revenue (which is for `qty`) to per-1-craft, then profit
+      const perCraftRev = q.expected_revenue / qty;
+      // Backend's expected_revenue doesn't include tax. Frontend needs to apply fee_mult.
+      // Backend's "expected_profit" already includes the deduction. But it includes resource_cost per qty too.
+      // For per-quality profit shown in table, we need per-1-craft profit (revenue - cost per craft).
+      const perCraftProfit = q.expected_revenue / qty * feeMult - (data.resource_cost / qty);
+      const isBest = Math.abs(q.expected_revenue - bestExp) < 0.01;
+      const rowStyle = isBest
+        ? 'background:rgba(212,175,55,0.18);border-left:3px solid #d4af37;'
+        : 'border-left:3px solid transparent;';
+      const profitColor = perCraftProfit >= 0 ? '#4caf50' : '#f44336';
+      const profitSign = perCraftProfit >= 0 ? '+' : '-';
+      html += `<tr style="${rowStyle}transition:background .2s;">
+        <td style="padding:5px 8px;white-space:nowrap;color:var(--text-lt);">${emoji} ${name}${isBest ? ' ⭐' : ''}</td>
+        <td style="padding:5px 8px;text-align:right;color:var(--text-dim);">${(prob * 100).toFixed(1)}%</td>
+        <td style="padding:5px 8px;text-align:right;color:var(--text-lt);">${q.price_used > 0 ? formatSilver(q.price_used) : '—'}</td>
+        <td style="padding:5px 8px;text-align:right;font-weight:600;color:${profitColor};white-space:nowrap;">${profitSign}${formatSilver(Math.abs(perCraftProfit))}</td>
+      </tr>`;
+    });
+
+    tbody.innerHTML = html;
+    breakdown.style.display = '';
+
+    // Recipe note: show which recipe was selected as best
+    if (data.per_recipe && data.per_recipe.length > 1) {
+      const bestIdx = data.best_recipe_index || 0;
+      const bestProfit = data.per_recipe[bestIdx]?.expected_profit || 0;
+      recipeNote.textContent = `📌 ${data.per_recipe.length} resep alternatif. Resep #${bestIdx + 1} paling menguntungkan: ${formatSilver(bestProfit)}`;
+      recipeNote.style.display = '';
+    } else {
+      recipeNote.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('Error fetching expected-profit-advance:', e);
+    breakdown.style.display = 'none';
+  }
+}
+
+
 </script>
 <x-comments page="mages-tower" />
 @endsection
