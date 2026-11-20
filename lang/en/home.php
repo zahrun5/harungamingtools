@@ -1,13 +1,14 @@
 <?php
 
 return [
-    'title' => 'Home - Albion Online Tools',
+    'title' => 'All Albion Online Tools: Refine, Crafting, Market, Flip, Fishing',
+    'meta_description' => 'Every free Albion Online tool in one place: refining, crafting, flipping, fishing calculators, market prices, and death recap.',
     'welcome_title' => 'Welcome to Albion Online Tools👋',
     'welcome_sub' => 'Where Albion Online players gather — calculators, leaderboard, and community.',
 
     'hero' => [
         'title' => 'Albion Online Tools — Calculate, Track, Rise',
-        'subtitle' => 'Free calculators for refining, crafting, fishing, and market analysis. Real-time data from Albion Data Project. Trusted by thousands of players worldwide.',
+        'subtitle' => 'Free calculators for refining, crafting, fishing, and market analysis. Real-time data from Albion Data Project.',
         'features' => [
             'realtime' => 'Real-Time Data',
             'multilang' => '7 Languages',

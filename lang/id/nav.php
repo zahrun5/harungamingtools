@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'refine'            => 'Refine',
+    'crafting'          => 'Crafting',
+    'market'            => 'Market',
+    'flip'              => 'Flip',
+    'more'              => 'Lainnya',
     'home'              => 'Beranda',
     'social'            => 'Social',
     'notifications'     => 'Notifikasi',

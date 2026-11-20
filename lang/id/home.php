@@ -1,13 +1,14 @@
 <?php
 
 return [
-    'title' => 'Beranda - Albion Online Tools',
+    'title' => 'Semua Tools Albion Online: Refine, Crafting, Market, Flip, Mancing',
+    'meta_description' => 'Daftar lengkap tools gratis Albion Online: kalkulator refine, crafting, flipping, mancing, cek harga market, dan rekap kematian.',
     'welcome_title' => 'Selamat datang di Albion Online Tools👋',
     'welcome_sub' => 'Tempat kumpulnya pemain Albion Online — kalkulator, leaderboard, dan komunitas.',
 
     'hero' => [
         'title' => 'Albion Online Tools — Hitung, Catat, Naik Peringkat',
-        'subtitle' => 'Kalkulator gratis untuk refining, crafting, fishing, dan market analysis. Data real-time dari Albion Data Project. Dipercaya oleh ribuan pemain di seluruh dunia.',
+        'subtitle' => 'Kalkulator gratis untuk refining, crafting, fishing, dan market analysis. Data real-time dari Albion Data Project.',
         'features' => [
             'realtime' => 'Data Real-Time',
             'multilang' => '7 Bahasa',

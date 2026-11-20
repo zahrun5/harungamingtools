@@ -1,7 +1,9 @@
 <?php
 
 return [
-    'title' => 'Kalkulator Refine - Albion Online Tools',
+    'title' => 'Kalkulator Refine Albion Online: Hitung Untung Refining per Kota',
+    'meta_description' => 'Hitung untung rugi refine ore, kayu, kulit, serat, dan batu di Albion Online. Harga market real-time, return rate per kota, dan simulasi refine sampai bahan habis.',
+    'og_description' => 'Kalkulator refine Albion Online T2-T8: harga real-time dari kota-kota Royal, return rate, pajak premium, dan simulasi refine habis.',
     'panel_title' => 'Refine Calculator',
     'search_placeholder' => 'Cari nama item...',
 

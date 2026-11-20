@@ -1,7 +1,9 @@
 <?php
 
 return [
-    'title' => 'Refine Calculator - Albion Online Tools',
+    'title' => 'Albion Online Refining Calculator: Profit per City',
+    'meta_description' => 'Calculate refining profit for ore, wood, hide, fiber, and stone in Albion Online. Real-time market prices, per-city return rate, and a refine-until-empty simulation.',
+    'og_description' => 'Albion Online T2-T8 refining calculator: real-time Royal city prices, return rate, premium tax, and a full refine loop simulation.',
     'panel_title' => 'Refine Calculator',
     'search_placeholder' => 'Search item name...',
 

@@ -8,23 +8,22 @@
 <meta charset="UTF-8">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="@yield('meta_description', 'Free Albion Online calculators and tools. Real-time market prices, refining calculator, crafting planner, flip scanner. Trusted by 1000+ players.')">
-<meta name="keywords" content="@yield('meta_keywords', 'albion online calculator, market prices, refining calculator, crafting calculator, flip calculator, albion tools')">
+<meta name="description" content="@yield('meta_description', 'Kalkulator dan tools gratis untuk Albion Online: refine, crafting, flipping, dan cek harga market dengan data real-time.')">
 <link rel="canonical" href="{{ url()->current() }}">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ url()->current() }}">
-<meta property="og:title" content="@yield('title', 'Albion Online Tools — Hitung, Catat, Naik Peringkat')">
-<meta property="og:description" content="@yield('og_description', 'Free Albion Online calculators: refining profit, market prices, crafting costs, flip opportunities. Real-time data, 7 languages.')">
+<meta property="og:title" content="@yield('title', 'Albion Online Tools — Kalkulator Gratis untuk Pemain')">
+<meta property="og:description" content="@yield('og_description', 'Kalkulator gratis Albion Online: profit refine, biaya crafting, peluang flipping, dan harga market real-time.')">
 <meta property="og:image" content="@yield('og_image', asset('images/og-default.jpg'))">
 <meta property="og:site_name" content="HGT - Harun Gaming Tools">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="{{ url()->current() }}">
-<meta name="twitter:title" content="@yield('title', 'Albion Online Tools — Hitung, Catat, Naik Peringkat')">
-<meta name="twitter:description" content="@yield('og_description', 'Free Albion Online calculators: refining profit, market prices, crafting costs, flip opportunities. Real-time data, 7 languages.')">
+<meta name="twitter:title" content="@yield('title', 'Albion Online Tools — Kalkulator Gratis untuk Pemain')">
+<meta name="twitter:description" content="@yield('og_description', 'Kalkulator gratis Albion Online: profit refine, biaya crafting, peluang flipping, dan harga market real-time.')">
 <meta name="twitter:image" content="@yield('og_image', asset('images/og-default.jpg'))">
 
 <link rel="icon" type="image/png" href="{{ asset('images/icons/page-icon.png') }}">
@@ -43,7 +42,7 @@
     navigator.serviceWorker.register('/sw.js');
   }
 </script>
-<title>@yield('title', 'Albion Online Tools — Hitung, Catat, Naik Peringkat')</title>
+<title>@yield('title', 'Albion Online Tools — Kalkulator Gratis untuk Pemain')</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,900&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -208,38 +207,32 @@
     <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
 </button>
 
+{{-- Bottom bar = pintasan ke tools. Social, Notifikasi, dan Profil disembunyikan dulu
+     (fungsinya belum jelas); route & kodenya tetap ada, tinggal dipasang lagi nanti. --}}
 <nav class="bottom-nav" id="bottom-nav" aria-label="Navigasi utama">
     <a href="/" class="bottom-nav-item {{ request()->is('/') ? 'active' : '' }}">
-        <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-        <span>{{ __("nav.home") }}</span>
+        <svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 13l9 5 9-5"/></svg>
+        <span>{{ __("nav.refine") }}</span>
     </a>
 
-    <a href="/reels" class="bottom-nav-item {{ request()->is('reels*') ? 'active' : '' }}">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M10 8.5v7l5.5-3.5-5.5-3.5Z"/></svg>
-        <span>{{ __("reels") }}</span>
+    <a href="/crafting" class="bottom-nav-item {{ request()->is('crafting*', 'mages-tower') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6Z"/></svg>
+        <span>{{ __("nav.crafting") }}</span>
     </a>
 
-    <a href="/social" class="bottom-nav-item {{ request()->routeIs('social.*') ? 'active' : '' }}">
-        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.3c2.9.4 5.5 2.5 5.5 5.7"/></svg>
-        <span>{{ __("nav.social") }}</span>
+    <a href="/market" class="bottom-nav-item {{ request()->is('market*') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/></svg>
+        <span>{{ __("nav.market") }}</span>
     </a>
 
-    @auth
-        <a href="/notifikasi" class="bottom-nav-item {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
-    @else
-        <a href="/login" class="bottom-nav-item">
-    @endauth
-        <svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0"/></svg>
-        <span>{{ __("nav.notifications") }}</span>
+    <a href="/kalkulator/flip" class="bottom-nav-item {{ request()->is('kalkulator/flip*', 'flip*') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg>
+        <span>{{ __("nav.flip") }}</span>
     </a>
 
-    @auth
-        <a href="/profile" class="bottom-nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-    @else
-        <a href="/login" class="bottom-nav-item">
-    @endauth
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
-        <span>{{ __("nav.profile") }}</span>
+    <a href="/tools" class="bottom-nav-item {{ request()->is('tools', 'kalkulator/fishing*', 'death-recap*', 'reels*', 'catatan') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+        <span>{{ __("nav.more") }}</span>
     </a>
 </nav>
 
