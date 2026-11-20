@@ -1,4 +1,14 @@
 User-agent: *
 Disallow: /admin
 Disallow: /vendor
+Disallow: /dev/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /login
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /social
+Disallow: /notifikasi
 Allow: /
+
+Sitemap: https://harungamingtools.fun/sitemap.xml

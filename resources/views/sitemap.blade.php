@@ -13,8 +13,8 @@
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://harungamingtools.fun/kalkulator/refine</loc>
-        <priority>0.8</priority>
+        <loc>https://harungamingtools.fun/tools</loc>
+        <priority>0.7</priority>
     </url>
     <url>
         <loc>https://harungamingtools.fun/market</loc>

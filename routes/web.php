@@ -46,14 +46,22 @@ Route::post('/logout', function () {
 });
 
 // ─── Public Pages ───────────────────────────────────────────────────────
-Route::get('/', fn() => view('home'));
+// Halaman utama = Kalkulator Refine (tool paling ramai), bukan landing page.
+Route::get('/', fn() => view('kalkulator.refine'))->name('home');
+// Daftar semua tools (tombol "Lainnya" di bottom bar). Isinya view home lama.
+Route::get('/tools', fn() => view('home'))->name('tools.index');
 Route::get('/catatan', fn() => view('catatan'));
 Route::get('/crafting', fn() => view('crafting'));
 
 // ─── Kalkulator ──────────────────────────────────────────────────────────
 Route::get('/kalkulator/fishing', fn() => view('kalkulator.fishing'));
 Route::get('/kalkulator/flip',    fn() => view('kalkulator.flip'));
-Route::get('/kalkulator/refine',  fn() => view('kalkulator.refine'));
+// URL lama refine -> 301 ke halaman utama (query string seperti ?jenis= ikut dibawa)
+// supaya link yang sudah tersebar tidak mati dan Google tidak lihat 2 halaman kembar.
+Route::get('/kalkulator/refine', function (\Illuminate\Http\Request $request) {
+    $query = $request->getQueryString();
+    return redirect('/' . ($query ? '?' . $query : ''), 301);
+});
 
 // ─── flip ──────────────────────────────────────────────────────────
 Route::get('/flip/advance', [FlipController::class, 'advance'])->name('flip.advance');

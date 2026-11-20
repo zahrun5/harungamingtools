@@ -2,11 +2,9 @@
 
 @section('title', __('refine.title'))
 
-@section('meta_description', 'Calculate refining profit for ore, logs, hide, fiber, and stone in Albion Online. Real-time market prices from all cities, return rate calculator, inventory tracker. Free tool for all players.')
+@section('meta_description', __('refine.meta_description'))
 
-@section('meta_keywords', 'albion refining calculator, ore profit calculator, refining return rate, albion market prices, refining albion online, profit calculator')
-
-@section('og_description', 'Albion Online Refining Calculator: Calculate profit for T2-T8 materials. Real-time prices, return rate system, inventory tracking. Supports all resource types.')
+@section('og_description', __('refine.og_description'))
 
 @section('content')
 
